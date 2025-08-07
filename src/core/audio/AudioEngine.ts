@@ -1,4 +1,5 @@
 import { AudioTrack, AudioEngine, AudioEffect } from '../../types/audio';
+import * as jsmediatags from 'jsmediatags';
 
 export class WebAudioEngine implements AudioEngine {
   private audioContext: AudioContext;
@@ -58,7 +59,6 @@ export class WebAudioEngine implements AudioEngine {
 
   async loadTrack(track: AudioTrack): Promise<void> {
     this.stop();
-    this.currentTrack = track;
     
     let arrayBuffer: ArrayBuffer;
     
@@ -71,7 +71,35 @@ export class WebAudioEngine implements AudioEngine {
       throw new Error('Invalid track source');
     }
     
-    this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+    // Create a copy of the track to avoid mutating the original
+    const trackWithCover = { ...track };
+    
+    // Try to extract cover art from the audio file
+    try {
+      const tags = await new Promise<any>((resolve, reject) => {
+        jsmediatags.read(arrayBuffer, {
+          onSuccess: resolve,
+          onError: reject
+        });
+      });
+      
+      // Check if the track has cover art
+      if (tags.tags.picture) {
+        const { data, format } = tags.tags.picture;
+        const base64String = btoa(
+          new Uint8Array(data).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ''
+          )
+        );
+        trackWithCover.coverArt = `data:${format};base64,${base64String}`;
+      }
+    } catch (error) {
+      console.warn('Could not extract metadata from audio file:', error);
+    }
+    
+    this.currentTrack = trackWithCover;
+    this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer.slice(0));
     this.pauseTime = 0;
   }
 

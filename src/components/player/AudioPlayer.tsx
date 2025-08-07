@@ -63,7 +63,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     setVolume(parseFloat(e.target.value));
   };
 
-  const handlePlaybackRateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handlePlaybackRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPlaybackRate(parseFloat(e.target.value));
   };
 
@@ -82,6 +82,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
 
   return (
     <div className={styles.audioPlayer}>
+      {track.coverArt ? (
+        <div className={styles.coverArtContainer}>
+          <img 
+            src={track.coverArt} 
+            alt={`${track.title} cover`} 
+            className={styles.coverArt}
+            onError={(e) => {
+              // Hide the image if it fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+        </div>
+      ) : (
+        <div className={`${styles.coverArtPlaceholder} ${!track.coverArt ? styles.visible : ''}`}>
+          <span className={styles.placeholderIcon}>🎵</span>
+        </div>
+      )}
+      
       <div className={styles.trackInfo}>
         <h3 className={styles.trackTitle}>{track.title}</h3>
         <p className={styles.artistName}>{track.artist}</p>
@@ -129,17 +148,19 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
         </button>
 
         <div className={styles.playbackRate}>
-          <select 
-            value={playbackRate.toFixed(1)} 
-            onChange={handlePlaybackRateChange}
-            className={styles.rateSelect}
-          >
-            {[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0].map(rate => (
-              <option key={rate} value={rate}>
-                {rate}x
-              </option>
-            ))}
-          </select>
+          <div className={styles.rateControl}>
+            <span className={styles.rateLabel}>Speed: {playbackRate.toFixed(2)}x</span>
+            <input
+              type="range"
+              min="0.5"
+              max="2.0"
+              step="0.01"
+              value={playbackRate}
+              onChange={handlePlaybackRateChange}
+              className={styles.rateSlider}
+              aria-label="Playback speed"
+            />
+          </div>
         </div>
       </div>
 

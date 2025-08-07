@@ -1,7 +1,7 @@
 {
-  "name": "musicalizer",
+  "name": "tuneton",
   "version": "1.0.0",
-  "description": "A music application",
+  "description": "TuneTON - A modern web-based music player with Telegram WebApp integration",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -15,11 +15,13 @@
     "@twa-dev/sdk": "^8.0.2",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
+    "jsmediatags": "^3.9.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "typescript": "^5.9.2"
   },
   "devDependencies": {
+    "@types/jsmediatags": "^3.9.6",
     "@types/node": "^24.2.0",
     "@types/telegram-web-app": "^9.0.0",
     "@vitejs/plugin-react": "^4.7.0",
