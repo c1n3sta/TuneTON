@@ -1,0 +1,193 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+  KUBE_NAMESPACE: tuneton
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd services/api-gateway && npm ci
+        cd ../../services/auth-service && npm ci
+        cd ../../services/user-service && npm ci
+        cd ../../services/track-service && npm ci
+        cd ../../services/playlist-service && npm ci
+        cd ../../services/audio-processing-service && npm ci
+        cd ../../services/streaming-service && npm ci
+    
+    - name: Run tests
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test?schema=public
+        RABBITMQ_URL: amqp://localhost:5672
+      run: |
+        npm run test --if-present
+        cd services/api-gateway && npm test
+        cd ../../services/auth-service && npm test
+        cd ../../services/user-service && npm test
+        cd ../../services/track-service && npm test
+        cd ../../services/playlist-service && npm test
+        cd ../../services/audio-processing-service && npm test
+        cd ../../services/streaming-service && npm test
+
+  build-and-push:
+    name: Build and Push
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build and push API Gateway
+      uses: docker/build-push-action@v4
+      with:
+        context: ./services/api-gateway
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api-gateway:$(echo $GITHUB_SHA | cut -c1-7)
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Auth Service
+      uses: docker/build-push-action@v4
+      with:
+        context: ./services/auth-service
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/auth-service:$(echo $GITHUB_SHA | cut -c1-7)
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push User Service
+      uses: docker/build-push-action@v4
+      with:
+        context: ./services/user-service
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/user-service:$(echo $GITHUB_SHA | cut -c1-7)
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Track Service
+      uses: docker/build-push-action@v4
+      with:
+        context: ./services/track-service
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/track-service:$(echo $GITHUB_SHA | cut -c1-7)
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Playlist Service
+      uses: docker/build-push-action@v4
+      with:
+        context: ./services/playlist-service
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/playlist-service:$(echo $GITHUB_SHA | cut -c1-7)
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Audio Processing Service
+      uses: docker/build-push-action@v4
+      with:
+        context: ./services/audio-processing-service
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/audio-processing-service:$(echo $GITHUB_SHA | cut -c1-7)
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Streaming Service
+      uses: docker/build-push-action@v4
+      with:
+        context: ./services/streaming-service
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/streaming-service:$(echo $GITHUB_SHA | cut -c1-7)
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy
+    needs: [test, build-and-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+    
+    - name: Deploy to Kubernetes
+      run: |
+        # Update image tags in Kubernetes manifests
+        find k8s -type f -name "*.yaml" -exec sed -i "s|tuneton/|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/|g" {} \;
+        find k8s -type f -name "*.yaml" -exec sed -i "s|:latest|:$(echo $GITHUB_SHA | cut -c1-7)|g" {} \;
+        
+        # Apply all Kubernetes configurations
+        kubectl apply -f k8s/namespaces/tuneton-namespace.yaml
+        kubectl apply -f k8s/secrets/
+        kubectl apply -f k8s/volumes/
+        kubectl apply -f k8s/configs/
+        kubectl apply -f k8s/services/
+        kubectl apply -f k8s/deployments/
+        kubectl apply -f k8s/ingress/
+    
+    - name: Verify deployment
+      run: |
+        kubectl get pods -n ${{ env.KUBE_NAMESPACE }}
+        kubectl get svc -n ${{ env.KUBE_NAMESPACE }}

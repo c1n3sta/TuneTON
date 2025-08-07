@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  audio-processing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audio-processing-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=your_jwt_secret_here
+      - JWT_EXPIRES_IN=24h
+      - STORAGE_UPLOAD_PATH=/app/uploads
+      - STORAGE_PROCESSED_PATH=/app/processed
+      - STORAGE_TEMP_PATH=/app/temp
+      - LOG_LEVEL=debug
+      - CORS_ORIGIN=http://localhost:3000
+      - API_VERSION=v1
+    volumes:
+      - ./uploads:/app/uploads
+      - ./processed:/app/processed
+      - ./temp:/app/temp
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    networks:
+      - tuneton-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: audio-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - tuneton-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - tuneton-network
+
+volumes:
+  redis-data:
+
+networks:
+  tuneton-network:
+    driver: bridge

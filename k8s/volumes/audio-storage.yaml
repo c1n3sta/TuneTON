@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: audio-storage-pv
+  namespace: tuneton
+  labels:
+    type: local
+    app: tuneton-audio
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/audio-data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audio-storage-pvc
+  namespace: tuneton
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi

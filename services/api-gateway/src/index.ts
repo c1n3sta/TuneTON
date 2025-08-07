@@ -4,14 +4,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { StatusCodes } from 'http-status-codes';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import dotenv from 'dotenv';
+import { config } from '@tuneton/shared';
 import { logger } from './utils/logger';
 
-// Load environment variables
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
 // Middleware
 app.use(helmet());
@@ -25,19 +22,37 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // API Routes
+const { services } = config;
+
+// Auth Service
 app.use('/api/auth', createProxyMiddleware({
-  target: process.env.AUTH_SERVICE_URL || 'http://auth-service:3001',
+  target: services.auth.url,
   changeOrigin: true,
   pathRewrite: {
-    '^/api/auth': '/',
+    '^/api/auth': services.auth.basePath,
+  },
+  onError: (err, req, res) => {
+    logger.error(`Auth Service Error: ${err.message}`, { error: err });
+    res.status(StatusCodes.SERVICE_UNAVAILABLE).json({
+      error: 'Service Unavailable',
+      message: 'Authentication service is currently unavailable',
+    });
   },
 }));
 
+// User Service
 app.use('/api/users', createProxyMiddleware({
-  target: process.env.USER_SERVICE_URL || 'http://user-service:3002',
+  target: services.user.url,
   changeOrigin: true,
   pathRewrite: {
-    '^/api/users': '/',
+    '^/api/users': services.user.basePath,
+  },
+  onError: (err, req, res) => {
+    logger.error(`User Service Error: ${err.message}`, { error: err });
+    res.status(StatusCodes.SERVICE_UNAVAILABLE).json({
+      error: 'Service Unavailable',
+      message: 'User service is currently unavailable',
+    });
   },
 }));
 

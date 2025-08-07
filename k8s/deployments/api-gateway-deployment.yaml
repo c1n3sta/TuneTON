@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: tuneton
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: tuneton/api-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service:3000"
+            - name: USER_SERVICE_URL
+              value: "http://user-service:3000"
+            - name: TRACK_SERVICE_URL
+              value: "http://track-service:3000"
+            - name: PLAYLIST_SERVICE_URL
+              value: "http://playlist-service:3000"
+            - name: AUDIO_PROCESSING_SERVICE_URL
+              value: "http://audio-processing-service:3000"
+            - name: STREAMING_SERVICE_URL
+              value: "http://streaming-service:3000"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5

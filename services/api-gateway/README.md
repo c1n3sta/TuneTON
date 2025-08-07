@@ -4,13 +4,14 @@ The API Gateway is the main entry point for all client requests in the TuneTON m
 
 ## Features
 
-- **Request Routing**: Routes requests to appropriate microservices
+- **Request Routing**: Routes requests to appropriate microservices using shared configuration
 - **Authentication**: Validates JWT tokens and manages user sessions
 - **Rate Limiting**: Protects against abuse with configurable rate limits
-- **Request Validation**: Validates incoming requests
+- **Request Validation**: Validates incoming requests using shared types
 - **Logging**: Comprehensive request/response logging
 - **CORS**: Handles Cross-Origin Resource Sharing
 - **Error Handling**: Consistent error responses
+- **Shared Configuration**: Uses `@tuneton/shared` for common types and config
 
 ## Getting Started
 
@@ -33,20 +34,43 @@ The API Gateway is the main entry point for all client requests in the TuneTON m
    cp .env.example .env
    ```
 
+## Shared Package
+
+The API Gateway uses the `@tuneton/shared` package for:
+- Common TypeScript types and interfaces
+- Centralized configuration management
+- Shared utilities and helpers
+
 ### Configuration
 
-Edit the `.env` file with your configuration:
+Configuration is managed through the shared package. Edit the `.env` file with your configuration:
 
 ```env
 # Server Configuration
-PORT=3000
 NODE_ENV=development
 
-# Service URLs
+# Service Configuration (via @tuneton/shared)
+SERVICE_NAME=api-gateway
+PORT=3000
+
+# CORS Configuration
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_here
+JWT_EXPIRES_IN=1d
+JWT_REFRESH_EXPIRES_IN=7d
+JWT_ISSUER=tuneton-api
+JWT_AUDIENCE=tuneton-client
+
+# Service URLs (with fallbacks)
 AUTH_SERVICE_URL=http://auth-service:3001
 USER_SERVICE_URL=http://user-service:3002
 TRACK_SERVICE_URL=http://track-service:3003
 AUDIO_SERVICE_URL=http://audio-service:3004
+
+# Logging
+LOG_LEVEL=info
 
 # JWT Configuration
 JWT_SECRET=your_jwt_secret_key_here

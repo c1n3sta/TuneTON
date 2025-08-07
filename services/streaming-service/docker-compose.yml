@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  streaming-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streaming-service
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./uploads/audio:/app/uploads/audio
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - JWT_SECRET=your_jwt_secret_key_here
+      - AUDIO_FILES_DIR=/app/uploads/audio
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - TRACK_SERVICE_URL=http://track-service:3003
+      - LOG_LEVEL=debug
+    networks:
+      - tuneton-network
+    depends_on:
+      - redis
+      # Uncomment when other services are ready
+      # - auth-service
+      # - track-service
+
+  redis:
+    image: redis:7-alpine
+    container_name: streaming-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - tuneton-network
+
+  # Uncomment and configure when other services are ready
+  # auth-service:
+  #   image: tuneton/auth-service:latest
+  #   container_name: auth-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3001:3001"
+  #   networks:
+  #     - tuneton-network
+
+  # track-service:
+  #   image: tuneton/track-service:latest
+  #   container_name: track-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3003:3003"
+  #   networks:
+  #     - tuneton-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  tuneton-network:
+    driver: bridge
