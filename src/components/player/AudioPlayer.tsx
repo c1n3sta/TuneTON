@@ -63,8 +63,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     setVolume(parseFloat(e.target.value));
   };
 
-  const handlePlaybackRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlaybackRate(parseFloat(e.target.value));
+  const handleTempoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      setPlaybackRate(value);
+    }
   };
 
   const handlePitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,20 +150,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
           {isPlaying ? '⏸️' : '▶️'}
         </button>
 
-        <div className={styles.playbackRate}>
-          <div className={styles.rateControl}>
-            <span className={styles.rateLabel}>Speed: {playbackRate.toFixed(2)}x</span>
-            <input
-              type="range"
-              min="0.5"
-              max="2.0"
-              step="0.01"
-              value={playbackRate}
-              onChange={handlePlaybackRateChange}
-              className={styles.rateSlider}
-              aria-label="Playback speed"
-            />
-          </div>
+        <div className={styles.tempoControl}>
+          <span className={styles.controlLabel}>Tempo: {playbackRate.toFixed(2)}x</span>
+          <input
+            type="range"
+            min="0.5"
+            max="2.0"
+            step="0.01"
+            value={playbackRate}
+            onChange={handleTempoChange}
+            className={styles.controlSlider}
+            aria-label="Tempo control"
+          />
         </div>
       </div>
 
@@ -181,17 +182,33 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
       </div>
 
       {showPitch && (
-        <div className={styles.pitchControl}>
-          <label>Pitch: {pitch.toFixed(2)}x</label>
-          <input
-            type="range"
-            min="0.5"
-            max="2"
-            step="0.01"
-            value={pitch}
-            onChange={handlePitchChange}
-            className={styles.pitchSlider}
-          />
+        <div className={styles.effectControls}>
+          <div className={styles.effectControl}>
+            <span className={styles.controlLabel}>Pitch: {pitch.toFixed(2)}x</span>
+            <input
+              type="range"
+              min="0.5"
+              max="2.0"
+              step="0.01"
+              value={pitch}
+              onChange={handlePitchChange}
+              className={styles.controlSlider}
+              aria-label="Pitch control"
+            />
+          </div>
+          <div className={styles.effectControl}>
+            <span className={styles.controlLabel}>Tempo: {playbackRate.toFixed(2)}x</span>
+            <input
+              type="range"
+              min="0.5"
+              max="2.0"
+              step="0.01"
+              value={playbackRate}
+              onChange={handleTempoChange}
+              className={styles.controlSlider}
+              aria-label="Tempo control"
+            />
+          </div>
         </div>
       )}
 

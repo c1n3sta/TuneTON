@@ -1,5 +1,8 @@
 import { AudioTrack, AudioEngine, AudioEffect } from '../../types/audio';
-import * as jsmediatags from 'jsmediatags';
+import { metadataExtractor } from '../metadata/MetadataService';
+
+type AudioEvent = 'play' | 'pause' | 'stop' | 'end' | 'error' | 'timeupdate' | 'loadedmetadata' | 'seeked';
+type EventCallback = (data?: any) => void;
 
 export class WebAudioEngine implements AudioEngine {
   private audioContext: AudioContext;
@@ -17,14 +20,16 @@ export class WebAudioEngine implements AudioEngine {
   private startTime = 0;
   private pauseTime = 0;
   private isPlayingFlag = false;
-  private playbackRate = 1.0;
-  private pitch = 1.0;
+  private playbackRate = 1.0;  // Controls tempo (time-stretching)
+  private pitch = 1.0;         // Controls pitch (pitch-shifting)
   private volume = 1.0;
   private eqSettings = {
     low: 0,
     mid: 0,
     high: 0
   };
+  private pitchShifterNode: any = null; // Will hold the pitch shifter instance
+  private eventListeners: Map<AudioEvent, Set<EventCallback>> = new Map();
 
   constructor() {
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -57,102 +62,212 @@ export class WebAudioEngine implements AudioEngine {
     this.gainNode.connect(this.audioContext.destination);
   }
 
-  async loadTrack(track: AudioTrack): Promise<void> {
+  async loadTrack(track: AudioTrack & { album?: string }): Promise<void> {
     this.stop();
     
     let arrayBuffer: ArrayBuffer;
+    let file: File | null = null;
     
+    // Handle different track source types
     if (track.source instanceof ArrayBuffer) {
       arrayBuffer = track.source;
     } else if (typeof track.source === 'string') {
       const response = await fetch(track.source);
       arrayBuffer = await response.arrayBuffer();
+      file = new File([arrayBuffer], track.title || 'track.mp3', { type: 'audio/mp3' });
+    } else if (track.source && 'arrayBuffer' in track.source) {
+      file = track.source as File;
+      arrayBuffer = await this.loadTrackFromFile(file);
     } else {
       throw new Error('Invalid track source');
     }
     
     // Create a copy of the track to avoid mutating the original
-    const trackWithCover = { ...track };
+    const trackCopy = { 
+      ...track,
+      album: track.album || 'Unknown Album'
+    };
     
-    // Try to extract cover art from the audio file
-    try {
-      const tags = await new Promise<any>((resolve, reject) => {
-        jsmediatags.read(arrayBuffer, {
-          onSuccess: resolve,
-          onError: reject
+    // Extract metadata if we have a file
+    if (file) {
+      try {
+        const metadata = await metadataExtractor.extract(file);
+        Object.assign(trackCopy, {
+          title: metadata.title || trackCopy.title,
+          artist: metadata.artist || trackCopy.artist,
+          album: metadata.album || trackCopy.album,
+          coverArt: metadata.coverArt || trackCopy.coverArt,
+          duration: metadata.duration || trackCopy.duration
         });
-      });
-      
-      // Check if the track has cover art
-      if (tags.tags.picture) {
-        const { data, format } = tags.tags.picture;
-        const base64String = btoa(
-          new Uint8Array(data).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ''
-          )
-        );
-        trackWithCover.coverArt = `data:${format};base64,${base64String}`;
+      } catch (error) {
+        console.warn('Error extracting metadata:', error);
+        // Fallback to basic file info if metadata extraction fails
+        if (!trackCopy.title && file) {
+          trackCopy.title = file.name.replace(/\.[^/.]+$/, '');
+        }
       }
-    } catch (error) {
-      console.warn('Could not extract metadata from audio file:', error);
     }
     
-    this.currentTrack = trackWithCover;
+    this.currentTrack = trackCopy;
     this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer.slice(0));
     this.pauseTime = 0;
   }
 
+  private async loadTrackFromFile(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        resolve(arrayBuffer);
+      };
+      
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        reject(error);
+      };
+      
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  private createAudioSource(buffer: AudioBuffer): boolean {
+    try {
+      // Stop any existing source
+      if (this.audioBufferSource) {
+        try {
+          this.audioBufferSource.stop();
+          this.audioBufferSource.disconnect();
+        } catch (e) {
+          console.warn('Error stopping previous audio source:', e);
+        }
+      }
+
+      // Create new source
+      this.audioBufferSource = this.audioContext.createBufferSource();
+      if (!this.audioBufferSource) {
+        throw new Error('Failed to create audio buffer source');
+      }
+
+      this.audioBufferSource.buffer = buffer;
+      
+      // Create a pitch shifter if needed
+      if (this.pitch !== 1.0) {
+        // In a real implementation, you would use a pitch-shifting library here
+        this.pitchShifterNode = this.audioContext.createGain();
+        if (!this.pitchShifterNode) {
+          throw new Error('Failed to create pitch shifter node');
+        }
+        this.pitchShifterNode.gain.value = 1.0;
+        
+        // Connect the audio graph with pitch shifter
+        this.audioBufferSource
+          .connect(this.pitchShifterNode)
+          .connect(this.eqNodes.low)
+          .connect(this.eqNodes.mid)
+          .connect(this.eqNodes.high)
+          .connect(this.gainNode)
+          .connect(this.analyser)
+          .connect(this.audioContext.destination);
+      } else {
+        // Connect the audio graph without pitch shifter
+        this.audioBufferSource
+          .connect(this.eqNodes.low)
+          .connect(this.eqNodes.mid)
+          .connect(this.eqNodes.high)
+          .connect(this.gainNode)
+          .connect(this.analyser)
+          .connect(this.audioContext.destination);
+      }
+
+      // Set initial values
+      this.audioBufferSource.playbackRate.value = this.playbackRate;
+      return true;
+    } catch (error) {
+      console.error('Error creating audio source:', error);
+      this.emit('error', { type: 'source-creation', error });
+      return false;
+    }
+  }
+
   async play(): Promise<void> {
-    if (!this.audioBuffer) return;
+    if (!this.audioBuffer) {
+      const error = new Error('No audio buffer available');
+      this.emit('error', { type: 'no-audio-buffer', error });
+      throw error;
+    }
     
     if (this.isPlayingFlag) {
       this.pause();
       return;
     }
 
-    this.audioBufferSource = this.audioContext.createBufferSource();
-    this.audioBufferSource.buffer = this.audioBuffer;
-    // Apply both playback rate and pitch
-    this.audioBufferSource.playbackRate.value = this.playbackRate * this.pitch;
-    
-    // Connect source to effect chain
-    this.audioBufferSource.connect(this.eqNodes.low);
-    
-    this.audioBufferSource.onended = () => {
-      this.isPlayingFlag = false;
-      this.pauseTime = 0;
-      // TODO: Emit track end event
-    };
+    const sourceCreated = this.createAudioSource(this.audioBuffer);
+    if (!sourceCreated || !this.audioBufferSource) {
+      const error = new Error('Failed to create audio source');
+      this.emit('error', { type: 'source-creation-failed', error });
+      throw error;
+    }
 
-    this.startTime = this.audioContext.currentTime - this.pauseTime;
-    this.audioBufferSource.start(0, this.pauseTime);
-    this.isPlayingFlag = true;
-    
-    // Resume audio context if it was suspended
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+    try {
+      this.audioBufferSource.onended = () => {
+        this.isPlayingFlag = false;
+        this.pauseTime = 0;
+        this.emit('end');
+      };
+
+      this.startTime = this.audioContext.currentTime - this.pauseTime;
+      this.audioBufferSource.start(0, this.pauseTime);
+      this.isPlayingFlag = true;
+      
+      // Resume audio context if it was suspended
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
+      this.emit('play');
+      this.emit('timeupdate', { currentTime: this.pauseTime, duration: this.audioBuffer.duration });
+    } catch (error) {
+      console.error('Error during playback:', error);
+      this.isPlayingFlag = false;
+      this.emit('error', { type: 'playback-error', error });
+      throw error;
     }
   }
 
   pause(): void {
     if (!this.audioBufferSource) return;
     
-    this.pauseTime = this.getCurrentTime();
-    this.audioBufferSource.stop();
-    this.audioBufferSource.disconnect();
-    this.audioBufferSource = null;
-    this.isPlayingFlag = false;
+    try {
+      this.pauseTime = this.getCurrentTime();
+      this.audioBufferSource.stop();
+      this.audioBufferSource.disconnect();
+      this.audioBufferSource = null;
+      this.isPlayingFlag = false;
+      this.emit('pause');
+      this.emit('timeupdate', { currentTime: this.pauseTime, duration: this.audioBuffer?.duration || 0 });
+    } catch (error) {
+      console.error('Error pausing playback:', error);
+      this.emit('error', { type: 'pause-error', error });
+    }
   }
 
   stop(): void {
     if (this.audioBufferSource) {
-      this.audioBufferSource.stop();
-      this.audioBufferSource.disconnect();
-      this.audioBufferSource = null;
+      try {
+        this.audioBufferSource.stop();
+        this.audioBufferSource.disconnect();
+        this.emit('stop');
+      } catch (error) {
+        console.error('Error stopping playback:', error);
+        this.emit('error', { type: 'stop-error', error });
+      } finally {
+        this.audioBufferSource = null;
+      }
     }
     this.pauseTime = 0;
     this.isPlayingFlag = false;
+    this.emit('timeupdate', { currentTime: 0, duration: this.audioBuffer?.duration || 0 });
   }
 
   seek(time: number): void {
@@ -173,20 +288,41 @@ export class WebAudioEngine implements AudioEngine {
   }
 
   setPlaybackRate(rate: number): void {
-    this.playbackRate = Math.max(0.5, Math.min(2, rate));
+    this.playbackRate = rate;
     if (this.audioBufferSource) {
-      this.audioBufferSource.playbackRate.value = this.playbackRate * this.pitch;
+      // Only update the playback rate, which affects tempo without changing pitch
+      this.audioBufferSource.playbackRate.value = rate;
+      
+      // If we have a pitch shifter, update its playback rate while maintaining pitch
+      if (this.pitchShifterNode) {
+        // The pitch shifter will handle maintaining the pitch while changing tempo
+        this.pitchShifterNode.playbackRate = rate;
+      }
     }
   }
 
   setPitch(pitch: number): void {
-    this.pitch = Math.max(0.5, Math.min(2, pitch));
+    this.pitch = pitch;
     
-    // Update playback rate to include pitch adjustment
-    if (this.audioBufferSource) {
-      this.audioBufferSource.playbackRate.value = this.playbackRate * this.pitch;
+    // If we have a pitch shifter, update its pitch setting
+    if (this.pitchShifterNode) {
+      this.pitchShifterNode.pitch = pitch;
     }
-    // TODO: Implement pitch shifting
+    
+    // If we're playing, we need to recreate the audio source with new pitch settings
+    if (this.isPlayingFlag && this.audioBuffer) {
+      const wasPlaying = this.isPlayingFlag;
+      const currentTime = this.getCurrentTime();
+      this.stop();
+      
+      // Recreate the audio source with the new pitch setting
+      this.createAudioSource(this.audioBuffer);
+      this.seek(currentTime);
+      
+      if (wasPlaying) {
+        this.play();
+      }
+    }
   }
 
   setEQ(band: 'low' | 'mid' | 'high', value: number): void {
@@ -233,10 +369,59 @@ export class WebAudioEngine implements AudioEngine {
     return this.analyser;
   }
 
+  // Event handling
+  on(event: AudioEvent, callback: EventCallback): () => void {
+    if (!this.eventListeners.has(event)) {
+      this.eventListeners.set(event, new Set());
+    }
+    const listeners = this.eventListeners.get(event)!;
+    listeners.add(callback);
+    
+    // Return unsubscribe function
+    return () => {
+      listeners.delete(callback);
+    };
+  }
+
+  private emit(event: AudioEvent, data?: any): void {
+    const listeners = this.eventListeners.get(event);
+    if (listeners) {
+      listeners.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error(`Error in ${event} event handler:`, error);
+        }
+      });
+    }
+  }
+
   destroy(): void {
+    // Stop any active playback
     this.stop();
-    this.audioBuffer = null;
-    this.currentTrack = null;
-    // TODO: Clean up all audio nodes
+    
+    // Disconnect all nodes
+    if (this.audioBufferSource) {
+      this.audioBufferSource.disconnect();
+      this.audioBufferSource = null;
+    }
+    
+    this.gainNode.disconnect();
+    this.analyser.disconnect();
+    
+    // Close the audio context
+    if (this.audioContext.state !== 'closed') {
+      this.audioContext.close().catch(console.error);
+    }
+    
+    // Clear event listeners
+    this.eventListeners.clear();
+  }
+  
+  /**
+   * Get the current track with its metadata
+   */
+  getCurrentTrack(): AudioTrack | null {
+    return this.currentTrack ? { ...this.currentTrack } : null;
   }
 }

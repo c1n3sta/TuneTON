@@ -2,8 +2,9 @@ export interface AudioTrack {
   id: string;
   title: string;
   artist: string;
+  album?: string;
   duration: number;
-  source: string | ArrayBuffer;
+  source: string | ArrayBuffer | File;
   coverArt?: string;
 }
 
@@ -45,5 +46,6 @@ export interface AudioEngine {
   removeEffect(effectId: string): void;
   getCurrentTime(): number;
   getDuration(): number;
+  getCurrentTrack(): AudioTrack | null;
   destroy(): void;
 }

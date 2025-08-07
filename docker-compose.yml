@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - auth-service
+      - user-service
+      - track-service
+      - playlist-service
+    networks:
+      - tuneton-network
+
+  # Auth Service
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      - NODE_ENV=development
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    networks:
+      - tuneton-network
+
+  # User Service
+  user-service:
+    build: ./services/user-service
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=user-db
+    depends_on:
+      - user-db
+    networks:
+      - tuneton-network
+
+  # User Database
+  user-db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=user_service
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    networks:
+      - tuneton-network
+
+  # Track Service
+  track-service:
+    build: ./services/track-service
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=track-db
+    depends_on:
+      - track-db
+    networks:
+      - tuneton-network
+
+  # Track Database
+  track-db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=track_service
+    volumes:
+      - track-db-data:/var/lib/postgresql/data
+    networks:
+      - tuneton-network
+
+  # Audio Processing Service
+  audio-processing-service:
+    build: ./services/audio-processing-service
+    environment:
+      - NODE_ENV=development
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - tuneton-network
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - tuneton-network
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - tuneton-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - tuneton-network
+
+networks:
+  tuneton-network:
+    driver: bridge
+
+volumes:
+  user-db-data:
+  track-db-data:
+  grafana-storage:

@@ -68,13 +68,23 @@ export const useAudioPlayer = () => {
 
   // Load a new track
   const loadTrack = useCallback(async (track: AudioTrack) => {
-    if (!audioEngineRef.current) return;
+    if (!audioEngineRef.current) return false;
     
     try {
-      await audioEngineRef.current.loadTrack(track);
-      setCurrentTrack(track);
+      // Create a copy of the track to ensure we trigger a state update
+      const trackToLoad = { ...track };
+      
+      // Load the track and wait for metadata to be extracted
+      await audioEngineRef.current.loadTrack(trackToLoad);
+      
+      // Get the updated track with metadata from the audio engine
+      const updatedTrack = audioEngineRef.current.getCurrentTrack();
+      
+      // Update the state with the track that now includes metadata
+      setCurrentTrack(updatedTrack || trackToLoad);
       setDuration(audioEngineRef.current.getDuration());
       setCurrentTime(0);
+      
       return true;
     } catch (error) {
       console.error('Error loading track:', error);
