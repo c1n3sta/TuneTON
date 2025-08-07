@@ -1,0 +1,150 @@
+:root {
+  /* Telegram Theme Variables */
+  --tg-theme-bg-color: #17212b;
+  --tg-theme-text-color: #ffffff;
+  --tg-theme-hint-color: #708499;
+  --tg-theme-link-color: #6ab3f3;
+  --tg-theme-button-color: #5288c1;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #232f3c;
+  --tg-theme-header-bg-color: #17212b;
+  --tg-theme-section-bg-color: #17212b;
+  --tg-theme-accent-text-color: #3ea6ff;
+  --tg-theme-section-header-text-color: #6b7b8d;
+  --tg-viewport-height: 100vh;
+  --tg-viewport-stable-height: 100vh;
+}
+
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--tg-theme-bg-color, #17212b);
+  color: var(--tg-theme-text-color, #ffffff);
+  line-height: 1.5;
+}
+
+/* App Layout */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 100%;
+  margin: 0 auto;
+  background-color: var(--tg-theme-bg-color, #17212b);
+  color: var(--tg-theme-text-color, #ffffff);
+}
+
+/* Header */
+.app-header {
+  padding: 1rem;
+  background-color: var(--tg-theme-header-bg-color, #1f2b3a);
+  text-align: center;
+  border-bottom: 1px solid var(--tg-theme-secondary-bg-color, #2d2d2d);
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--tg-theme-button-color, #3e88f7);
+}
+
+.user-info {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--tg-theme-hint-color, #a0a0a0);
+}
+
+/* Main Content */
+.app-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Footer */
+.app-footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--tg-theme-hint-color, #a0a0a0);
+  border-top: 1px solid var(--tg-theme-secondary-bg-color, #2d2d2d);
+  background-color: var(--tg-theme-bg-color, #17212b);
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: var(--tg-theme-text-color, #ffffff);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+  .app-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .app-header h1 {
+    font-size: 1.25rem;
+  }
+  
+  .app-content {
+    padding: 0.75rem;
+  }
+  
+  .app-footer {
+    padding: 0.75rem;
+  }
+}
+
+/* Animation for smooth transitions */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--tg-theme-secondary-bg-color, #2d2d2d);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tg-theme-button-color, #3e88f7);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--tg-theme-accent-text-color, #4a90e2);
+}

@@ -1,0 +1,256 @@
+.audioPlayer {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: var(--tg-theme-bg-color, #1f1f1f);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: var(--tg-theme-text-color, #ffffff);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.trackInfo {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.trackTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #ffffff);
+}
+
+.artistName {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  color: var(--tg-theme-hint-color, #a0a0a0);
+}
+
+.progressContainer {
+  width: 100%;
+  height: 6px;
+  background-color: var(--tg-theme-secondary-bg-color, #2d2d2d);
+  border-radius: 3px;
+  cursor: pointer;
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: var(--tg-theme-button-color, #3e88f7);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.timeDisplay {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--tg-theme-hint-color, #a0a0a0);
+  margin-top: 0.5rem;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.controlButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--tg-theme-text-color, #ffffff);
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+}
+
+.controlButton:hover {
+  background-color: var(--tg-theme-secondary-bg-color, #2d2d2d);
+}
+
+.playButton {
+  background-color: var(--tg-theme-button-color, #3e88f7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.playButton:hover {
+  transform: scale(1.05);
+  background-color: var(--tg-theme-button-color, #4a90e2);
+}
+
+.volumeControl {
+  flex: 1;
+  max-width: 100px;
+  display: flex;
+  align-items: center;
+}
+
+.volumeSlider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  background: var(--tg-theme-secondary-bg-color, #2d2d2d);
+  border-radius: 2px;
+  outline: none;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--tg-theme-button-color, #3e88f7);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.playbackRate {
+  min-width: 70px;
+}
+
+.rateSelect {
+  background: var(--tg-theme-secondary-bg-color, #2d2d2d);
+  color: var(--tg-theme-text-color, #ffffff);
+  border: 1px solid var(--tg-theme-hint-color, #3d3d3d);
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.effectsControls {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  justify-content: center;
+}
+
+.effectButton {
+  background: var(--tg-theme-secondary-bg-color, #2d2d2d);
+  color: var(--tg-theme-text-color, #ffffff);
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.effectButton:hover {
+  background: var(--tg-theme-hint-color, #3d3d3d);
+}
+
+.effectButton.active {
+  background: var(--tg-theme-button-color, #3e88f7);
+  color: white;
+}
+
+.pitchControl,
+.eqControls {
+  background: var(--tg-theme-secondary-bg-color, #2d2d2d);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.pitchControl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pitchSlider {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.eqControls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.eqBand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.eqSlider {
+  width: 100%;
+  -webkit-appearance: slider-vertical;
+  writing-mode: bt-lr;
+  height: 100px;
+}
+
+.eqBand label {
+  font-size: 0.9rem;
+  color: var(--tg-theme-hint-color, #a0a0a0);
+}
+
+.eqBand span {
+  font-size: 0.8rem;
+  color: var(--tg-theme-hint-color, #a0a0a0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .audioPlayer {
+    padding: 1rem;
+    border-radius: 0;
+  }
+  
+  .controls {
+    gap: 0.5rem;
+  }
+  
+  .effectButton {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .eqControls {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .eqSlider {
+    height: 60px;
+    writing-mode: horizontal-tb;
+  }
+}
