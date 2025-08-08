@@ -31,6 +31,14 @@ export type AudioEffect = {
   enabled: boolean;
 };
 
+export type EffectModuleId = 'tempoPitch' | 'lofi' | 'eq';
+
+export interface EffectModuleState {
+  id: EffectModuleId;
+  bypass: boolean;
+  mix: number; // 0..1 dry/wet
+}
+
 export interface AudioEngine {
   loadTrack(track: AudioTrack): Promise<void>;
   play(): Promise<void>;
@@ -40,10 +48,21 @@ export interface AudioEngine {
   setVolume(volume: number): void;
   setPlaybackRate(rate: number): void;
   setPitch(pitch: number): void;
+  // Step 3: decoupled controls
+  setTempo(tempo: number): void;
+  setPitchSemitones(semitones: number): void;
   setEQ(band: 'low' | 'mid' | 'high', value: number): void;
   applyEffect(effect: AudioEffect): void;
   removeEffect(effectId: string): void;
   getCurrentTime(): number;
   getDuration(): number;
   destroy(): void;
+  // Effect bus controls
+  setEffectBypass(id: EffectModuleId, bypass: boolean): void;
+  setEffectMix(id: EffectModuleId, mix: number): void;
+  // Lo-fi controls
+  setLofiTone(cutoffHz: number): void;
+  setLofiNoiseLevel(level01: number): void;
+  setLofiWowFlutter(depthMs: number, rateHz: number): void;
+  setLofiCrackle(amountPerSec: number): void;
 }

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { WebApp } from '@twa-dev/types';
 import AudioPlayer from './components/player/AudioPlayer';
 import { AudioTrack } from './types/audio';
 import './App.css';
@@ -7,9 +6,7 @@ import './App.css';
 // Declare the Telegram WebApp type
 declare global {
   interface Window {
-    Telegram: {
-      WebApp: WebApp;
-    };
+    Telegram: TelegramWebApps.SDK;
   }
 }
 
