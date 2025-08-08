@@ -26,10 +26,13 @@ export class WebAudioEngine implements AudioEngine {
   private lofiNoiseSource: AudioBufferSourceNode | null = null;
   private lofiWowLFO: OscillatorNode;
   private lofiWowDepth: GainNode;
-
-  private eqIn: GainNode;
+  // 7-band EQ nodes
+  private eqBands: BiquadFilterNode[] = [];
+  private eqMix: GainNode;
+  private eqBypass: GainNode;
   private eqWet: GainNode;
   private eqDry: GainNode;
+  private eqIn: GainNode;
   private eqOut: GainNode;
 
   private analyser: AnalyserNode;
@@ -249,6 +252,40 @@ export class WebAudioEngine implements AudioEngine {
     this.applyBypass('tempoPitch', this.effectBypass.tempoPitch, true);
     this.applyBypass('lofi', this.effectBypass.lofi, true);
     this.applyBypass('eq', this.effectBypass.eq, true);
+
+    // Initialize 7-band EQ
+    this.eqIn = this.audioContext.createGain();
+    this.eqOut = this.audioContext.createGain();
+    this.eqMix = this.audioContext.createGain();
+    this.eqBypass = this.audioContext.createGain();
+    this.eqWet = this.audioContext.createGain();
+    this.eqDry = this.audioContext.createGain();
+
+    // Create 7 EQ bands with frequencies: 60, 170, 310, 600, 1000, 3000, 6000 Hz
+    const eqFrequencies = [60, 170, 310, 600, 1000, 3000, 6000];
+    const eqQValues = [1.0, 1.1, 1.2, 1.3, 1.4, 1.3, 1.2]; // Q values around 1.0-1.4
+
+    for (let i = 0; i < 7; i++) {
+      const band = this.audioContext.createBiquadFilter();
+      band.type = 'peaking';
+      band.frequency.value = eqFrequencies[i];
+      band.Q.value = eqQValues[i];
+      band.gain.value = 0; // Start at unity (0 dB)
+      this.eqBands.push(band);
+    }
+
+    // Wire EQ chain: eqIn → band0 → band1 → ... → band6 → eqWet
+    this.eqIn.connect(this.eqBands[0]);
+    for (let i = 0; i < 6; i++) {
+      this.eqBands[i].connect(this.eqBands[i + 1]);
+    }
+    this.eqBands[6].connect(this.eqWet);
+
+    // Set initial mix and bypass
+    this.eqMix.gain.value = 1;
+    this.eqBypass.gain.value = 1;
+    this.eqWet.gain.value = 1;
+    this.eqDry.gain.value = 1;
   }
 
   // Helper to apply bypass by forcing dry=1 wet=0 when bypassed
@@ -669,6 +706,24 @@ export class WebAudioEngine implements AudioEngine {
   setLofiCrackle(amountPerSec: number): void {
     // Placeholder: could schedule impulses into a convolver or gain pops
     // For now, no-op to avoid artifacts
+  }
+
+  // 7-band EQ controls
+  setEQBand(band: number, gainDb: number): void {
+    if (band >= 0 && band < 7 && this.eqBands[band]) {
+      const clamped = Math.max(-12, Math.min(12, gainDb));
+      this.eqBands[band].gain.setValueAtTime(clamped, this.audioContext.currentTime);
+    }
+  }
+
+  setEQMix(mix: number): void {
+    const clamped = Math.max(0, Math.min(1, mix));
+    this.eqWet.gain.setValueAtTime(clamped, this.audioContext.currentTime);
+    this.eqDry.gain.setValueAtTime(1 - clamped, this.audioContext.currentTime);
+  }
+
+  setEQBypass(bypass: boolean): void {
+    this.setEffectBypass('eq', bypass);
   }
 
   setEffectBypass(id: EffectModuleId, bypass: boolean): void {

@@ -65,4 +65,8 @@ export interface AudioEngine {
   setLofiNoiseLevel(level01: number): void;
   setLofiWowFlutter(depthMs: number, rateHz: number): void;
   setLofiCrackle(amountPerSec: number): void;
+  // 7-band EQ controls
+  setEQBand(band: number, gainDb: number): void;
+  setEQMix(mix: number): void;
+  setEQBypass(bypass: boolean): void;
 }

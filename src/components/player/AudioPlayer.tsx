@@ -25,6 +25,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     tempo,
     pitchSemitones,
     eqSettings,
+    eqBands,
+    eqMix,
+    eqBypass,
     lofiTone,
     lofiNoise,
     lofiWow,
@@ -41,7 +44,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     setEffectMix,
     handleLofiToneChange,
     handleLofiNoiseChange,
-    handleLofiWowChange
+    handleLofiWowChange,
+    handleEQBandChange,
+    handleEQMixChange,
+    handleEQBypassChange
   } = useAudioPlayer();
   
   const [showEQ, setShowEQ] = useState(false);
@@ -221,47 +227,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
 
       {showEQ && (
         <div className={styles.eqControls}>
-          <div className={styles.eqBand}>
-            <label>Low</label>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqSettings.low}
-              onChange={handleEQChange('low')}
-              className={styles.eqSlider}
-            />
-            <span>{eqSettings.low > 0 ? `+${eqSettings.low}` : eqSettings.low}dB</span>
-          </div>
-          
-          <div className={styles.eqBand}>
-            <label>Mid</label>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqSettings.mid}
-              onChange={handleEQChange('mid')}
-              className={styles.eqSlider}
-            />
-            <span>{eqSettings.mid > 0 ? `+${eqSettings.mid}` : eqSettings.mid}dB</span>
-          </div>
-          
-          <div className={styles.eqBand}>
-            <label>High</label>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqSettings.high}
-              onChange={handleEQChange('high')}
-              className={styles.eqSlider}
-            />
-            <span>{eqSettings.high > 0 ? `+${eqSettings.high}` : eqSettings.high}dB</span>
-          </div>
+          {[60, 170, 310, 600, 1000, 3000, 6000].map((freq, index) => (
+            <div key={index} className={styles.eqBand}>
+              <label>{freq}Hz</label>
+              <input
+                type="range"
+                min="-12"
+                max="12"
+                step="0.5"
+                value={eqBands[index]}
+                onChange={(e) => handleEQBandChange(index, parseFloat(e.target.value))}
+                className={styles.eqSlider}
+              />
+              <span>{eqBands[index] > 0 ? `+${eqBands[index]}` : eqBands[index]}dB</span>
+            </div>
+          ))}
           <div className={styles.inlineControls}>
             <label>EQ Mix</label>
             <input
@@ -269,11 +249,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
               min="0"
               max="1"
               step="0.01"
-              defaultValue={1}
-              onChange={(e) => setEffectMix('eq', parseFloat(e.target.value))}
+              value={eqMix}
+              onChange={(e) => handleEQMixChange(parseFloat(e.target.value))}
             />
-            <button className={styles.effectButton} onClick={() => setEffectBypass('eq', true)}>Bypass</button>
-            <button className={styles.effectButton} onClick={() => setEffectBypass('eq', false)}>Enable</button>
+            <button 
+              className={`${styles.effectButton} ${eqBypass ? styles.active : ''}`} 
+              onClick={() => handleEQBypassChange(!eqBypass)}
+            >
+              {eqBypass ? 'Enable' : 'Bypass'}
+            </button>
           </div>
         </div>
       )}
