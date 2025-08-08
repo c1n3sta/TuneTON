@@ -34,6 +34,17 @@ export class WebAudioEngine implements AudioEngine {
   private eqDry: GainNode;
   private eqIn: GainNode;
   private eqOut: GainNode;
+  // Reverb nodes
+  private reverbIn: GainNode;
+  private reverbOut: GainNode;
+  private reverbMix: GainNode;
+  private reverbBypass: GainNode;
+  private reverbWet: GainNode;
+  private reverbDry: GainNode;
+  private reverbConvolver: ConvolverNode | null = null;
+  private reverbPreDelay: DelayNode;
+  private reverbDamping: BiquadFilterNode;
+  private reverbPreset: 'small' | 'medium' | 'large' = 'medium';
 
   private analyser: AnalyserNode;
   private eqNodes: {
@@ -66,11 +77,13 @@ export class WebAudioEngine implements AudioEngine {
     tempoPitch: false,
     lofi: true,
     eq: false,
+    reverb: false,
   };
   private effectMix: Record<EffectModuleId, number> = {
     tempoPitch: 1,
     lofi: 0,
     eq: 1,
+    reverb: 1,
   };
 
   private moduleGains: Record<EffectModuleId, { dry: GainNode; wet: GainNode }>; 
@@ -227,10 +240,45 @@ export class WebAudioEngine implements AudioEngine {
       this.tempoPitchIn.connect(this.tempoPitchWet);
     }
 
-    // Chain modules: source → tempoPitchIn (dry+wet) → tempoPitchOut → lofiIn → lofiOut → eqIn → eqOut
+    // Initialize reverb
+    this.reverbIn = this.audioContext.createGain();
+    this.reverbOut = this.audioContext.createGain();
+    this.reverbMix = this.audioContext.createGain();
+    this.reverbBypass = this.audioContext.createGain();
+    this.reverbWet = this.audioContext.createGain();
+    this.reverbDry = this.audioContext.createGain();
+    this.reverbPreDelay = this.audioContext.createDelay();
+    this.reverbDamping = this.audioContext.createBiquadFilter();
+    
+    // Configure reverb nodes
+    this.reverbPreDelay.delayTime.value = 0.02; // 20ms default
+    this.reverbDamping.type = 'lowpass';
+    this.reverbDamping.frequency.value = 8000; // 8kHz default
+    this.reverbDamping.Q.value = 0.707;
+
+    // Wire reverb chain: reverbIn → preDelay → convolver → damping → reverbWet
+    this.reverbIn.connect(this.reverbPreDelay);
+    this.reverbPreDelay.connect(this.reverbWet);
+    this.reverbWet.connect(this.reverbOut);
+
+    // Wire reverb dry path
+    this.reverbIn.connect(this.reverbDry);
+    this.reverbDry.connect(this.reverbOut);
+
+    // Set initial reverb mix and bypass
+    this.reverbMix.gain.value = 1;
+    this.reverbBypass.gain.value = 1;
+    this.reverbWet.gain.value = 0.3; // Default 30% wet
+    this.reverbDry.gain.value = 0.7; // Default 70% dry
+
+    // Load default reverb impulse
+    this.loadReverbImpulse('medium');
+
+    // Chain modules: source → tempoPitchIn (dry+wet) → tempoPitchOut → lofiIn → lofiOut → eqIn → eqOut → reverbIn → reverbOut
     this.tempoPitchOut.connect(this.lofiIn);
     this.lofiOut.connect(this.eqIn);
-    this.eqOut.connect(this.analyser);
+    this.eqOut.connect(this.reverbIn);
+    this.reverbOut.connect(this.analyser);
     this.analyser.connect(this.masterGain);
     this.masterGain.connect(this.audioContext.destination);
 
@@ -242,16 +290,19 @@ export class WebAudioEngine implements AudioEngine {
       tempoPitch: { dry: this.tempoPitchDry.gain, wet: this.tempoPitchWet.gain } as unknown as { dry: GainNode; wet: GainNode },
       lofi: { dry: this.lofiDry.gain, wet: this.lofiWet.gain } as unknown as { dry: GainNode; wet: GainNode },
       eq: { dry: this.eqDry.gain, wet: this.eqWet.gain } as unknown as { dry: GainNode; wet: GainNode },
+      reverb: { dry: this.reverbDry.gain, wet: this.reverbWet.gain } as unknown as { dry: GainNode; wet: GainNode },
     } as unknown as Record<EffectModuleId, { dry: GainNode; wet: GainNode }>;
 
     // Set initial mix for each module
     this.applyMix('tempoPitch', this.effectMix.tempoPitch, true);
     this.applyMix('lofi', this.effectMix.lofi, true);
     this.applyMix('eq', this.effectMix.eq, true);
+    this.applyMix('reverb', this.effectMix.reverb, true);
     // Apply bypass states
     this.applyBypass('tempoPitch', this.effectBypass.tempoPitch, true);
     this.applyBypass('lofi', this.effectBypass.lofi, true);
     this.applyBypass('eq', this.effectBypass.eq, true);
+    this.applyBypass('reverb', this.effectBypass.reverb, true);
 
     // Initialize 7-band EQ
     this.eqIn = this.audioContext.createGain();
@@ -724,6 +775,82 @@ export class WebAudioEngine implements AudioEngine {
 
   setEQBypass(bypass: boolean): void {
     this.setEffectBypass('eq', bypass);
+  }
+
+  // Reverb controls
+  setReverbMix(mix: number): void {
+    const clamped = Math.max(0, Math.min(1, mix));
+    this.reverbWet.gain.setValueAtTime(clamped, this.audioContext.currentTime);
+    this.reverbDry.gain.setValueAtTime(1 - clamped, this.audioContext.currentTime);
+  }
+
+  setReverbPreDelay(delayMs: number): void {
+    const clamped = Math.max(0, Math.min(100, delayMs)) / 1000; // Convert to seconds
+    this.reverbPreDelay.delayTime.setValueAtTime(clamped, this.audioContext.currentTime);
+  }
+
+  setReverbDamping(cutoffHz: number): void {
+    const clamped = Math.max(100, Math.min(20000, cutoffHz));
+    this.reverbDamping.frequency.setValueAtTime(clamped, this.audioContext.currentTime);
+  }
+
+  setReverbPreset(preset: 'small' | 'medium' | 'large'): void {
+    this.reverbPreset = preset;
+    this.loadReverbImpulse(preset);
+  }
+
+  setReverbBypass(bypass: boolean): void {
+    this.setEffectBypass('reverb', bypass);
+  }
+
+  private loadReverbImpulse(preset: 'small' | 'medium' | 'large'): void {
+    // Generate simple impulse responses for different room sizes
+    const sampleRate = this.audioContext.sampleRate;
+    let length: number;
+    let decay: number;
+    
+    switch (preset) {
+      case 'small':
+        length = Math.floor(sampleRate * 0.5); // 0.5s
+        decay = 0.3;
+        break;
+      case 'medium':
+        length = Math.floor(sampleRate * 1.0); // 1.0s
+        decay = 0.5;
+        break;
+      case 'large':
+        length = Math.floor(sampleRate * 2.0); // 2.0s
+        decay = 0.7;
+        break;
+    }
+
+    const impulseBuffer = this.audioContext.createBuffer(2, length, sampleRate);
+    
+    for (let channel = 0; channel < 2; channel++) {
+      const channelData = impulseBuffer.getChannelData(channel);
+      
+      // Create a simple exponential decay impulse response
+      for (let i = 0; i < length; i++) {
+        const t = i / sampleRate;
+        const decayFactor = Math.exp(-t / decay);
+        const noise = (Math.random() * 2 - 1) * 0.5;
+        channelData[i] = noise * decayFactor;
+      }
+    }
+
+    // Create and connect convolver
+    if (this.reverbConvolver) {
+      this.reverbConvolver.disconnect();
+    }
+    this.reverbConvolver = this.audioContext.createConvolver();
+    this.reverbConvolver.buffer = impulseBuffer;
+    this.reverbConvolver.normalize = true;
+
+    // Wire: preDelay → convolver → damping → reverbWet
+    this.reverbPreDelay.disconnect();
+    this.reverbPreDelay.connect(this.reverbConvolver);
+    this.reverbConvolver.connect(this.reverbDamping);
+    this.reverbDamping.connect(this.reverbWet);
   }
 
   setEffectBypass(id: EffectModuleId, bypass: boolean): void {

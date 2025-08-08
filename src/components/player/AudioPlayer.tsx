@@ -28,6 +28,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     eqBands,
     eqMix,
     eqBypass,
+    reverbMix,
+    reverbPreDelay,
+    reverbDamping,
+    reverbPreset,
+    reverbBypass,
     lofiTone,
     lofiNoise,
     lofiWow,
@@ -47,12 +52,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     handleLofiWowChange,
     handleEQBandChange,
     handleEQMixChange,
-    handleEQBypassChange
+    handleEQBypassChange,
+    handleReverbMixChange,
+    handleReverbPreDelayChange,
+    handleReverbDampingChange,
+    handleReverbPresetChange,
+    handleReverbBypassChange
   } = useAudioPlayer();
   
   const [showEQ, setShowEQ] = useState(false);
   const [showPitch, setShowPitch] = useState(false);
   const [showLofi, setShowLofi] = useState(false);
+  const [showReverb, setShowReverb] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Load the track when it changes
@@ -185,6 +196,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
         >
           Lo-fi
         </button>
+
+        <button 
+          className={`${styles.effectButton} ${showReverb ? styles.active : ''}`}
+          onClick={() => setShowReverb(!showReverb)}
+        >
+          Reverb
+        </button>
       </div>
 
       {showPitch && (
@@ -301,6 +319,71 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
               onChange={(e) => handleLofiWowChange(Number(e.target.value))}
               className={styles.lofiSlider}
             />
+          </div>
+        </div>
+      )}
+
+      {showReverb && (
+        <div className={styles.reverbControls}>
+          <div className={styles.reverbBand}>
+            <label>Mix: {(reverbMix * 100).toFixed(0)}%</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={reverbMix}
+              onChange={(e) => handleReverbMixChange(parseFloat(e.target.value))}
+              className={styles.reverbSlider}
+            />
+          </div>
+          
+          <div className={styles.reverbBand}>
+            <label>Pre-delay: {reverbPreDelay}ms</label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={reverbPreDelay}
+              onChange={(e) => handleReverbPreDelayChange(parseFloat(e.target.value))}
+              className={styles.reverbSlider}
+            />
+          </div>
+          
+          <div className={styles.reverbBand}>
+            <label>Damping: {reverbDamping.toFixed(0)}Hz</label>
+            <input
+              type="range"
+              min="100"
+              max="20000"
+              step="100"
+              value={reverbDamping}
+              onChange={(e) => handleReverbDampingChange(parseFloat(e.target.value))}
+              className={styles.reverbSlider}
+            />
+          </div>
+
+          <div className={styles.reverbPreset}>
+            <label>Preset:</label>
+            <select 
+              value={reverbPreset}
+              onChange={(e) => handleReverbPresetChange(e.target.value as 'small' | 'medium' | 'large')}
+              className={styles.reverbSelect}
+            >
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+
+          <div className={styles.inlineControls}>
+            <button 
+              className={`${styles.effectButton} ${reverbBypass ? styles.active : ''}`} 
+              onClick={() => handleReverbBypassChange(!reverbBypass)}
+            >
+              {reverbBypass ? 'Enable' : 'Bypass'}
+            </button>
           </div>
         </div>
       )}

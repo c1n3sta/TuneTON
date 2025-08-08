@@ -26,6 +26,12 @@ export const useAudioPlayer = () => {
   const [eqBands, setEqBands] = useState([0, 0, 0, 0, 0, 0, 0]); // 7 bands, 0 dB each
   const [eqMix, setEqMixState] = useState(1);
   const [eqBypass, setEqBypassState] = useState(false);
+  // Reverb state
+  const [reverbMix, setReverbMixState] = useState(0.3);
+  const [reverbPreDelay, setReverbPreDelayState] = useState(20);
+  const [reverbDamping, setReverbDampingState] = useState(8000);
+  const [reverbPreset, setReverbPresetState] = useState<'small' | 'medium' | 'large'>('medium');
+  const [reverbBypass, setReverbBypassState] = useState(false);
   const [tempoPitchMix, setTempoPitchMix] = useState(1);
   const [lofiMix, setLofiMix] = useState(1);
 
@@ -253,6 +259,32 @@ export const useAudioPlayer = () => {
     audioEngineRef.current?.setEQBypass(bypass);
   }, []);
 
+  // Reverb controls
+  const handleReverbMixChange = useCallback((mix: number) => {
+    setReverbMixState(mix);
+    audioEngineRef.current?.setReverbMix(mix);
+  }, []);
+
+  const handleReverbPreDelayChange = useCallback((delayMs: number) => {
+    setReverbPreDelayState(delayMs);
+    audioEngineRef.current?.setReverbPreDelay(delayMs);
+  }, []);
+
+  const handleReverbDampingChange = useCallback((cutoffHz: number) => {
+    setReverbDampingState(cutoffHz);
+    audioEngineRef.current?.setReverbDamping(cutoffHz);
+  }, []);
+
+  const handleReverbPresetChange = useCallback((preset: 'small' | 'medium' | 'large') => {
+    setReverbPresetState(preset);
+    audioEngineRef.current?.setReverbPreset(preset);
+  }, []);
+
+  const handleReverbBypassChange = useCallback((bypass: boolean) => {
+    setReverbBypassState(bypass);
+    audioEngineRef.current?.setReverbBypass(bypass);
+  }, []);
+
   // Apply audio effect
   const applyEffect = useCallback((effect: AudioEffect) => {
     if (!audioEngineRef.current) return;
@@ -295,6 +327,11 @@ export const useAudioPlayer = () => {
     eqBands,
     eqMix,
     eqBypass,
+    reverbMix,
+    reverbPreDelay,
+    reverbDamping,
+    reverbPreset,
+    reverbBypass,
     tempoPitchMix,
     lofiMix,
     lofiTone,
@@ -320,6 +357,11 @@ export const useAudioPlayer = () => {
     handleEQBandChange,
     handleEQMixChange,
     handleEQBypassChange,
+    handleReverbMixChange,
+    handleReverbPreDelayChange,
+    handleReverbDampingChange,
+    handleReverbPresetChange,
+    handleReverbBypassChange,
     applyEffect,
     removeEffect,
     getAudioState,
