@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { WebAudioEngine } from '../core/audio/AudioEngine';
-import { AudioTrack, AudioState, AudioEffect } from '../types/audio';
+import { AudioTrack, AudioState, AudioEffect, EffectModuleId } from '../types/audio';
 
 export const useAudioPlayer = () => {
   const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null);
@@ -10,12 +10,21 @@ export const useAudioPlayer = () => {
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1.0);
-  const [pitch, setPitch] = useState(1.0);
+  const [tempo, setTempo] = useState(1.0); // 0.5..1.5
+  const [pitchSemitones, setPitchSemitones] = useState(0); // -12..+12
   const [eqSettings, setEqSettings] = useState({
     low: 0,
     mid: 0,
     high: 0
   });
+
+  // Effect bus state
+  const [eqMix, setEqMix] = useState(1);
+  const [tempoPitchMix, setTempoPitchMix] = useState(1);
+  const [lofiMix, setLofiMix] = useState(1);
+  const [lofiTone, setLofiToneState] = useState(20000);
+  const [lofiNoise, setLofiNoiseState] = useState(0);
+  const [lofiWow, setLofiWowState] = useState(0);
 
   const audioEngineRef = useRef<WebAudioEngine | null>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -100,6 +109,14 @@ export const useAudioPlayer = () => {
     }
   }, [isPlaying]);
 
+  // Stop playback
+  const stop = useCallback(() => {
+    if (!audioEngineRef.current) return;
+    audioEngineRef.current.stop();
+    setIsPlaying(false);
+    setCurrentTime(0);
+  }, []);
+
   // Seek to a specific time
   const seek = useCallback((time: number) => {
     if (!audioEngineRef.current) return;
@@ -149,13 +166,34 @@ export const useAudioPlayer = () => {
     setPlaybackRate(newRate);
   }, []);
 
-  // Handle pitch change
-  const handlePitchChange = useCallback((newPitch: number) => {
-    if (!audioEngineRef.current) return;
-    
-    const pitchValue = Math.max(0.5, Math.min(2, newPitch));
-    audioEngineRef.current.setPitch(pitchValue);
-    setPitch(pitchValue);
+  // Tempo (time-stretch placeholder: maps to playbackRate until decoupled in Step 3)
+  const handleTempoChange = useCallback((newTempo: number) => {
+    const clamped = Math.max(0.5, Math.min(1.5, newTempo));
+    setTempo(clamped);
+    if (audioEngineRef.current) {
+      audioEngineRef.current.setTempo(clamped);
+    }
+  }, []);
+
+  // Pitch semitones (placeholder: maps to pitch ratio on source node)
+  const handlePitchSemitonesChange = useCallback((semitones: number) => {
+    const clamped = Math.max(-12, Math.min(12, semitones));
+    setPitchSemitones(clamped);
+    if (audioEngineRef.current) {
+      audioEngineRef.current.setPitchSemitones(clamped);
+      // Auto-enable subtle lo-fi when pitch shifting
+      if (clamped !== 0) {
+        setLofiToneState(14000);
+        setLofiNoiseState(0.05);
+        audioEngineRef.current.setLofiTone(14000);
+        audioEngineRef.current.setLofiNoiseLevel(0.05);
+      } else {
+        setLofiToneState(20000);
+        setLofiNoiseState(0);
+        audioEngineRef.current.setLofiTone(20000);
+        audioEngineRef.current.setLofiNoiseLevel(0);
+      }
+    }
   }, []);
 
   // Handle EQ changes
@@ -167,6 +205,31 @@ export const useAudioPlayer = () => {
       ...prev,
       [band]: value
     }));
+  }, []);
+
+  // Effect bus controls
+  const setEffectBypass = useCallback((id: EffectModuleId, bypass: boolean) => {
+    audioEngineRef.current?.setEffectBypass(id, bypass);
+  }, []);
+
+  const setEffectMix = useCallback((id: EffectModuleId, mix: number) => {
+    audioEngineRef.current?.setEffectMix(id, mix);
+  }, []);
+
+  // Lo-fi controls
+  const handleLofiToneChange = useCallback((value: number) => {
+    setLofiToneState(value);
+    audioEngineRef.current?.setLofiTone(value);
+  }, []);
+
+  const handleLofiNoiseChange = useCallback((value: number) => {
+    setLofiNoiseState(value);
+    audioEngineRef.current?.setLofiNoiseLevel(value);
+  }, []);
+
+  const handleLofiWowChange = useCallback((value: number) => {
+    setLofiWowState(value);
+    audioEngineRef.current?.setLofiWowFlutter(0.5, value * 0.5);
   }, []);
 
   // Apply audio effect
@@ -192,7 +255,7 @@ export const useAudioPlayer = () => {
     volume,
     isMuted,
     playbackRate,
-    pitch,
+    pitch: Math.pow(2, pitchSemitones / 12),
     eqSettings
   });
 
@@ -205,18 +268,32 @@ export const useAudioPlayer = () => {
     volume,
     isMuted,
     playbackRate,
-    pitch,
+    tempo,
+    pitchSemitones,
     eqSettings,
+    eqMix,
+    tempoPitchMix,
+    lofiMix,
+    lofiTone,
+    lofiNoise,
+    lofiWow,
     
     // Methods
     loadTrack,
     togglePlayPause,
+    stop,
     seek,
     setVolume: handleVolumeChange,
     toggleMute,
     setPlaybackRate: handlePlaybackRateChange,
-    setPitch: handlePitchChange,
+    setTempo: handleTempoChange,
+    setPitchSemitones: handlePitchSemitonesChange,
     setEQ: handleEQChange,
+    setEffectBypass,
+    setEffectMix,
+    handleLofiToneChange,
+    handleLofiNoiseChange,
+    handleLofiWowChange,
     applyEffect,
     removeEffect,
     getAudioState,

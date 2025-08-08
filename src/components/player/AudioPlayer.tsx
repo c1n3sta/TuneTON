@@ -22,20 +22,31 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     volume,
     isMuted,
     playbackRate,
-    pitch,
+    tempo,
+    pitchSemitones,
     eqSettings,
+    lofiTone,
+    lofiNoise,
+    lofiWow,
     loadTrack,
     togglePlayPause,
     seek,
     setVolume,
     toggleMute,
     setPlaybackRate,
-    setPitch,
-    setEQ
+    setTempo,
+    setPitchSemitones,
+    setEQ,
+    setEffectBypass,
+    setEffectMix,
+    handleLofiToneChange,
+    handleLofiNoiseChange,
+    handleLofiWowChange
   } = useAudioPlayer();
   
   const [showEQ, setShowEQ] = useState(false);
   const [showPitch, setShowPitch] = useState(false);
+  const [showLofi, setShowLofi] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Load the track when it changes
@@ -67,11 +78,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     setPlaybackRate(parseFloat(e.target.value));
   };
 
-  const handlePitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTempoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
-    if (!isNaN(value)) {
-      setPitch(value);
-    }
+    if (!isNaN(value)) setTempo(value);
+  };
+
+  const handlePitchSemitonesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) setPitchSemitones(value);
   };
 
   const handleEQChange = (band: 'low' | 'mid' | 'high') => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +142,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
           {isPlaying ? '⏸️' : '▶️'}
         </button>
 
+
         <div className={styles.playbackRate}>
           <select 
             value={playbackRate.toFixed(1)} 
@@ -157,20 +172,50 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
         >
           EQ
         </button>
+
+        <button 
+          className={`${styles.effectButton} ${showLofi ? styles.active : ''}`}
+          onClick={() => setShowLofi(!showLofi)}
+        >
+          Lo-fi
+        </button>
       </div>
 
       {showPitch && (
         <div className={styles.pitchControl}>
-          <label>Pitch: {pitch.toFixed(2)}x</label>
+          <label>Tempo: {tempo.toFixed(2)}x</label>
           <input
             type="range"
             min="0.5"
-            max="2"
+            max="1.5"
             step="0.01"
-            value={pitch}
-            onChange={handlePitchChange}
+            value={tempo}
+            onChange={handleTempoChange}
             className={styles.pitchSlider}
           />
+          <label>Pitch: {pitchSemitones} st</label>
+          <input
+            type="range"
+            min="-12"
+            max="12"
+            step="1"
+            value={pitchSemitones}
+            onChange={handlePitchSemitonesChange}
+            className={styles.pitchSlider}
+          />
+          <div className={styles.inlineControls}>
+            <label>Tempo/Pitch Mix</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              defaultValue={1}
+              onChange={(e) => setEffectMix('tempoPitch', parseFloat(e.target.value))}
+            />
+            <button className={styles.effectButton} onClick={() => setEffectBypass('tempoPitch', true)}>Bypass</button>
+            <button className={styles.effectButton} onClick={() => setEffectBypass('tempoPitch', false)}>Enable</button>
+          </div>
         </div>
       )}
 
@@ -216,6 +261,62 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
               className={styles.eqSlider}
             />
             <span>{eqSettings.high > 0 ? `+${eqSettings.high}` : eqSettings.high}dB</span>
+          </div>
+          <div className={styles.inlineControls}>
+            <label>EQ Mix</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              defaultValue={1}
+              onChange={(e) => setEffectMix('eq', parseFloat(e.target.value))}
+            />
+            <button className={styles.effectButton} onClick={() => setEffectBypass('eq', true)}>Bypass</button>
+            <button className={styles.effectButton} onClick={() => setEffectBypass('eq', false)}>Enable</button>
+          </div>
+        </div>
+      )}
+
+      {showLofi && (
+        <div className={styles.lofiControls}>
+          <div className={styles.lofiBand}>
+            <label>Tone: {lofiTone.toFixed(0)}Hz</label>
+            <input
+              type="range"
+              min="200"
+              max="20000"
+              step="100"
+              value={lofiTone}
+              onChange={(e) => handleLofiToneChange(Number(e.target.value))}
+              className={styles.lofiSlider}
+            />
+          </div>
+          
+          <div className={styles.lofiBand}>
+            <label>Noise: {(lofiNoise * 100).toFixed(0)}%</label>
+            <input
+              type="range"
+              min="0"
+              max="0.2"
+              step="0.01"
+              value={lofiNoise}
+              onChange={(e) => handleLofiNoiseChange(Number(e.target.value))}
+              className={styles.lofiSlider}
+            />
+          </div>
+          
+          <div className={styles.lofiBand}>
+            <label>Wow: {lofiWow.toFixed(1)}Hz</label>
+            <input
+              type="range"
+              min="0"
+              max="2"
+              step="0.1"
+              value={lofiWow}
+              onChange={(e) => handleLofiWowChange(Number(e.target.value))}
+              className={styles.lofiSlider}
+            />
           </div>
         </div>
       )}
