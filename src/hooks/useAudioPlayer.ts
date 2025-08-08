@@ -19,12 +19,15 @@ export const useAudioPlayer = () => {
   });
 
   // Effect bus state
-  const [eqMix, setEqMix] = useState(1);
-  const [tempoPitchMix, setTempoPitchMix] = useState(1);
-  const [lofiMix, setLofiMix] = useState(1);
   const [lofiTone, setLofiToneState] = useState(20000);
   const [lofiNoise, setLofiNoiseState] = useState(0);
   const [lofiWow, setLofiWowState] = useState(0);
+  // 7-band EQ state
+  const [eqBands, setEqBands] = useState([0, 0, 0, 0, 0, 0, 0]); // 7 bands, 0 dB each
+  const [eqMix, setEqMixState] = useState(1);
+  const [eqBypass, setEqBypassState] = useState(false);
+  const [tempoPitchMix, setTempoPitchMix] = useState(1);
+  const [lofiMix, setLofiMix] = useState(1);
 
   const audioEngineRef = useRef<WebAudioEngine | null>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -232,6 +235,24 @@ export const useAudioPlayer = () => {
     audioEngineRef.current?.setLofiWowFlutter(0.5, value * 0.5);
   }, []);
 
+  // 7-band EQ controls
+  const handleEQBandChange = useCallback((band: number, gainDb: number) => {
+    const newBands = [...eqBands];
+    newBands[band] = gainDb;
+    setEqBands(newBands);
+    audioEngineRef.current?.setEQBand(band, gainDb);
+  }, [eqBands]);
+
+  const handleEQMixChange = useCallback((mix: number) => {
+    setEqMixState(mix);
+    audioEngineRef.current?.setEQMix(mix);
+  }, []);
+
+  const handleEQBypassChange = useCallback((bypass: boolean) => {
+    setEqBypassState(bypass);
+    audioEngineRef.current?.setEQBypass(bypass);
+  }, []);
+
   // Apply audio effect
   const applyEffect = useCallback((effect: AudioEffect) => {
     if (!audioEngineRef.current) return;
@@ -271,7 +292,9 @@ export const useAudioPlayer = () => {
     tempo,
     pitchSemitones,
     eqSettings,
+    eqBands,
     eqMix,
+    eqBypass,
     tempoPitchMix,
     lofiMix,
     lofiTone,
@@ -294,6 +317,9 @@ export const useAudioPlayer = () => {
     handleLofiToneChange,
     handleLofiNoiseChange,
     handleLofiWowChange,
+    handleEQBandChange,
+    handleEQMixChange,
+    handleEQBypassChange,
     applyEffect,
     removeEffect,
     getAudioState,
