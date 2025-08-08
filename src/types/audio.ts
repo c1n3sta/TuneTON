@@ -31,7 +31,7 @@ export type AudioEffect = {
   enabled: boolean;
 };
 
-export type EffectModuleId = 'tempoPitch' | 'lofi' | 'eq';
+export type EffectModuleId = 'tempoPitch' | 'lofi' | 'eq' | 'reverb';
 
 export interface EffectModuleState {
   id: EffectModuleId;
@@ -69,4 +69,10 @@ export interface AudioEngine {
   setEQBand(band: number, gainDb: number): void;
   setEQMix(mix: number): void;
   setEQBypass(bypass: boolean): void;
+  // Reverb controls
+  setReverbMix(mix: number): void;
+  setReverbPreDelay(delayMs: number): void;
+  setReverbDamping(cutoffHz: number): void;
+  setReverbPreset(preset: 'small' | 'medium' | 'large'): void;
+  setReverbBypass(bypass: boolean): void;
 }
