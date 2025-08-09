@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { AudioTrack } from '../../types/audio';
+import Spectrum from '../Spectrum';
 import styles from './AudioPlayer.module.css';
 
 interface AudioPlayerProps {
@@ -33,6 +34,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     reverbDamping,
     reverbPreset,
     reverbBypass,
+    lowPassTone,
+    lowPassResonance,
     lofiTone,
     lofiNoise,
     lofiWow,
@@ -57,13 +60,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     handleReverbPreDelayChange,
     handleReverbDampingChange,
     handleReverbPresetChange,
-    handleReverbBypassChange
+    handleReverbBypassChange,
+    handleLowPassToneChange,
+    handleLowPassResonanceChange,
+    getAnalyser
   } = useAudioPlayer();
   
   const [showEQ, setShowEQ] = useState(false);
   const [showPitch, setShowPitch] = useState(false);
   const [showLofi, setShowLofi] = useState(false);
   const [showReverb, setShowReverb] = useState(false);
+  const [showLowPass, setShowLowPass] = useState(false);
+  const [showSpectrum, setShowSpectrum] = useState(true);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Load the track when it changes
@@ -202,6 +210,20 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
           onClick={() => setShowReverb(!showReverb)}
         >
           Reverb
+        </button>
+
+        <button 
+          className={`${styles.effectButton} ${showLowPass ? styles.active : ''}`}
+          onClick={() => setShowLowPass(!showLowPass)}
+        >
+          Low-Pass
+        </button>
+
+        <button 
+          className={`${styles.effectButton} ${showSpectrum ? styles.active : ''}`}
+          onClick={() => setShowSpectrum(!showSpectrum)}
+        >
+          Spectrum
         </button>
       </div>
 
@@ -385,10 +407,47 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
               {reverbBypass ? 'Enable' : 'Bypass'}
             </button>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
+                  </div>
+        )}
+
+        {showLowPass && (
+          <div className={styles.lowPassControls}>
+            <div className={styles.lowPassBand}>
+              <label>Cutoff: {lowPassTone.toFixed(0)}Hz</label>
+              <input
+                type="range"
+                min="20"
+                max="20000"
+                step="10"
+                value={lowPassTone}
+                onChange={(e) => handleLowPassToneChange(parseFloat(e.target.value))}
+                className={styles.lowPassSlider}
+              />
+            </div>
+            
+            <div className={styles.lowPassBand}>
+              <label>Resonance: {lowPassResonance.toFixed(2)}</label>
+              <input
+                type="range"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value={lowPassResonance}
+                onChange={(e) => handleLowPassResonanceChange(parseFloat(e.target.value))}
+                className={styles.lowPassSlider}
+              />
+            </div>
+          </div>
+        )}
+
+        {showSpectrum && (
+          <Spectrum 
+            analyser={getAnalyser() || null}
+            isVisible={showSpectrum && isPlaying}
+          />
+        )}
+      </div>
+    );
+  };
 
 export default AudioPlayer;

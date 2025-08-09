@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { WebAudioEngine } from '../core/audio/AudioEngine';
 import { AudioTrack, AudioState, AudioEffect, EffectModuleId } from '../types/audio';
+import { apiClient } from '../api/client';
 
 export const useAudioPlayer = () => {
   const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null);
@@ -32,6 +33,9 @@ export const useAudioPlayer = () => {
   const [reverbDamping, setReverbDampingState] = useState(8000);
   const [reverbPreset, setReverbPresetState] = useState<'small' | 'medium' | 'large'>('medium');
   const [reverbBypass, setReverbBypassState] = useState(false);
+  // Low-pass tone state
+  const [lowPassTone, setLowPassToneState] = useState(20000);
+  const [lowPassResonance, setLowPassResonanceState] = useState(0.707);
   const [tempoPitchMix, setTempoPitchMix] = useState(1);
   const [lofiMix, setLofiMix] = useState(1);
 
@@ -111,12 +115,21 @@ export const useAudioPlayer = () => {
       try {
         await audioEngineRef.current.play();
         setIsPlaying(true);
+        
+        // Track playback if we have a current track
+        if (currentTrack) {
+          try {
+            await apiClient.incrementPlayback(currentTrack.id);
+          } catch (error) {
+            console.error('Failed to track playback:', error);
+          }
+        }
       } catch (error) {
         console.error('Error playing audio:', error);
         setIsPlaying(false);
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, currentTrack]);
 
   // Stop playback
   const stop = useCallback(() => {
@@ -285,6 +298,17 @@ export const useAudioPlayer = () => {
     audioEngineRef.current?.setReverbBypass(bypass);
   }, []);
 
+  // Low-pass tone controls
+  const handleLowPassToneChange = useCallback((cutoffHz: number) => {
+    setLowPassToneState(cutoffHz);
+    audioEngineRef.current?.setLowPassTone(cutoffHz);
+  }, []);
+
+  const handleLowPassResonanceChange = useCallback((resonance: number) => {
+    setLowPassResonanceState(resonance);
+    audioEngineRef.current?.setLowPassResonance(resonance);
+  }, []);
+
   // Apply audio effect
   const applyEffect = useCallback((effect: AudioEffect) => {
     if (!audioEngineRef.current) return;
@@ -332,6 +356,8 @@ export const useAudioPlayer = () => {
     reverbDamping,
     reverbPreset,
     reverbBypass,
+    lowPassTone,
+    lowPassResonance,
     tempoPitchMix,
     lofiMix,
     lofiTone,
@@ -362,6 +388,8 @@ export const useAudioPlayer = () => {
     handleReverbDampingChange,
     handleReverbPresetChange,
     handleReverbBypassChange,
+    handleLowPassToneChange,
+    handleLowPassResonanceChange,
     applyEffect,
     removeEffect,
     getAudioState,

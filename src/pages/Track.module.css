@@ -1,0 +1,110 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  color: white;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.backButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  padding: 8px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.trackInfo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.trackTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.trackArtist {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  margin-bottom: 12px;
+}
+
+.trackMeta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.duration {
+  display: flex;
+  align-items: center;
+}
+
+.playCount {
+  display: flex;
+  align-items: center;
+}
+
+.playerContainer {
+  max-width: 800px;
+  margin: 0 auto 40px;
+}
+
+.description {
+  max-width: 600px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.description h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.description p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+.description ul {
+  list-style: none;
+  padding: 0;
+}
+
+.description li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.description li:last-child {
+  border-bottom: none;
+}
+
+.description strong {
+  color: #fff;
+  opacity: 1;
+}
