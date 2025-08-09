@@ -3,17 +3,88 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import compression from 'compression';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-// Use environment variable or fallback to 3001
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3001;
+
+// Enable compression
+app.use(compression());
+
+// In-memory cache with pre-allocation
+let tracksCache: any[] = [];
+let playbacksCache: Record<string, number> = {};
+let lastCacheUpdate = 0;
+const CACHE_TTL = 30000; // 30 seconds
+
+// Pre-allocate array for better performance
+const MAX_TRACKS = 100;
+for (let i = 0; i < MAX_TRACKS; i++) {
+  tracksCache.push({
+    id: '',
+    title: '',
+    artist: '',
+    duration: 0,
+    playCount: 0,
+    audioUrl: ''
+  });
+}
+tracksCache = []; // Clear but keep pre-allocated memory
+
+// Warm up cache on startup
+const warmUpCache = async () => {
+  try {
+    const startTime = process.hrtime();
+    const tracks = await Promise.resolve(scanAudioDirectory());
+    tracksCache = tracks;
+    playbacksCache = {};
+    lastCacheUpdate = Date.now();
+    const [seconds, nanoseconds] = process.hrtime(startTime);
+    console.log(`Cache warmed up with ${tracks.length} tracks in ${(seconds * 1000 + nanoseconds / 1e6).toFixed(2)}ms`);
+  } catch (error) {
+    console.error('Error warming up cache:', error);
+  }
+};
+
+// Initial warm up in non-blocking way
+setImmediate(() => {
+  warmUpCache().catch(console.error);
+});
+
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://web.telegram.org',
+  'https://web.telegram.org/*',
+  'https://*.telegram.org'
+];
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || allowedOrigins.some(allowedOrigin => 
+      origin === allowedOrigin || 
+      origin.startsWith(allowedOrigin.replace('*', ''))
+    )) {
+      callback(null, true);
+    } else {
+      console.warn('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+};
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Data file paths
 const tracksFile = path.join(__dirname, '../data/tracks.json');
@@ -80,8 +151,17 @@ if (!fs.existsSync(playbacksFile)) {
 
 // Helper functions
 const readTracks = () => {
-  const data = fs.readFileSync(tracksFile, 'utf8');
-  return JSON.parse(data);
+  const now = Date.now();
+  if (!tracksCache || now - lastCacheUpdate > CACHE_TTL) {
+    try {
+      tracksCache = JSON.parse(fs.readFileSync(tracksFile, 'utf8'));
+      lastCacheUpdate = now;
+    } catch (error) {
+      console.error('Error reading tracks:', error);
+      return [];
+    }
+  }
+  return [...tracksCache!];
 };
 
 const writeTracks = (tracks: any[]) => {
@@ -89,39 +169,41 @@ const writeTracks = (tracks: any[]) => {
 };
 
 const readPlaybacks = () => {
-  const data = fs.readFileSync(playbacksFile, 'utf8');
-  return JSON.parse(data);
+  if (!playbacksCache) {
+    try {
+      playbacksCache = JSON.parse(fs.readFileSync(playbacksFile, 'utf8'));
+    } catch (error) {
+      console.error('Error reading playbacks:', error);
+      return {};
+    }
+  }
+  return { ...playbacksCache };
 };
 
 const writePlaybacks = (playbacks: any) => {
   fs.writeFileSync(playbacksFile, JSON.stringify(playbacks, null, 2));
 };
 
-// Cache for tracks
-let cachedTracks: any[] = [];
-let lastScanTime = 0;
-const SCAN_INTERVAL = 60000; // 1 minute
-
-// Function to get tracks with caching
-const getTracks = () => {
-  const now = Date.now();
-  if (cachedTracks.length === 0 || now - lastScanTime > SCAN_INTERVAL) {
-    console.log('Updating tracks cache...');
-    cachedTracks = readTracks();
-    lastScanTime = now;
-  }
-  return cachedTracks;
-};
-
 // Routes
-app.get('/api/tracks', (req, res) => {
+app.get('/api/tracks', async (req, res) => {
   try {
-    const tracks = getTracks();
+    const tracks = readTracks();
+    res.set({
+      'Cache-Control': 'public, max-age=30, s-maxage=60',
+      'ETag': `\"${lastCacheUpdate}\"`,
+      'X-Cache': tracksCache === null ? 'MISS' : 'HIT'
+    });
     res.json(tracks);
   } catch (error) {
-    console.error('Error reading tracks:', error);
-    res.status(500).json({ error: 'Failed to load tracks' });
+    console.error('Error in /api/tracks:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Cache warm-up endpoint
+app.get('/api/warmup', (req, res) => {
+  warmUpCache();
+  res.json({ status: 'cache_warmed', tracks: tracksCache?.length || 0 });
 });
 
 app.post('/api/playbacks/:trackId', (req, res) => {
@@ -160,10 +242,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
+// Start server
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`API endpoints:`);
-  console.log(`  GET  /api/tracks`);
-  console.log(`  POST /api/playbacks/:trackId`);
-  console.log(`  GET  /api/health`);
+  console.log('API endpoints:');
+  console.log('  GET  /api/tracks');
+  console.log('  POST /api/playbacks/:trackId');
+  console.log('  GET  /api/health');
+  console.log('  GET  /api/warmup');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Closing server...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });

@@ -16,7 +16,7 @@ const TrackPage: React.FC<TrackPageProps> = ({ track, onBack }) => {
     title: track.title,
     artist: track.artist,
     duration: track.duration,
-    source: track.audioUrl, // Use the URL from the backend
+    source: track.audioUrl, // Using the dynamic audio URL from the track data
   };
 
   const formatDuration = (seconds: number): string => {
