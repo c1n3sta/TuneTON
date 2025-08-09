@@ -45,6 +45,8 @@ export class WebAudioEngine implements AudioEngine {
   private reverbPreDelay: DelayNode;
   private reverbDamping: BiquadFilterNode;
   private reverbPreset: 'small' | 'medium' | 'large' = 'medium';
+  // Low-pass tone control
+  private lowPassTone: BiquadFilterNode;
 
   private analyser: AnalyserNode;
   private eqNodes: {
@@ -274,11 +276,18 @@ export class WebAudioEngine implements AudioEngine {
     // Load default reverb impulse
     this.loadReverbImpulse('medium');
 
-    // Chain modules: source → tempoPitchIn (dry+wet) → tempoPitchOut → lofiIn → lofiOut → eqIn → eqOut → reverbIn → reverbOut
+    // Initialize low-pass tone control
+    this.lowPassTone = this.audioContext.createBiquadFilter();
+    this.lowPassTone.type = 'lowpass';
+    this.lowPassTone.frequency.value = 20000; // Start at full range
+    this.lowPassTone.Q.value = 0.707; // Default resonance
+
+    // Chain modules: source → tempoPitchIn (dry+wet) → tempoPitchOut → lofiIn → lofiOut → eqIn → eqOut → reverbIn → reverbOut → lowPassTone
     this.tempoPitchOut.connect(this.lofiIn);
     this.lofiOut.connect(this.eqIn);
     this.eqOut.connect(this.reverbIn);
-    this.reverbOut.connect(this.analyser);
+    this.reverbOut.connect(this.lowPassTone);
+    this.lowPassTone.connect(this.analyser);
     this.analyser.connect(this.masterGain);
     this.masterGain.connect(this.audioContext.destination);
 
@@ -851,6 +860,17 @@ export class WebAudioEngine implements AudioEngine {
     this.reverbPreDelay.connect(this.reverbConvolver);
     this.reverbConvolver.connect(this.reverbDamping);
     this.reverbDamping.connect(this.reverbWet);
+  }
+
+  // Low-pass tone controls
+  setLowPassTone(cutoffHz: number): void {
+    const clamped = Math.max(20, Math.min(20000, cutoffHz));
+    this.lowPassTone.frequency.setValueAtTime(clamped, this.audioContext.currentTime);
+  }
+
+  setLowPassResonance(resonance: number): void {
+    const clamped = Math.max(0.1, Math.min(10, resonance));
+    this.lowPassTone.Q.setValueAtTime(clamped, this.audioContext.currentTime);
   }
 
   setEffectBypass(id: EffectModuleId, bypass: boolean): void {

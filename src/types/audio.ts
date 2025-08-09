@@ -75,4 +75,7 @@ export interface AudioEngine {
   setReverbDamping(cutoffHz: number): void;
   setReverbPreset(preset: 'small' | 'medium' | 'large'): void;
   setReverbBypass(bypass: boolean): void;
+  // Low-pass tone control
+  setLowPassTone(cutoffHz: number): void;
+  setLowPassResonance(resonance: number): void;
 }
