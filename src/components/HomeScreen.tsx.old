@@ -1,0 +1,2075 @@
+import React, { useState } from 'react';
+import { loadMontserratFont } from '../utils/fontLoader';
+import { styled } from '@mui/material/styles';
+import { SxProps, Theme } from '@mui/material/styles';
+
+// Extended CSSProperties with pseudo-selectors
+type CSSProperties = React.CSSProperties & {
+  '&:hover'?: React.CSSProperties;
+  '&:active'?: React.CSSProperties;
+  '&:focus'?: React.CSSProperties;
+};
+
+type StyleSheet = {
+  [key: string]: CSSProperties;
+};
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { keyframes } from '@emotion/react';
+
+// Type definitions
+interface Track {
+  id: number;
+  title: string;
+  artist: string;
+  cover: string;
+  duration: string;
+  isPlaying?: boolean;
+}
+
+interface Playlist {
+  id: number;
+  title: string;
+  description: string;
+  cover: string;
+  tracks: number;
+  duration: string;
+}
+
+interface Contest {
+  id: number;
+  title: string;
+  description: string;
+  cover: string;
+  prize: string;
+  deadline: string;
+  participants: number;
+  remixer: {
+    name: string;
+    avatar: string;
+  };
+}
+
+// Define keyframes for animations
+const pulse = keyframes`
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+`;
+
+// Styled components
+const Container = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+  backgroundColor: '#0D1117',
+});
+
+const TopNav = styled(Box)({
+  padding: '16px',
+  backgroundColor: '#0D1117',
+  borderBottom: '1px solid #30363D',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+});
+
+const SearchBar = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: '#0D1117',
+  borderRadius: '6px',
+  padding: '8px',
+  border: '1px solid #30363D',
+  flex: 1,
+  marginRight: '12px',
+});
+
+const SearchInput = styled('input')({
+  flex: 1,
+  backgroundColor: 'transparent',
+  border: 'none',
+  color: '#C9D1D9',
+  fontSize: '14px',
+  padding: 0,
+  marginLeft: '8px',
+  '&:focus': {
+    outline: 'none',
+  },
+});
+
+const MainContainer = styled(Box)({
+  flex: 1,
+  padding: '16px',
+  paddingBottom: '80px', // Space for bottom navigation
+});
+
+const TrackCard = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: '#161B22',
+  borderRadius: '8px',
+  padding: '12px',
+  marginBottom: '8px',
+  '&:hover': {
+    backgroundColor: '#1F2937',
+    cursor: 'pointer',
+  },
+});
+
+const NowPlayingIndicator = styled(Box)({
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  width: '24px',
+  height: '24px',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  borderRadius: '50%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transform: 'translate(-50%, -50%)',
+  animation: `${pulse} 1.5s ease-in-out infinite`,
+});
+
+const PlaylistDescription = styled(Typography)({
+  fontSize: '12px',
+  color: '#8B949E',
+  marginBottom: '8px',
+  display: '-webkit-box',
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+});
+
+// Styles object for any remaining inline styles
+const styles = {
+  notificationIcon: {
+    marginLeft: '12px',
+    padding: '4px',
+    cursor: 'pointer',
+  },
+  
+    // Bottom Navigation
+  bottomNav: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#0D1117',
+    borderTopWidth: 1,
+    borderTopColor: '#30363D',
+    padding: 8,
+  },
+  
+  navItem: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    padding: 8,
+  },
+  
+  navItemActive: {
+    color: '#58A6FF',
+  },
+  
+  navIcon: {
+    width: 24,
+    height: 24,
+    marginBottom: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  navLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#6E7681',
+  },
+  
+  icon: {
+    width: 20,
+    height: 20,
+  },
+  
+  // Content Sections
+  content: {
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  
+  welcomeSection: {
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#C9D1D9',
+  },
+  
+  welcomeSubtitle: {
+    fontSize: 14,
+    color: '#8B949E',
+    marginBottom: 16,
+  },
+  
+  section: {
+    marginBottom: 24,
+  },
+  
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#C9D1D9',
+  },
+  
+  seeAllButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    color: '#58A6FF',
+    fontSize: 12,
+    padding: 4,
+  },
+  
+  // Track List
+  trackList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  
+  trackInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  
+  trackTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#C9D1D9',
+  },
+  
+  trackArtist: {
+    fontSize: 12,
+    color: '#8B949E',
+    marginTop: 2,
+  },
+  
+  trackDuration: {
+    fontSize: 12,
+    color: '#8B949E',
+    marginLeft: 8,
+  },
+  
+  // Playlist Grid
+  playlistGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  } as Style,
+  
+  playlistCard: {
+    backgroundColor: '#161B22',
+    borderRadius: 8,
+    overflow: 'hidden',
+    width: '48%',
+  },
+  
+  playlistCover: {
+    width: '100%',
+    aspectRatio: 1,
+  },
+  
+  playlistInfo: {
+    padding: 12,
+  },
+  
+  playlistTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#C9D1D9',
+    marginBottom: 4,
+  },
+  
+  playlistDescription: {
+    fontSize: 12,
+    color: '#8B949E',
+    marginBottom: 8,
+  },
+  
+  playlistMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    fontSize: 10,
+    color: '#8B949E',
+  },
+  
+  metaItem: {
+    marginRight: 4,
+  },
+  
+  // Contest Grid
+  contestGrid: {
+    gap: 12,
+  } as Style,
+  
+  contestCard: {
+    backgroundColor: '#161B22',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  
+  contestCover: {
+    position: 'relative',
+    aspectRatio: 16/9,
+  },
+  
+  contestCoverImage: {
+    width: '100%',
+    height: '100%',
+  },
+  
+  contestPrizeBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    color: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    fontSize: 12,
+    fontWeight: '600',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  prizeAmount: {
+    color: '#FFD700',
+    fontWeight: '600',
+  },
+  
+  contestInfo: {
+    padding: 12,
+  },
+  
+  contestTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#C9D1D9',
+    marginBottom: 4,
+  },
+  
+  contestDescription: {
+    fontSize: 12,
+    color: '#8B949E',
+    marginBottom: 12,
+  },
+  
+  contestMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  
+  remixerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  remixerAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  
+  remixerName: {
+    fontSize: 12,
+    color: '#8B949E',
+  },
+  
+  contestStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+});
+
+// Image assets
+const imgAlbumArt = "http://localhost:3845/assets/b13483f5f235f1c26e9cbdbfb40edb8ca3b9c11c.png";
+const imgPlaylistCover = "http://localhost:3845/assets/e4df5775c88dbb71f1c09a72f65ba80adc015b71.png";
+const imgPlaylistCover1 = "http://localhost:3845/assets/059d630bf1b73c65663230f6fe3660d07bc060b8.png";
+const imgPlaylistCover2 = "http://localhost:3845/assets/20bb8fe31b212ec3236e8224dd3efe441043be2f.png";
+const imgPlaylistCover3 = "http://localhost:3845/assets/a1ad22f09bf6f15ef5bc637a1785d31b1ca3884a.png";
+const imgPlaylistCover4 = "http://localhost:3845/assets/08ea158ebabf976cca7bb1f8ec91d0c456a2f915.png";
+const imgTrackCover = "http://localhost:3845/assets/5c0570c22db9da4233071e8dc020249fbd9aeece.png";
+const imgTrackCover1 = "http://localhost:3845/assets/ee4dceec67617340be718a9b700bd99946447425.png";
+const imgFeaturedRemixCover = "http://localhost:3845/assets/92af5e42f7a6be5cc4a3570d7557d9b846376457.png";
+const imgRemixCover = "http://localhost:3845/assets/b4d5d93e0e03aef0e9252522600b2fe91d9305c2.png";
+const imgRemixerAvatar = "http://localhost:3845/assets/02641910bdc93d1d98cf6da313c9fe42f75a5679.png";
+const imgRemixCover1 = "http://localhost:3845/assets/2445cdb838670e8ea661ef232b16e90503fdec0b.png";
+const imgRemixerAvatar1 = "http://localhost:3845/assets/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png";
+const imgRemixCover2 = "http://localhost:3845/assets/f6899fe4451eb26d22ac13df75a794b76f152b36.png";
+const imgRemixerAvatar2 = "http://localhost:3845/assets/942f88b3ac884230b9cb4196019616c8ea6fb6a0.png";
+const imgSearchIcon = "http://localhost:3845/assets/58bb84234a7ec450001f5a870541a69f81a78305.svg";
+const imgNotificationIcon = "http://localhost:3845/assets/835663605480aef37e29f6fdd11464ec0907f280.svg";
+const imgProfileAvatar = "http://localhost:3845/assets/942f88b3ac884230b9cb4196019616c8ea6fb6a0.png";
+const imgPlayerIcon = "http://localhost:3845/assets/4e285f615010101ff041f08d7bc2f62aace1231d.svg";
+const imgPlaylistIcon = "http://localhost:3845/assets/33ad58a2f340eec307451376f9235a998a621217.svg";
+const imgContestIcon = "http://localhost:3845/assets/60162fc3beabfd7ad1b85547a8182bea24e1ecec.svg";
+const imgProfileIcon = "http://localhost:3845/assets/e2437a493e4fdf91a00119d6f8a47360cfea1911.svg";
+
+// Mock data
+const recentlyPlayed = [
+  {
+    id: 1,
+    title: 'Starlight Serenade',
+    artist: 'MelodyMix Artist',
+    cover: imgAlbumArt,
+    duration: '3:45',
+    isPlaying: true
+  },
+  {
+    id: 2,
+    title: 'Midnight Groove',
+    artist: 'Rhythm Masters',
+    cover: imgTrackCover,
+    duration: '4:12',
+    isPlaying: false
+  },
+  {
+    id: 3,
+    title: 'Sunset Dreams',
+    artist: 'Chill Wave',
+    cover: imgTrackCover1,
+    duration: '3:28',
+    isPlaying: false
+  }
+];
+
+const playlists = [
+  {
+    id: 1,
+    title: 'Summer Vibes 2023',
+    description: 'The hottest tracks of the summer',
+    cover: imgPlaylistCover,
+    tracks: 24,
+    duration: '1h 45m'
+  },
+  {
+    id: 2,
+    title: 'Workout Mix',
+    description: 'High energy tracks for your workout',
+    cover: imgPlaylistCover1,
+    tracks: 18,
+    duration: '1h 32m'
+  },
+  {
+    id: 3,
+    title: 'Chill Lofi Beats',
+    description: 'Relaxing beats to study to',
+    cover: imgPlaylistCover2,
+    tracks: 30,
+    duration: '2h 15m'
+  }
+];
+
+const contests = [
+  {
+    id: 1,
+    title: 'Remix Competition',
+    description: 'Create your own remix for a chance to win',
+    cover: imgRemixCover,
+    prize: '$5,000',
+    deadline: '2023-12-31',
+    participants: 124,
+    remixer: {
+      name: 'DJ Prodigy',
+      avatar: imgRemixerAvatar
+    }
+  },
+  {
+    id: 2,
+    title: 'Beat Making Challenge',
+    description: 'Produce the best beat in 24 hours',
+    cover: imgRemixCover1,
+    prize: '$2,500',
+    deadline: '2023-11-30',
+    participants: 87,
+    remixer: {
+      name: 'Beat Master',
+      avatar: imgRemixerAvatar1
+    }
+  },
+  {
+    id: 3,
+    title: 'Vocal Recording Contest',
+    description: 'Show off your vocal skills',
+    cover: imgRemixCover2,
+    prize: '$3,500',
+    deadline: '2023-12-15',
+    participants: 156,
+    remixer: {
+      name: 'Vocal Queen',
+      avatar: imgRemixerAvatar2
+    }
+  }
+];
+
+const HomeScreen: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<string>('home');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Bottom navigation items
+  const navItems = [
+    { id: 'home', label: 'Player', icon: 'player' as const },
+    { id: 'playlist', label: 'Playlist', icon: 'playlist' as const },
+    { id: 'contests', label: 'Contests', icon: 'contests' as const },
+    { id: 'profile', label: 'Profile', icon: 'profile' as const }
+  ];
+
+  const renderActiveTab = (): JSX.Element => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <div style={styles.content}>
+            {/* Welcome Section */}
+            <div style={styles.welcomeSection}>
+              <h1 style={styles.welcomeTitle}>Welcome back!</h1>
+              <p style={styles.welcomeSubtitle}>What would you like to listen to today?</p>
+            </div>
+
+            {/* Recently Played Section */}
+            <div style={styles.section}>
+              <h2 style={styles.sectionTitle}>Recently Played</h2>
+              <div style={styles.trackList}>
+                {recentlyPlayed.map((track) => (
+                  <div key={track.id} style={styles.trackCard}>
+                    <div style={styles.trackCover}>
+                      <img src={track.cover} alt={track.title} style={styles.trackCoverImage} />
+                      {track.isPlaying && <div style={styles.nowPlayingIndicator}></div>}
+                    </div>
+                    <div style={styles.trackInfo}>
+                      <h3 style={styles.trackTitle}>{track.title}</h3>
+                      <p style={styles.trackArtist}>{track.artist}</p>
+                    </div>
+                    <span style={styles.trackDuration}>{track.duration}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Playlists Section */}
+            <div style={styles.section}>
+              <div style={styles.sectionHeader}>
+                <h2 style={styles.sectionTitle}>Your Playlists</h2>
+                <button style={styles.seeAllButton}>See All</button>
+              </div>
+              <div style={styles.playlistGrid}>
+                {playlists.map((playlist) => (
+                  <div key={playlist.id} style={styles.playlistCard}>
+                    <img 
+                      src={playlist.cover} 
+                      alt={playlist.title} 
+                      style={styles.playlistCover} 
+                    />
+                    <div style={styles.playlistInfo}>
+                      <h3 style={styles.playlistTitle}>{playlist.title}</h3>
+                      <p style={styles.playlistDescription}>{playlist.description}</p>
+                      <div style={styles.playlistMeta}>
+                        <span>{playlist.tracks} tracks</span>
+                        <span>•</span>
+                        <span>{playlist.duration}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Contests Section */}
+            <div style={styles.section}>
+              <div style={styles.sectionHeader}>
+                <h2 style={styles.sectionTitle}>Featured Contests</h2>
+                <button style={styles.seeAllButton}>See All</button>
+              </div>
+              <div style={styles.contestGrid}>
+                {contests.map((contest) => (
+                  <div key={contest.id} style={styles.contestCard}>
+                    <div style={styles.contestCover}>
+                      <img 
+                        src={contest.cover} 
+                        alt={contest.title} 
+                        style={styles.contestCoverImage} 
+                      />
+                      <div style={styles.contestPrizeBadge}>
+                        <span style={styles.prizeAmount}>{contest.prize}</span>
+                      </div>
+                    </div>
+                    <div style={styles.contestInfo}>
+                      <h3 style={styles.contestTitle}>{contest.title}</h3>
+                      <p style={styles.contestDescription}>{contest.description}</p>
+                      <div style={styles.contestMeta}>
+                        <div style={styles.remixerInfo}>
+                          <div 
+                            style={{
+                              ...styles.remixerAvatar,
+                              backgroundImage: `url(${contest.remixer.avatar})`
+                            }}
+                          />
+                          <span style={styles.remixerName}>by {contest.remixer.name}</span>
+                        </div>
+                        <div style={styles.contestStats}>
+                          <span style={styles.statItem}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B949E" style={{ marginRight: 4 }}>
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                              <path d="M13 7h-2v6h6v-2h-4z"/>
+                            </svg>
+                            {contest.deadline}
+                          </span>
+                          <span style={styles.statItem}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B949E" style={{ marginRight: 4 }}>
+                              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            {contest.participants} participants
+                          </span>
+                        </div>
+                      </div>
+                      <button style={styles.enterButton}>
+                        Enter Contest
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'playlist':
+        return (
+          <div style={styles.tabContent}>
+            <h2 style={styles.sectionTitle}>Your Playlists</h2>
+            <div style={styles.playlistGrid}>
+              {[
+                { title: 'Chill Vibes', tracks: '24 tracks', cover: imgPlaylistCover },
+                { title: 'Workout Mix', tracks: '18 tracks', cover: imgPlaylistCover1 },
+                { title: 'Focus Flow', tracks: '15 tracks', cover: imgPlaylistCover2 },
+                { title: 'Late Night', tracks: '22 tracks', cover: imgPlaylistCover3 },
+                { title: 'Morning Energy', tracks: '20 tracks', cover: imgPlaylistCover4 },
+              ].map((playlist, index) => (
+                <div key={index} style={styles.playlistCard}>
+                  <div 
+                    style={{
+                      ...styles.playlistCover,
+                      backgroundImage: `url(${playlist.cover})`,
+                    }}
+                  />
+                  <div style={styles.playlistInfo}>
+                    <h4 style={styles.playlistTitle}>{playlist.title}</h4>
+                    <p style={styles.playlistTracks}>{playlist.tracks}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      default: // home
+        return (
+          <>
+            {/* Featured Section */}
+            <div style={styles.section}>
+              <div style={styles.header}>
+                <h2 style={styles.sectionTitle}>Featured</h2>
+              </div>
+              <div style={styles.featuredCard}>
+                <div 
+                  style={{
+                    ...styles.featuredCover,
+                    backgroundImage: `url(${featuredContent.cover})`,
+                  }}
+                >
+                  <div style={styles.playButton}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 5V19L19 12L8 5Z" fill="#FFFFFF"/>
+                    </svg>
+                  </div>
+                </div>
+                <div style={styles.featuredInfo}>
+                  <h3 style={styles.featuredTitle}>{featuredContent.title}</h3>
+                  <p style={styles.featuredArtist}>{featuredContent.artist}</p>
+                  <div style={styles.featuredMeta}>
+                    <span>{featuredContent.tracks}</span>
+                    <span>•</span>
+                    <span>{featuredContent.duration}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recently Played Section */}
+            <div style={styles.section}>
+              <div style={styles.header}>
+                <h2 style={styles.sectionTitle}>Recently Played</h2>
+                <button style={styles.seeAllButton}>See All</button>
+              </div>
+              
+              <div style={styles.recentlyPlayedList}>
+                {recentlyPlayed.map((track, index) => (
+                  <div 
+                    key={track.id} 
+                    style={{
+                      ...styles.trackItem,
+                      ...(track.isPlaying ? styles.playingTrack : {})
+                    }}
+                  >
+                    <div style={styles.trackNumber}>{index + 1}</div>
+                    <div 
+                      style={{
+                        ...styles.trackCover,
+                        backgroundImage: `url(${track.cover})`
+                      }}
+                    />
+                    <div style={styles.trackInfo}>
+                      <h4 style={styles.trackTitle}>{track.title}</h4>
+                      <p style={styles.artistName}>{track.artist}</p>
+                    </div>
+                    {track.isPlaying && (
+                      <div style={styles.visualizer}>
+                        {[3, 5, 2, 4, 3].map((height, i) => (
+                          <div 
+                            key={i}
+                            style={{
+                              ...styles.visualizerBar,
+                              height: `${height * 2}px`,
+                              opacity: 0.8,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <button style={styles.moreButton}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4C10.9 4 10 4.9 10 6C10 7.1 10.9 8 12 8ZM12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10ZM12 16C10.9 16 10 16.9 10 18C10 19.1 10.9 20 12 20C13.1 20 14 19.1 14 18C14 16.9 13.1 16 12 16Z" fill="#8B949E"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Playlists Section */}
+            <div style={styles.section}>
+              <div style={styles.header}>
+                <h2 style={styles.sectionTitle}>Your Playlists</h2>
+                <button style={styles.seeAllButton}>See All</button>
+              </div>
+              <div style={styles.horizontalScroll}>
+                <div style={styles.horizontalList}>
+                  {[
+                    { title: 'Chill Vibes', tracks: '24 tracks', cover: imgPlaylistCover },
+                    { title: 'Workout Mix', tracks: '18 tracks', cover: imgPlaylistCover1 },
+                    { title: 'Focus Flow', tracks: '15 tracks', cover: imgPlaylistCover2 },
+                    { title: 'Late Night', tracks: '22 tracks', cover: imgPlaylistCover3 },
+                    { title: 'Morning Energy', tracks: '20 tracks', cover: imgPlaylistCover4 },
+                  ].map((playlist, index) => (
+                    <div key={index} style={styles.playlistCard}>
+                      <div 
+                        style={{
+                          ...styles.playlistCover,
+                          backgroundImage: `url(${playlist.cover})`,
+                        }}
+                      >
+                        <div style={styles.playButton}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 5V19L19 12L8 5Z" fill="#FFFFFF"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div style={styles.playlistInfo}>
+                        <h4 style={styles.playlistTitle}>{playlist.title}</h4>
+                        <p style={styles.playlistTracks}>{playlist.tracks}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Trending Contests */}
+            <div style={styles.section}>
+              <div style={styles.header}>
+                <h2 style={styles.sectionTitle}>Trending Contests</h2>
+                <button style={styles.seeAllButton}>View All</button>
+              </div>
+              <div style={styles.contestsGrid}>
+                {contests.map((contest) => (
+                  <div key={contest.id} style={styles.contestCard}>
+                    <div 
+                      style={{
+                        ...styles.contestCover,
+                        backgroundImage: `url(${contest.cover})`
+                      }}
+                    >
+                      <div style={styles.contestPrizeBadge}>
+                        <span style={styles.prizeAmount}>{contest.prize}</span>
+                      </div>
+                    </div>
+                    <div style={styles.contestInfo}>
+                      <h4 style={styles.contestTitle}>{contest.title}</h4>
+                      <div style={styles.contestMeta}>
+                        <div style={styles.remixerInfo}>
+                          <div 
+                            style={{
+                              ...styles.remixerAvatar,
+                              backgroundImage: `url(${contest.remixerAvatar})`
+                            }}
+                          />
+                          <span style={styles.remixerName}>{contest.remixer}</span>
+                        </div>
+                        <div style={styles.contestStats}>
+                          <span style={styles.contestStat}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B949E" style={{ marginRight: '4px' }}>
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                              <path d="M13 7h-2v6h6v-2h-4z"/>
+                            </svg>
+                            {contest.deadline}
+                          </span>
+                          <span style={styles.contestStat}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B949E" style={{ marginRight: '4px' }}>
+                              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6zm-1.5 14c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                            </svg>
+                            {contest.tracks} tracks
+                          </span>
+                        </div>
+                      </div>
+                      <button style={styles.enterButton}>
+                        Enter Now
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      {/* Top Navigation */}
+      <div style={styles.topNav as React.CSSProperties}>
+        <div style={styles.searchBar as React.CSSProperties}>
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={styles.searchInput as React.CSSProperties}
+          />
+          <div style={styles.notificationIcon as React.CSSProperties}>
+            <img src={imgNotificationIcon} alt="Notifications" style={styles.icon as React.CSSProperties} />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={styles.mainContainer as React.CSSProperties}>
+        {renderActiveTab()}
+      </div>
+
+      {/* Bottom Navigation */}
+      <div style={styles.bottomNav as React.CSSProperties}>
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            style={{
+              ...(styles.navItem as React.CSSProperties),
+              ...(activeTab === item.id ? (styles.navItemActive as React.CSSProperties) : {})
+            }}
+            onClick={() => setActiveTab(item.id)}
+          >
+            <div style={styles.navIcon as React.CSSProperties}>
+              {item.icon === 'player' && <img src={imgPlayerIcon} alt="Player" style={styles.icon as React.CSSProperties} />}
+              {item.icon === 'playlist' && <img src={imgPlaylistIcon} alt="Playlist" style={styles.icon as React.CSSProperties} />}
+              {item.icon === 'contests' && <img src={imgContestIcon} alt="Contests" style={styles.icon as React.CSSProperties} />}
+              {item.icon === 'profile' && <img src={imgProfileIcon} alt="Profile" style={styles.icon as React.CSSProperties} />}
+            </div>
+            <span style={styles.navLabel as React.CSSProperties}>{item.label}</span>
+          </button>
+        ))}
+      </div>
+        {/* Top Navigation */}
+      <div style={styles.topNav}>
+        <div style={styles.searchBar}>
+          <div style={styles.searchIcon}>🔍</div>
+          <input
+            type="text"
+            placeholder="Search music, artists, playlists..."
+            style={styles.searchInput}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div style={styles.profileSection}>
+          <div style={styles.notificationIcon}>🔔</div>
+          <div style={styles.profileAvatar}>
+            <img 
+              src={imgRemixer1} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', borderRadius: '50%' }} 
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={styles.content}>
+        {renderContent()}
+      </div>
+
+      {/* Bottom Navigation */}
+      <div style={styles.bottomNav}>
+        {[
+          { label: 'Home', icon: '🏠', tab: 'home' },
+          { label: 'Playlists', icon: '🎵', tab: 'playlist' },
+          { label: 'Contests', icon: '🏆', tab: 'contests' },
+          { label: 'Profile', icon: '👤', tab: 'profile' },
+        ].map((item, index) => (
+          <button 
+            key={index}
+            onClick={() => setActiveTab(item.tab)}
+            style={{
+              ...styles.navButton,
+              ...(activeTab === item.tab ? styles.navButtonActive : {})
+            }}
+          >
+            <span style={styles.navIcon}>{item.icon}</span>
+            <span style={styles.navLabel}>{item.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default HomeScreen;
+  
+  // Top Navigation
+  topNav: {
+    padding: '16px',
+    backgroundColor: '#0D1117',
+    borderBottom: '1px solid #30363D',
+  },
+  
+  searchBar: {
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: '#0D1117',
+    borderRadius: '6px',
+    padding: '8px 12px',
+    border: '1px solid #30363D',
+  },
+  
+  searchInput: {
+    flex: 1,
+    background: 'transparent',
+    border: 'none',
+    color: '#C9D1D9',
+    fontSize: '14px',
+    outline: 'none',
+    '&::placeholder': {
+      color: '#6E7681',
+    },
+  },
+  
+  notificationIcon: {
+    marginLeft: '12px',
+    padding: '4px',
+    cursor: 'pointer',
+  },
+  
+  // Main Content
+  mainContainer: {
+    flex: 1,
+    padding: '16px',
+    overflowY: 'auto',
+    paddingBottom: '80px', // Space for bottom navigation
+  },
+  
+  // Bottom Navigation
+  bottomNav: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: 'flex',
+    justifyContent: 'space-around',
+    backgroundColor: '#0D1117',
+    borderTop: '1px solid #30363D',
+    padding: '8px 0',
+  },
+  
+  navItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: 'transparent',
+    border: 'none',
+    color: '#6E7681',
+    padding: '8px 12px',
+    cursor: 'pointer',
+    '&:hover': {
+      color: '#58A6FF',
+    },
+  },
+  
+  navItemActive: {
+    color: '#58A6FF',
+  },
+  
+  navIcon: {
+    width: '24px',
+    height: '24px',
+    marginBottom: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  navLabel: {
+    fontSize: '10px',
+    fontWeight: 500,
+  },
+  
+  icon: {
+    width: '20px',
+    height: '20px',
+  },
+  
+  // Content Sections
+  content: {
+    maxWidth: '600px',
+    margin: '0 auto',
+    width: '100%',
+  },
+  
+  welcomeSection: {
+    marginBottom: '24px',
+    textAlign: 'center',
+  },
+  
+  welcomeTitle: {
+    fontSize: '24px',
+    fontWeight: 600,
+    marginBottom: '8px',
+    color: '#C9D1D9',
+  },
+  
+  welcomeSubtitle: {
+    fontSize: '14px',
+    color: '#8B949E',
+    marginBottom: '16px',
+  },
+  
+  section: {
+    marginBottom: '24px',
+  },
+  
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '12px',
+  },
+  
+  sectionTitle: {
+    fontSize: '18px',
+    fontWeight: 600,
+    color: '#C9D1D9',
+    margin: 0,
+  },
+  
+  seeAllButton: {
+    background: 'transparent',
+    border: 'none',
+    color: '#58A6FF',
+    fontSize: '12px',
+    cursor: 'pointer',
+    padding: '4px 8px',
+    '&:hover': {
+      textDecoration: 'underline',
+    },
+  },
+  
+  // Track List
+  trackList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  
+  trackCard: {
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: '#161B22',
+    borderRadius: '8px',
+    padding: '12px',
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+      backgroundColor: '#1F2937',
+    },
+  },
+  
+  trackCover: {
+    position: 'relative',
+    width: '48px',
+    height: '48px',
+    borderRadius: '4px',
+    overflow: 'hidden',
+    marginRight: '12px',
+    flexShrink: 0,
+  },
+  
+  trackCoverImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  
+  nowPlayingIndicator: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '24px',
+    height: '24px',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '&::after': {
+      content: '""',
+      width: '0',
+      height: '0',
+      borderTop: '6px solid transparent',
+      borderLeft: '10px solid white',
+      borderBottom: '6px solid transparent',
+      marginLeft: '2px',
+    },
+  },
+  
+  trackInfo: {
+    flex: 1,
+    minWidth: 0,
+    marginRight: '12px',
+  },
+  
+  trackTitle: {
+    fontSize: '14px',
+    fontWeight: 500,
+    color: '#C9D1D9',
+    margin: 0,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  
+  trackArtist: {
+    fontSize: '12px',
+    color: '#8B949E',
+    margin: '2px 0 0',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  
+  trackDuration: {
+    fontSize: '12px',
+    color: '#8B949E',
+    marginLeft: '8px',
+    flexShrink: 0,
+  },
+  
+  // Playlist Grid
+  playlistGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+    gap: '12px',
+  },
+  
+  playlistCard: {
+    backgroundColor: '#161B22',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    transition: 'transform 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+    },
+  },
+  
+  playlistCover: {
+    width: '100%',
+    aspectRatio: '1',
+    objectFit: 'cover',
+  },
+  
+  playlistInfo: {
+    padding: '12px',
+  },
+  
+  playlistTitle: {
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#C9D1D9',
+    margin: '0 0 4px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  
+  playlistDescription: {
+    fontSize: '12px',
+    color: '#8B949E',
+    margin: '0 0 8px',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  
+  playlistMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '10px',
+    color: '#8B949E',
+    '& > span:not(:last-child)': {
+      marginRight: '4px',
+    },
+  },
+  
+  // Contest Grid
+  contestGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  
+  contestCard: {
+    backgroundColor: '#161B22',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    transition: 'transform 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+    },
+  },
+  
+  contestCover: {
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '16/9',
+  },
+  
+  contestCoverImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  
+  contestPrizeBadge: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    color: '#FFD700',
+    padding: '4px 8px',
+    borderRadius: '12px',
+    fontSize: '12px',
+    fontWeight: 600,
+    display: 'flex',
+    alignItems: 'center',
+  },
+  
+  prizeAmount: {
+    color: '#FFD700',
+    fontWeight: 600,
+  },
+  
+  contestInfo: {
+    padding: '12px',
+  },
+  
+  contestTitle: {
+    fontSize: '16px',
+    fontWeight: 600,
+    color: '#C9D1D9',
+    margin: '0 0 4px',
+  },
+  
+  contestDescription: {
+    fontSize: '12px',
+    color: '#8B949E',
+    margin: '0 0 12px',
+  },
+  
+  contestMeta: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '12px',
+  },
+  
+  remixerInfo: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  
+  remixerAvatar: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    marginRight: '8px',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  },
+  
+  remixerName: {
+    fontSize: '12px',
+    color: '#8B949E',
+  },
+  
+  contestStats: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  
+  statItem: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '12px',
+    color: '#8B949E',
+  },
+  
+  enterButton: {
+    width: '100%',
+    padding: '8px',
+    backgroundColor: '#238636',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+      backgroundColor: '#2EA043',
+    },
+  },
+  
+  // Responsive adjustments
+  '@media (min-width: 640px)': {
+    mainContainer: {
+      padding: '24px',
+      paddingBottom: '80px',
+    },
+    
+    playlistGrid: {
+      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+      gap: '16px',
+    },
+    
+    contestGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      '& > *': {
+        flex: '1 1 300px',
+      },
+    },
+  },
+  
+  '@media (min-width: 1024px)': {
+    mainContainer: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '32px',
+      paddingBottom: '80px',
+    },
+    
+    playlistGrid: {
+      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+      gap: '20px',
+    },
+  },
+  minHeight: '100vh',
+  display: 'flex' as const,
+  flexDirection: 'column' as const,
+  alignItems: 'center' as const,
+  padding: '16px',
+  color: '#fff',
+} as const,
+  
+  // Top Navigation
+(
+  topNav: {
+    display: 'flex' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    width: '100%',
+    maxWidth: '400px',
+    padding: '12px 16px',
+    marginBottom: '16px',
+  } as const,
+  
+  searchBar: {
+    flex: 1,
+    display: 'flex' as const,
+    alignItems: 'center' as const,
+    backgroundColor: '#161B22',
+    borderRadius: '8px',
+    padding: '8px 12px',
+    marginRight: '12px',
+  } as const,
+  
+  searchIcon: {
+    marginRight: '8px',
+    color: '#8B949E',
+  } as const,
+  
+  searchInput: {
+    flex: 1,
+    background: 'transparent',
+    border: 'none',
+    color: '#fff',
+    fontSize: '14px',
+    outline: 'none',
+  } as const,
+  
+  profileSection: {
+    display: 'flex' as const,
+    alignItems: 'center' as const,
+  } as const,
+  
+  notificationIcon: {
+    fontSize: '20px',
+    marginRight: '16px',
+  } as const,
+  
+  profileAvatar: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+  } as const,
+  
+  mainContainer: {
+    position: 'relative' as const,
+    width: '100%',
+    maxWidth: '400px',
+    height: '680px',
+    borderRadius: '24px',
+    overflow: 'hidden' as const,
+    background: '#0D1117',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+  } as const,
+  
+  content: {
+    flex: 1,
+    overflowY: 'auto' as const,
+    padding: '0 16px 100px',
+    WebkitOverflowScrolling: 'touch',
+    '&::-webkit-scrollbar': {
+      display: 'none',
+    },
+  } as unknown as React.CSSProperties,
+  
+  tabContent: {
+    paddingBottom: '20px',
+  } as const,
+  
+  // Typography
+  title: {
+    fontSize: '18px',
+    fontWeight: 600 as const,
+    color: '#C9D1D9',
+    margin: 0,
+  } as const,
+  
+  // Sections
+  section: {
+    marginBottom: '24px',
+  } as const,
+  
+  header: {
+    display: 'flex' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: '16px',
+  } as const,
+  
+  sectionTitle: {
+    fontSize: '16px',
+    fontWeight: 600 as const,
+    color: '#C9D1D9',
+    margin: 0,
+  } as const,
+  
+  seeAllButton: {
+    background: 'none',
+    border: 'none',
+    color: '#58A6FF',
+    fontSize: '12px',
+    fontWeight: 500 as const,
+    cursor: 'pointer' as const,
+    padding: '4px 8px',
+    borderRadius: '4px',
+    ':hover': {
+      backgroundColor: 'rgba(88, 166, 255, 0.1)',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  // Featured Section
+  featuredCard: {
+    backgroundColor: '#161B22',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    marginBottom: '16px',
+  } as const,
+  
+  featuredCover: {
+    width: '100%',
+    height: '160px',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    position: 'relative' as const,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as const,
+  
+  playButton: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      transform: 'scale(1.1)',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  featuredInfo: {
+    padding: '16px',
+  } as const,
+  
+  featuredTitle: {
+    fontSize: '18px',
+    fontWeight: 600,
+    color: '#fff',
+    margin: '0 0 4px 0',
+  } as const,
+  
+  featuredArtist: {
+    fontSize: '14px',
+    color: '#8B949E',
+    margin: '0 0 12px 0',
+  } as const,
+  
+  featuredMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '12px',
+    color: '#8B949E',
+  } as const,
+  
+  // Track Items
+  recentlyPlayedList: {
+    display: 'flex' as const,
+    flexDirection: 'column' as const,
+    gap: '12px',
+  } as const,
+  
+  trackItem: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '12px 0',
+    borderBottom: '1px solid #21262D',
+    transition: 'background-color 0.2s ease',
+    ':hover': {
+      backgroundColor: 'rgba(240, 246, 252, 0.1)',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  playingTrack: {
+    backgroundColor: 'rgba(255, 34, 251, 0.1)',
+  } as const,
+  
+  trackNumber: {
+    fontSize: '14px',
+    marginRight: '12px',
+  } as const,
+  
+  trackCover: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '8px',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    marginRight: '12px',
+    flexShrink: 0,
+  } as const,
+  
+  trackInfo: {
+    flex: 1,
+    minWidth: 0,
+  } as const,
+  
+  trackTitle: {
+    fontSize: '15px',
+    color: '#C9D1D9',
+    margin: '0 0 4px 0',
+    fontWeight: 500,
+  } as const,
+  
+  artistName: {
+    fontSize: '13px',
+    color: '#8B949E',
+    margin: 0,
+  } as const,
+  
+  moreButton: {
+    background: 'none',
+    border: 'none',
+    color: '#8B949E',
+    cursor: 'pointer' as const,
+    padding: '8px',
+    marginLeft: '8px',
+    borderRadius: '50%',
+    display: 'flex' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    ':hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  // Visualizer
+  visualizer: {
+    display: 'flex' as const,
+    alignItems: 'center' as const,
+    gap: '3px',
+    height: '24px',
+    marginLeft: '12px',
+  } as const,
+  
+  visualizerBar: {
+    width: '3px',
+    backgroundColor: '#FF22FB',
+    borderRadius: '2px',
+    animation: 'equalize 1.5s ease-in-out infinite' as const,
+    animationDelay: 'calc(0.1s * var(--i, 0))' as const,
+  } as const,
+  
+  // Playlists
+  playlistGrid: {
+    display: 'grid' as const,
+    gridTemplateColumns: 'repeat(2, 1fr)' as const,
+    gap: '16px',
+    overflowY: 'auto' as const,
+    height: 'calc(100% - 30px)',
+    paddingRight: '8px',
+  } as const,
+  
+  playlistCard: {
+    background: '#161B22',
+    borderRadius: '12px',
+    overflow: 'hidden' as const,
+    transition: 'transform 0.2s',
+    ':hover': {
+      transform: 'translateY(-2px)' as const,
+    },
+  } as unknown as StyleWithPseudo,
+  
+  playlistCover: {
+    width: '100%',
+    aspectRatio: '1' as const,
+    backgroundSize: 'cover' as const,
+    backgroundPosition: 'center' as const,
+  } as const,
+  
+  playlistInfo: {
+    padding: '12px',
+  } as const,
+  
+  playlistTitle: {
+    fontSize: '14px',
+    fontWeight: 600 as const,
+    color: '#C9D1D9',
+    margin: '0 0 4px 0',
+    whiteSpace: 'nowrap' as const,
+    overflow: 'hidden' as const,
+    textOverflow: 'ellipsis' as const,
+  } as const,
+  
+  playlistTracks: {
+    fontSize: '12px',
+    color: '#8B949E',
+    margin: 0,
+  } as const,
+  
+  // Navigation
+  navButton: {
+    display: 'flex' as const,
+    flexDirection: 'column' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    background: 'none',
+    border: 'none',
+    color: '#8B949E',
+    cursor: 'pointer' as const,
+    padding: '12px 0',
+    flex: 1,
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      color: '#58A6FF',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  navButtonActive: {
+    color: '#58A6FF',
+    position: 'relative' as const,
+    '&::after': {
+      content: '""',
+      position: 'absolute' as const,
+      bottom: '0',
+      width: '24px',
+      height: '3px',
+      backgroundColor: '#58A6FF',
+      borderRadius: '3px',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  navIcon: {
+    fontSize: '20px',
+    marginBottom: '4px',
+  } as const,
+  
+  navLabel: {
+    fontSize: '10px',
+    fontWeight: 500 as const,
+  } as const,
+  
+  contestStatSmall: {
+  
+contestStatSmall: {
+  fontSize: '10px',
+  color: '#8B949E',
+  marginRight: '8px',
+} as const,
+    paddingLeft: '16px',
+    '&::-webkit-scrollbar': {
+      display: 'none',
+    },
+  } as unknown as React.CSSProperties,
+  
+  horizontalList: {
+    display: 'flex' as const,
+    gap: '16px',
+    paddingRight: '16px',
+  } as const,
+  
+  playlistCard: {
+    flex: '0 0 auto',
+    width: '160px',
+    backgroundColor: '#161B22',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    transition: 'transform 0.2s ease',
+    ':hover': {
+      transform: 'translateY(-4px)',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  playlistCover: {
+    width: '100%',
+    height: '160px',
+    backgroundSize: 'cover' as const,
+    backgroundPosition: 'center' as const,
+    position: 'relative' as const,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as const,
+  
+  playlistInfo: {
+    padding: '12px',
+  } as const,
+  
+  playlistTitle: {
+    fontSize: '14px',
+    fontWeight: 600 as const,
+    color: '#C9D1D9',
+    margin: '0 0 4px 0',
+    whiteSpace: 'nowrap' as const,
+    overflow: 'hidden' as const,
+    textOverflow: 'ellipsis' as const,
+  } as const,
+  
+  playlistTracks: {
+
+// Contests
+contestsGrid: {
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: '16px',
+} as const,
+  
+contestCard: {
+  backgroundColor: '#161B22',
+  borderRadius: '12px',
+  overflow: 'hidden',
+  transition: 'transform 0.2s ease',
+  ':hover': {
+    transform: 'translateY(-2px)',
+  },
+} as unknown as StyleWithPseudo,
+    transition: 'transform 0.2s ease',
+    ':hover': {
+      transform: 'translateY(-2px)',
+    },
+  } as unknown as StyleWithPseudo,
+  
+  contestCover: {
+    width: '100%',
+    height: '160px',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    position: 'relative',
+  } as const,
+  
+  contestPrizeBadge: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    padding: '6px 12px',
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    backdropFilter: 'blur(4px)',
+  } as const,
+  
+  prizeAmount: {
+    fontSize: '14px',
+    fontWeight: 700,
+    color: '#FFFFFF',
+  } as const,
+  
+  contestInfo: {
+    padding: '16px',
+  } as const,
+  
+  contestTitle: {
+    fontSize: '16px',
+    fontWeight: 600,
+    color: '#C9D1D9',
+    margin: '0 0 12px 0',
+    color: '#C9D1D9',
+    margin: '0 0 4px 0',
+  } as const,
+  
+  contestMeta: {
+    marginBottom: '12px',
+  } as const,
+  
+  contestMetaSmall: {
+    display: 'flex',
+    alignItems: 'center',
+  } as const,
+  
+  remixerInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '8px',
+  } as const,
+  
+  remixerAvatar: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    marginRight: '8px',
+  } as const,
+  
+  remixerName: {
+    fontSize: '12px',
+    color: '#8B949E',
+    marginLeft: '8px',
+  } as const,
+  
+  contestStats: {
+    display: 'flex',
+    gap: '12px',
+  } as const,
+  
+  statItem: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '11px',
+    color: '#8B949E',
+  } as const,
+  
+  statItemSmall: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '10px',
+    color: '#8B949E',
+  } as const,
+  
+  enterButton: {
+    width: '100%',
+    background: 'linear-gradient(90deg, #FF22FB 0%, #A31ACB 100%)',
+    border: 'none',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'opacity 0.2s',
+    ':hover': {
+      opacity: 0.9,
+    },
+  } as unknown as StyleWithPseudo,
+  
+  // Bottom navigation moved to the end of the file
+  
+  // Header button style
+  headerButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as const,
+  nowPlayingCard: {
+    background: '#093067',
+    borderRadius: '12px',
+    padding: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  } as const,
+  albumArt: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '8px',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  } as const,
+  trackInfo: {
+    flex: 1,
+  } as const,
+  trackTitle: {
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#C9D1D9',
+    margin: '0 0 4px 0',
+  } as const,
+  artistName: {
+    fontSize: '13px',
+    color: '#8B949E',
+    margin: 0,
+  } as const,
+  visualizer: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    gap: '3px',
+    height: '30px',
+  } as const,
+  visualizerBar: {
+    width: '3px',
+    backgroundColor: '#FF22FB',
+    borderRadius: '2px',
+  } as const,
+  section: {
+    flex: 1,
+    overflow: 'hidden',
+  } as const,
+  sectionTitle: {
+    fontSize: '16px',
+    fontWeight: 600,
+    color: '#C9D1D9',
+    margin: '0 0 16px 0',
+  } as const,
+  bottomNav: {
+    position: 'absolute' as const,
+    bottom: '16px',
+    left: '16px',
+    right: '16px',
+    background: '#0D1117',
+    borderRadius: '12px',
+    padding: '8px 0',
+    display: 'flex' as const,
+    justifyContent: 'space-around' as const,
+    boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.1)',
+  } as const,
+  navButton: {
+    background: 'none',
+    border: 'none',
+    display: 'flex' as const,
+    flexDirection: 'column' as const,
+    alignItems: 'center' as const,
+    gap: '4px',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    cursor: 'pointer' as const,
+    color: '#8B949E',
+  } as const,
+  navButtonActive: {
+    background: '#58A6FF',
+    color: '#FFFFFF',
+  } as const,
+  navIcon: {
+    fontSize: '20px',
+    lineHeight: 1,
+  } as const,
+  navLabel: {
+    fontSize: '12px',
+    fontWeight: 600 as const,
+  } as const,
+}); // Added missing closing parenthesis for createStyle
+
+export default HomeScreen;
