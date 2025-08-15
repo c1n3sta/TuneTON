@@ -10,6 +10,7 @@ export default defineConfig(({ command, mode }) => {
   
   return {
     plugins: [react()],
+    assetsInclude: ['**/*.old'],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
