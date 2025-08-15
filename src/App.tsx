@@ -8,7 +8,9 @@ import OnboardingWelcomeSlide3 from './components/OnboardingWelcomeSlide3';
 import OnboardingWelcomeSlide4 from './components/OnboardingWelcomeSlide4';
 import OnboardingGenres from './components/OnboardingGenres';
 import OnboardingArtists from './components/OnboardingArtistsEnhanced';
-import HomeScreen from './components/HomeScreen.tsx.old';
+import HomeScreen from './components/HomeScreen';
+// 21st.dev Toolbar integration
+import { use21stDevToolbar } from './hooks/use21stDevToolbar';
 import './App.css';
 
 function App() {
@@ -18,6 +20,7 @@ function App() {
   const [onboardStep, setOnboardStep] = useState(1);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
+  const { TwentyFirstDevToolbar } = use21stDevToolbar();
 
   useEffect(() => {
     // Initialize Telegram WebApp if available
@@ -65,6 +68,7 @@ function App() {
       ) : (
         <Search onTrackSelect={handleTrackSelect} />
       )}
+      {import.meta.env.DEV && <TwentyFirstDevToolbar />}
     </div>
   );
 }
