@@ -1,0 +1,103 @@
+@import '../../styles/theme.css';
+
+.bottom-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 64px;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex: 1;
+  height: 100%;
+  transition: var(--transition);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 0;
+  font-family: 'Montserrat', sans-serif;
+  outline: none;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+}
+
+.nav-item.active {
+  color: var(--accent-primary);
+}
+
+.nav-icon {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  width: 24px;
+  height: 24px;
+}
+
+.nav-item:active .nav-icon {
+  transform: scale(0.9);
+  margin-bottom: 4px;
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  transition: color 0.2s ease;
+}
+
+/* For devices with notches or rounded corners */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-navigation {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+  }
+}
+
+/* Tablet and larger screens */
+@media (min-width: 640px) {
+  .bottom-navigation {
+    max-width: 500px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 16px 16px 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding: 8px 20px;
+  }
+  
+  .nav-label {
+    font-size: 11px;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .bottom-navigation {
+    background-color: rgba(22, 27, 34, 0.95);
+  }
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 360px) {
+  .nav-label {
+    font-size: 9px;
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { AudioTrack } from '../../types/audio';
+import Spectrum from '../Spectrum';
 import styles from './AudioPlayer.module.css';
 
 interface AudioPlayerProps {
@@ -22,20 +23,55 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     volume,
     isMuted,
     playbackRate,
-    pitch,
+    tempo,
+    pitchSemitones,
     eqSettings,
+    eqBands,
+    eqMix,
+    eqBypass,
+    reverbMix,
+    reverbPreDelay,
+    reverbDamping,
+    reverbPreset,
+    reverbBypass,
+    lowPassTone,
+    lowPassResonance,
+    lofiTone,
+    lofiNoise,
+    lofiWow,
     loadTrack,
     togglePlayPause,
     seek,
     setVolume,
     toggleMute,
     setPlaybackRate,
-    setPitch,
-    setEQ
+    setTempo,
+    setPitchSemitones,
+    setEQ,
+    setEffectBypass,
+    setEffectMix,
+    handleLofiToneChange,
+    handleLofiNoiseChange,
+    handleLofiWowChange,
+    handleEQBandChange,
+    handleEQMixChange,
+    handleEQBypassChange,
+    handleReverbMixChange,
+    handleReverbPreDelayChange,
+    handleReverbDampingChange,
+    handleReverbPresetChange,
+    handleReverbBypassChange,
+    handleLowPassToneChange,
+    handleLowPassResonanceChange,
+    getAnalyser
   } = useAudioPlayer();
   
   const [showEQ, setShowEQ] = useState(false);
   const [showPitch, setShowPitch] = useState(false);
+  const [showLofi, setShowLofi] = useState(false);
+  const [showReverb, setShowReverb] = useState(false);
+  const [showLowPass, setShowLowPass] = useState(false);
+  const [showSpectrum, setShowSpectrum] = useState(true);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Load the track when it changes
@@ -67,11 +103,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     setPlaybackRate(parseFloat(e.target.value));
   };
 
-  const handlePitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTempoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
-    if (!isNaN(value)) {
-      setPitch(value);
-    }
+    if (!isNaN(value)) setTempo(value);
+  };
+
+  const handlePitchSemitonesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) setPitchSemitones(value);
   };
 
   const handleEQChange = (band: 'low' | 'mid' | 'high') => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +167,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
           {isPlaying ? '⏸️' : '▶️'}
         </button>
 
+
         <div className={styles.playbackRate}>
           <select 
             value={playbackRate.toFixed(1)} 
@@ -157,70 +197,257 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
         >
           EQ
         </button>
+
+        <button 
+          className={`${styles.effectButton} ${showLofi ? styles.active : ''}`}
+          onClick={() => setShowLofi(!showLofi)}
+        >
+          Lo-fi
+        </button>
+
+        <button 
+          className={`${styles.effectButton} ${showReverb ? styles.active : ''}`}
+          onClick={() => setShowReverb(!showReverb)}
+        >
+          Reverb
+        </button>
+
+        <button 
+          className={`${styles.effectButton} ${showLowPass ? styles.active : ''}`}
+          onClick={() => setShowLowPass(!showLowPass)}
+        >
+          Low-Pass
+        </button>
+
+        <button 
+          className={`${styles.effectButton} ${showSpectrum ? styles.active : ''}`}
+          onClick={() => setShowSpectrum(!showSpectrum)}
+        >
+          Spectrum
+        </button>
       </div>
 
       {showPitch && (
         <div className={styles.pitchControl}>
-          <label>Pitch: {pitch.toFixed(2)}x</label>
+          <label>Tempo: {tempo.toFixed(2)}x</label>
           <input
             type="range"
             min="0.5"
-            max="2"
+            max="1.5"
             step="0.01"
-            value={pitch}
-            onChange={handlePitchChange}
+            value={tempo}
+            onChange={handleTempoChange}
             className={styles.pitchSlider}
           />
+          <label>Pitch: {pitchSemitones} st</label>
+          <input
+            type="range"
+            min="-12"
+            max="12"
+            step="1"
+            value={pitchSemitones}
+            onChange={handlePitchSemitonesChange}
+            className={styles.pitchSlider}
+          />
+          <div className={styles.inlineControls}>
+            <label>Tempo/Pitch Mix</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              defaultValue={1}
+              onChange={(e) => setEffectMix('tempoPitch', parseFloat(e.target.value))}
+            />
+            <button className={styles.effectButton} onClick={() => setEffectBypass('tempoPitch', true)}>Bypass</button>
+            <button className={styles.effectButton} onClick={() => setEffectBypass('tempoPitch', false)}>Enable</button>
+          </div>
         </div>
       )}
 
       {showEQ && (
         <div className={styles.eqControls}>
-          <div className={styles.eqBand}>
-            <label>Low</label>
+          {[60, 170, 310, 600, 1000, 3000, 6000].map((freq, index) => (
+            <div key={index} className={styles.eqBand}>
+              <label>{freq}Hz</label>
+              <input
+                type="range"
+                min="-12"
+                max="12"
+                step="0.5"
+                value={eqBands[index]}
+                onChange={(e) => handleEQBandChange(index, parseFloat(e.target.value))}
+                className={styles.eqSlider}
+              />
+              <span>{eqBands[index] > 0 ? `+${eqBands[index]}` : eqBands[index]}dB</span>
+            </div>
+          ))}
+          <div className={styles.inlineControls}>
+            <label>EQ Mix</label>
             <input
               type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqSettings.low}
-              onChange={handleEQChange('low')}
-              className={styles.eqSlider}
+              min="0"
+              max="1"
+              step="0.01"
+              value={eqMix}
+              onChange={(e) => handleEQMixChange(parseFloat(e.target.value))}
             />
-            <span>{eqSettings.low > 0 ? `+${eqSettings.low}` : eqSettings.low}dB</span>
-          </div>
-          
-          <div className={styles.eqBand}>
-            <label>Mid</label>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqSettings.mid}
-              onChange={handleEQChange('mid')}
-              className={styles.eqSlider}
-            />
-            <span>{eqSettings.mid > 0 ? `+${eqSettings.mid}` : eqSettings.mid}dB</span>
-          </div>
-          
-          <div className={styles.eqBand}>
-            <label>High</label>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqSettings.high}
-              onChange={handleEQChange('high')}
-              className={styles.eqSlider}
-            />
-            <span>{eqSettings.high > 0 ? `+${eqSettings.high}` : eqSettings.high}dB</span>
+            <button 
+              className={`${styles.effectButton} ${eqBypass ? styles.active : ''}`} 
+              onClick={() => handleEQBypassChange(!eqBypass)}
+            >
+              {eqBypass ? 'Enable' : 'Bypass'}
+            </button>
           </div>
         </div>
       )}
-    </div>
-  );
-};
+
+      {showLofi && (
+        <div className={styles.lofiControls}>
+          <div className={styles.lofiBand}>
+            <label>Tone: {lofiTone.toFixed(0)}Hz</label>
+            <input
+              type="range"
+              min="200"
+              max="20000"
+              step="100"
+              value={lofiTone}
+              onChange={(e) => handleLofiToneChange(Number(e.target.value))}
+              className={styles.lofiSlider}
+            />
+          </div>
+          
+          <div className={styles.lofiBand}>
+            <label>Noise: {(lofiNoise * 100).toFixed(0)}%</label>
+            <input
+              type="range"
+              min="0"
+              max="0.2"
+              step="0.01"
+              value={lofiNoise}
+              onChange={(e) => handleLofiNoiseChange(Number(e.target.value))}
+              className={styles.lofiSlider}
+            />
+          </div>
+          
+          <div className={styles.lofiBand}>
+            <label>Wow: {lofiWow.toFixed(1)}Hz</label>
+            <input
+              type="range"
+              min="0"
+              max="2"
+              step="0.1"
+              value={lofiWow}
+              onChange={(e) => handleLofiWowChange(Number(e.target.value))}
+              className={styles.lofiSlider}
+            />
+          </div>
+        </div>
+      )}
+
+      {showReverb && (
+        <div className={styles.reverbControls}>
+          <div className={styles.reverbBand}>
+            <label>Mix: {(reverbMix * 100).toFixed(0)}%</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={reverbMix}
+              onChange={(e) => handleReverbMixChange(parseFloat(e.target.value))}
+              className={styles.reverbSlider}
+            />
+          </div>
+          
+          <div className={styles.reverbBand}>
+            <label>Pre-delay: {reverbPreDelay}ms</label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={reverbPreDelay}
+              onChange={(e) => handleReverbPreDelayChange(parseFloat(e.target.value))}
+              className={styles.reverbSlider}
+            />
+          </div>
+          
+          <div className={styles.reverbBand}>
+            <label>Damping: {reverbDamping.toFixed(0)}Hz</label>
+            <input
+              type="range"
+              min="100"
+              max="20000"
+              step="100"
+              value={reverbDamping}
+              onChange={(e) => handleReverbDampingChange(parseFloat(e.target.value))}
+              className={styles.reverbSlider}
+            />
+          </div>
+
+          <div className={styles.reverbPreset}>
+            <label>Preset:</label>
+            <select 
+              value={reverbPreset}
+              onChange={(e) => handleReverbPresetChange(e.target.value as 'small' | 'medium' | 'large')}
+              className={styles.reverbSelect}
+            >
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+
+          <div className={styles.inlineControls}>
+            <button 
+              className={`${styles.effectButton} ${reverbBypass ? styles.active : ''}`} 
+              onClick={() => handleReverbBypassChange(!reverbBypass)}
+            >
+              {reverbBypass ? 'Enable' : 'Bypass'}
+            </button>
+          </div>
+                  </div>
+        )}
+
+        {showLowPass && (
+          <div className={styles.lowPassControls}>
+            <div className={styles.lowPassBand}>
+              <label>Cutoff: {lowPassTone.toFixed(0)}Hz</label>
+              <input
+                type="range"
+                min="20"
+                max="20000"
+                step="10"
+                value={lowPassTone}
+                onChange={(e) => handleLowPassToneChange(parseFloat(e.target.value))}
+                className={styles.lowPassSlider}
+              />
+            </div>
+            
+            <div className={styles.lowPassBand}>
+              <label>Resonance: {lowPassResonance.toFixed(2)}</label>
+              <input
+                type="range"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value={lowPassResonance}
+                onChange={(e) => handleLowPassResonanceChange(parseFloat(e.target.value))}
+                className={styles.lowPassSlider}
+              />
+            </div>
+          </div>
+        )}
+
+        {showSpectrum && (
+          <Spectrum 
+            analyser={getAnalyser() || null}
+            isVisible={showSpectrum && isPlaying}
+          />
+        )}
+      </div>
+    );
+  };
 
 export default AudioPlayer;

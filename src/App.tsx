@@ -1,111 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { WebApp } from '@twa-dev/types';
-import AudioPlayer from './components/player/AudioPlayer';
-import { AudioTrack } from './types/audio';
+import { Track } from './api/client';
+import Search from './pages/Search';
+import TrackPage from './pages/Track';
+import OnboardingWelcome from './components/OnboardingWelcome';
+import OnboardingWelcomeSlide2 from './components/OnboardingWelcomeSlide2';
+import OnboardingWelcomeSlide3 from './components/OnboardingWelcomeSlide3';
+import OnboardingWelcomeSlide4 from './components/OnboardingWelcomeSlide4';
+import OnboardingGenres from './components/OnboardingGenres';
+import OnboardingArtists from './components/OnboardingArtistsEnhanced';
+import HomeScreen from './components/HomeScreen';
+// 21st.dev Toolbar integration
+import { use21stDevToolbar } from './hooks/use21stDevToolbar';
 import './App.css';
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-// Declare the Telegram WebApp type
-declare global {
-  interface Window {
-    Telegram: {
-      WebApp: WebApp;
-    };
-  }
-}
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-// Sample track using the local audio file
-const SAMPLE_TRACK: AudioTrack = {
-  id: 'local-track',
-  title: 'TuneTON Track',
-  artist: 'Your Artist',
-  duration: 180, // Update this with the actual duration of your track
-  source: '/audio/audio.mp3',
-  coverArt: 'https://via.placeholder.com/300x300/3e88f7/ffffff?text=TuneTON'
-};
+function App() {
+  const [instruments, setInstruments] = useState([]);
 
-const App: React.FC = () => {
-  const [isWebAppReady, setIsWebAppReady] = useState(false);
-  const [userData, setUserData] = useState<{
-    id?: number;
-    username?: string;
-    first_name?: string;
-    last_name?: string;
-  }>({});
-
-  // Initialize Telegram WebApp
   useEffect(() => {
-    try {
-      // Check if we're running in a Telegram WebView
-      if (window.Telegram && window.Telegram.WebApp) {
-        const webApp = window.Telegram.WebApp;
-        
-        // Expand the Web App to the full available height
-        webApp.expand();
-        
-        // Get user data
-        const initData = webApp.initDataUnsafe;
-        if (initData.user) {
-          setUserData({
-            id: initData.user.id,
-            username: initData.user.username,
-            first_name: initData.user.first_name,
-            last_name: initData.user.last_name
-          });
-        }
-        
-        // Set the app theme
-        document.documentElement.setAttribute('data-theme', webApp.colorScheme || 'dark');
-        
-        // Listen for theme changes
-        webApp.onEvent('themeChanged', () => {
-          document.documentElement.setAttribute('data-theme', webApp.colorScheme || 'dark');
-        });
-        
-        // Mark as ready
-        webApp.ready();
-        setIsWebAppReady(true);
-      } else {
-        console.warn('Telegram WebApp not detected, running in standalone mode');
-        setIsWebAppReady(true);
-      }
-    } catch (error) {
-      console.error('Error initializing Telegram WebApp:', error);
-      setIsWebAppReady(true); // Continue in standalone mode
-    }
+    getInstruments();
   }, []);
 
-  const handleTrackEnd = () => {
-    console.log('Track ended');
-    // Add any logic for when the track ends
-  };
-
-  if (!isWebAppReady) {
-    return <div className="loading">Loading TuneTON...</div>;
+  async function getInstruments() {
+    const { data } = await supabase.from("instruments").select();
+    setInstruments(data);
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>TuneTON</h1>
-        {userData.id && (
-          <div className="user-info">
-            <span>Welcome, {userData.first_name || userData.username || 'User'}</span>
-          </div>
-        )}
-      </header>
-      
-      <main className="app-content">
-        <AudioPlayer 
-          track={SAMPLE_TRACK} 
-          onTrackEnd={handleTrackEnd} 
+    <ul>
+      {instruments.map((instrument) => (
+        <li key={instrument.name}>{instrument.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+export default App;
+
+function App() {
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [onboardStep, setOnboardStep] = useState(1);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
+  const { TwentyFirstDevToolbar } = use21stDevToolbar();
+
+  useEffect(() => {
+    // Initialize Telegram WebApp if available
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      setIsTelegramWebApp(true);
+    }
+  }, []);
+
+  const handleTrackSelect = (track: Track) => {
+    setSelectedTrack(track);
+  };
+
+  const handleBackToSearch = () => {
+    setSelectedTrack(null);
+  };
+
+  return (
+    <div className="App">
+      {showOnboarding ? (
+        onboardStep === 1 ? (
+          <OnboardingWelcome onNext={() => setOnboardStep(2)} />
+        ) : onboardStep === 2 ? (
+          <OnboardingWelcomeSlide2 onNext={() => setOnboardStep(3)} />
+        ) : onboardStep === 3 ? (
+          <OnboardingWelcomeSlide3 onNext={() => setOnboardStep(4)} />
+        ) : onboardStep === 4 ? (
+          <OnboardingWelcomeSlide4 onNext={() => setOnboardStep(5)} onSkip={() => setShowOnboarding(false)} />
+        ) : onboardStep === 5 ? (
+          <OnboardingGenres onNext={(sel) => { setSelectedGenres(sel); setOnboardStep(6); }} />
+        ) : onboardStep === 6 ? (
+          <OnboardingArtists 
+            onNext={() => setOnboardStep(7)} 
+            onSkip={() => setOnboardStep(7)} 
+          />
+        ) : onboardStep === 7 ? (
+          <HomeScreen />
+        ) : null
+      ) : selectedTrack ? (
+        <TrackPage 
+          track={selectedTrack} 
+          onBack={handleBackToSearch} 
         />
-      </main>
-      
-      <footer className="app-footer">
-        <p>TuneTON - Music Player Demo</p>
-      </footer>
+      ) : (
+        <Search onTrackSelect={handleTrackSelect} />
+      )}
+      {import.meta.env.DEV && <TwentyFirstDevToolbar />}
     </div>
   );
-};
+}
 
 export default App;

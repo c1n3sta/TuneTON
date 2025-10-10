@@ -1,0 +1,4145 @@
+{
+    "_guide": {
+        "title": "Knowledge Graph Usage Guide",
+        "description": "Comprehensive guide for navigating and utilizing the TuneTON knowledge graph",
+        "sections": [
+            {
+                "title": "Knowledge Graph Structure",
+                "content": [
+                    "The knowledge graph is organized into hierarchical nodes, each representing a major system component.",
+                    "Each node contains detailed information about a specific aspect of the TuneTON ecosystem.",
+                    "Nodes are interconnected through relationships that define how components interact."
+                ]
+            },
+            {
+                "title": "Main Node Hierarchy",
+                "nodes": [
+                    {
+                        "name": "knowledge_graph",
+                        "line": 1,
+                        "purpose": "Root node containing the entire system architecture"
+                    },
+                    {
+                        "name": "node_tuneTON",
+                        "line": 307,
+                        "purpose": "Core application logic and business rules"
+                    },
+                    {
+                        "name": "node_telegram_api",
+                        "line": 875,
+                        "purpose": "Telegram Web App API integration and features"
+                    },
+                    {
+                        "name": "node_ton_blockchain",
+                        "line": 2219,
+                        "purpose": "TON Blockchain integration and smart contracts"
+                    },
+                    {
+                        "name": "node_supabase",
+                        "line": 3627,
+                        "purpose": "Backend services and database operations"
+                    }
+                ]
+            },
+            {
+                "title": "How to Use the Knowledge Graph",
+                "instructions": [
+                    "1. To understand a component, find its node using the line markers above.",
+                    "2. Each node contains 'entities' (components) and 'relations' (how they connect).",
+                    "3. Use 'features' to understand capabilities of each component.",
+                    "4. Check 'official_documentation' for external references.",
+                    "5. Follow 'relations' to understand system interactions."
+                ]
+            },
+            {
+                "title": "Best Practices",
+                "tips": [
+                    "Always check relationships to understand component dependencies.",
+                    "Use line numbers (LXXX) to quickly navigate between related components.",
+                    "Update the graph when making architectural changes.",
+                    "Reference the official documentation links for implementation details."
+                ]
+            }
+        ],
+        "last_updated": "2025-08-17"
+    },
+    "knowledge_graph": {
+        "version": "1.0.0",
+        "last_updated": "2025-08-17",
+        "description": "Structured knowledge graph for TuneTON application and TON Blockchain ecosystem",
+        "entities": [
+            {
+                "id": "tuneton_app",
+                "name": "TuneTON Application",
+                "type": "Application",
+                "description": "Music streaming and NFT marketplace application on TON Blockchain",
+                "version": "1.0.0"
+            },
+            {
+                "id": "ton_blockchain",
+                "name": "TON Blockchain",
+                "type": "Blockchain",
+                "description": "The Open Network blockchain platform",
+                "version": "3.0.0"
+            },
+            {
+                "id": "music_player",
+                "name": "Music Player",
+                "type": "Component",
+                "description": "Audio playback and streaming component"
+            },
+            {
+                "id": "nft_marketplace",
+                "name": "NFT Marketplace",
+                "type": "Component",
+                "description": "Marketplace for music NFTs"
+            },
+            {
+                "id": "wallet_integration",
+                "name": "Wallet Integration",
+                "type": "Component",
+                "description": "TON wallet connectivity and transaction management"
+            },
+            {
+                "id": "tvm",
+                "name": "TON Virtual Machine",
+                "type": "Component",
+                "description": "Execution environment for TON smart contracts"
+            },
+            {
+                "id": "smart_contracts",
+                "name": "Smart Contracts",
+                "type": "Component",
+                "description": "Self-executing contracts on TON Blockchain"
+            },
+            {
+                "id": "supabase_service",
+                "name": "Supabase Backend",
+                "type": "Backend_Service",
+                "description": "Open source Firebase alternative providing database, authentication, and real-time capabilities",
+                "version": "3.0.0",
+                "features": [
+                    "PostgreSQL Database",
+                    "Authentication & Authorization",
+                    "Real-time Subscriptions",
+                    "Storage Buckets",
+                    "Edge Functions"
+                ]
+            },
+            {
+                "id": "ton_storage",
+                "name": "TON Storage",
+                "type": "Component",
+                "description": "Decentralized file storage system on TON",
+                "features": [
+                    "Distributed file storage",
+                    "Content-addressable storage",
+                    "Built-in CDN",
+                    "Support for large files",
+                    "Data replication",
+                    "Incentivized storage nodes"
+                ]
+            },
+            {
+                "id": "ton_proxy",
+                "name": "TON Proxy",
+                "type": "Component",
+                "description": "Decentralized proxy and content delivery network",
+                "features": [
+                    "Decentralized content hosting",
+                    "Censorship resistance",
+                    "Distributed content delivery"
+                ]
+            },
+            {
+                "id": "ton_dns",
+                "name": "TON DNS",
+                "type": "Component",
+                "description": "Decentralized naming system for human-readable addresses",
+                "features": [
+                    ".ton domain registration",
+                    "Subdomain management",
+                    "Integration with TON Storage",
+                    "Auction system for premium domains"
+                ]
+            },
+            {
+                "id": "ton_connect",
+                "name": "TON Connect",
+                "type": "Component",
+                "description": "Protocol for connecting TON wallets to dApps",
+                "features": [
+                    "Secure authentication",
+                    "Transaction signing",
+                    "Cross-platform compatibility",
+                    "Multiple wallet support"
+                ]
+            },
+            {
+                "id": "tune_ton_player",
+                "name": "TuneTON Player",
+                "type": "Component",
+                "description": "Music playback and streaming component",
+                "features": [
+                    "Audio streaming",
+                    "Playlist management",
+                    "Offline playback",
+                    "Audio effects"
+                ]
+            },
+            {
+                "id": "tune_ton_marketplace",
+                "name": "TuneTON Marketplace",
+                "type": "Component",
+                "description": "Marketplace for music NFTs and digital assets",
+                "features": [
+                    "NFT minting",
+                    "Auction system",
+                    "Royalty management",
+                    "Secondary sales"
+                ]
+            },
+            {
+                "id": "supabase",
+                "name": "Supabase",
+                "type": "Backend_Service",
+                "description": "Open source Firebase alternative for backend services",
+                "features": [
+                    "PostgreSQL database",
+                    "Authentication",
+                    "Real-time subscriptions",
+                    "RESTful API",
+                    "Storage",
+                    "Edge Functions"
+                ],
+                "integrations": ["PostgreSQL", "GraphQL", "REST API"]
+            }
+        ],
+        "relations": [
+            {
+                "source": "tuneton_app",
+                "target": "ton_blockchain",
+                "type": "built_on",
+                "description": "TuneTON is built on TON Blockchain"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "music_player",
+                "type": "includes",
+                "description": "Application includes music player functionality"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "nft_marketplace",
+                "type": "includes",
+                "description": "Application includes NFT marketplace functionality"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "wallet_integration",
+                "type": "includes",
+                "description": "Application includes wallet integration"
+            },
+            {
+                "source": "ton_blockchain",
+                "target": "tvm",
+                "type": "includes",
+                "description": "TON Blockchain includes TVM for smart contract execution"
+            },
+            {
+                "source": "ton_blockchain",
+                "target": "smart_contracts",
+                "type": "includes",
+                "description": "TON Blockchain supports smart contracts"
+            },
+            {
+                "source": "wallet_integration",
+                "target": "ton_blockchain",
+                "type": "connects_to",
+                "description": "Wallet integration connects to TON Blockchain"
+            },
+            {
+                "source": "nft_marketplace",
+                "target": "smart_contracts",
+                "type": "uses",
+                "description": "NFT Marketplace uses smart contracts for NFT management"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "supabase_service",
+                "type": "uses",
+                "description": "TuneTON Application uses Supabase for backend services"
+            },
+            {
+                "source": "music_player",
+                "target": "supabase_service",
+                "type": "uses",
+                "description": "Music Player uses Supabase for audio metadata and user preferences"
+            },
+            {
+                "source": "nft_marketplace",
+                "target": "supabase_service",
+                "type": "uses",
+                "description": "NFT Marketplace uses Supabase for product listings and transactions"
+            },
+            {
+                "source": "wallet_integration",
+                "target": "supabase_service",
+                "type": "uses",
+                "description": "Wallet Integration uses Supabase for transaction history and user wallet data"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "ton_storage",
+                "type": "uses",
+                "description": "TuneTON uses TON Storage for decentralized file storage"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "ton_proxy",
+                "type": "uses",
+                "description": "TuneTON uses TON Proxy for decentralized content delivery"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "ton_dns",
+                "type": "uses",
+                "description": "TuneTON uses TON DNS for human-readable addresses"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "ton_connect",
+                "type": "uses",
+                "description": "TuneTON uses TON Connect for wallet integration"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "tune_ton_player",
+                "type": "includes",
+                "description": "TuneTON includes the TuneTON Player for music playback"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "tune_ton_marketplace",
+                "type": "includes",
+                "description": "TuneTON includes the TuneTON Marketplace for NFT trading"
+            },
+            {
+                "source": "tune_ton_player",
+                "target": "ton_storage",
+                "type": "uses",
+                "description": "TuneTON Player uses TON Storage for music file storage"
+            },
+            {
+                "source": "tune_ton_marketplace",
+                "target": "ton_storage",
+                "type": "uses",
+                "description": "TuneTON Marketplace uses TON Storage for NFT metadata and assets"
+            },
+            {
+                "source": "tune_ton_marketplace",
+                "target": "ton_connect",
+                "type": "uses",
+                "description": "TuneTON Marketplace uses TON Connect for wallet transactions"
+            },
+            {
+                "source": "tuneton_app",
+                "target": "supabase",
+                "type": "uses",
+                "description": "TuneTON uses Supabase for backend services and database"
+            },
+            {
+                "source": "tune_ton_player",
+                "target": "supabase",
+                "type": "uses",
+                "description": "TuneTON Player uses Supabase for user data and preferences"
+            },
+            {
+                "source": "tune_ton_marketplace",
+                "target": "supabase",
+                "type": "uses",
+                "description": "TuneTON Marketplace uses Supabase for marketplace data and transactions"
+            },
+            {
+                "source": "supabase",
+                "target": "ton_blockchain",
+                "type": "integrates_with",
+                "description": "Supabase integrates with TON Blockchain for blockchain data indexing"
+            }
+        ]
+    },
+    "node_tuneTON": {
+        "name": "TuneTON",
+        "type": "application",
+        "version": "v3.0",
+        "component_reference": {
+            "title": "TuneTON Application Component Reference",
+            "description": "Key components in the TuneTON application and their relationships",
+            "important_relations": [
+                {
+                    "from": "TuneTON_New",
+                    "to": "TelegramAuthProvider",
+                    "line": 441,
+                    "relationType": "integrates_with",
+                    "purpose": "Leverages Telegram WebApp for authentication and UI components"
+                },
+                {
+                    "from": "TuneTON_New",
+                    "to": "NFTMarketplace_New",
+                    "line": 435,
+                    "relationType": "includes",
+                    "purpose": "Manages NFT minting and trading functionality"
+                },
+                {
+                    "from": "MusicPlayback_New",
+                    "to": "NowPlayingBar",
+                    "line": 465,
+                    "relationType": "updates",
+                    "purpose": "Sends playback updates to the Now Playing bar"
+                },
+                {
+                    "from": "OnboardingFlow",
+                    "to": "TelegramAuthProvider",
+                    "line": 453,
+                    "relationType": "uses",
+                    "purpose": "Manages user authentication during onboarding"
+                },
+                {
+                    "from": "AIStudio",
+                    "to": "MusicPlayback_New",
+                    "line": 429,
+                    "relationType": "enhances",
+                    "purpose": "Adds AI-powered features to the music playback experience"
+                }
+            ],
+            "components": [
+                {
+                    "name": "TuneTON_New",
+                    "line": 377,
+                    "type": "Application",
+                    "purpose": "Updated version with enhanced features and React/TypeScript implementation"
+                },
+                {
+                    "name": "SwipeNavigation",
+                    "line": 387,
+                    "type": "Feature",
+                    "purpose": "Horizontal swipe navigation between pages"
+                },
+                {
+                    "name": "MusicPlayback_New",
+                    "line": 397,
+                    "type": "Feature",
+                    "purpose": "Enhanced music player with effects and queue management"
+                },
+                {
+                    "name": "NFTMarketplace_New",
+                    "line": 407,
+                    "type": "Feature",
+                    "purpose": "NFT minting and trading functionality"
+                },
+                {
+                    "name": "TelegramAuthProvider",
+                    "line": 417,
+                    "type": "UI Component",
+                    "purpose": "Handles Telegram WebApp authentication"
+                },
+                {
+                    "name": "AIStudio",
+                    "line": 427,
+                    "type": "UI Component",
+                    "purpose": "AI-powered music tools and generation"
+                },
+                {
+                    "name": "OnboardingFlow",
+                    "line": 457,
+                    "type": "UI Component",
+                    "purpose": "Multi-step user onboarding process"
+                },
+                {
+                    "name": "AudioPlayer",
+                    "line": 467,
+                    "type": "UI Component",
+                    "purpose": "Core audio playback functionality"
+                },
+                {
+                    "name": "NowPlayingBar",
+                    "line": 477,
+                    "type": "UI Component",
+                    "purpose": "Displays currently playing track information"
+                },
+                {
+                    "name": "useTelegramAuth",
+                    "line": 615,
+                    "type": "Hook",
+                    "purpose": "Manages Telegram authentication state"
+                }
+            ]
+        },
+        "entities": [
+            {
+                "name": "TuneTON_New",
+                "entityType": "Application",
+                "observations": [
+                    "Updated version of TuneTON with enhanced features",
+                    "Built with React and TypeScript",
+                    "Implements modern UI/UX patterns",
+                    "Includes NFT marketplace integration"
+                ]
+            },
+            {
+                "name": "SwipeNavigation",
+                "entityType": "Feature",
+                "observations": [
+                    "Implements horizontal swipe navigation between pages",
+                    "Uses SwipeablePage and SwipeableTabContent components",
+                    "Provides smooth transitions between sections",
+                    "Includes visual indicators for current position"
+                ]
+            },
+            {
+                "name": "MusicPlayback_New",
+                "entityType": "Feature",
+                "observations": [
+                    "Enhanced music player with effects",
+                    "Includes equalizer and audio processing",
+                    "Supports playlists and queue management",
+                    "Integrates with MusicPlayer and MusicPlayerNew components"
+                ]
+            },
+            {
+                "name": "NFTMarketplace_New",
+                "entityType": "Feature",
+                "observations": [
+                    "Allows minting and trading music NFTs",
+                    "Includes NFTAuction and NFTCard components",
+                    "Shows NFT details and ownership",
+                    "Integrates with TON blockchain"
+                ]
+            },
+            {
+                "name": "TelegramAuthProvider",
+                "entityType": "UI Component",
+                "observations": [
+                    "Manages Telegram WebApp authentication",
+                    "Handles user sessions",
+                    "Provides authentication context",
+                    "Integrates with Telegram WebApp API"
+                ]
+            },
+            {
+                "name": "AIStudio",
+                "entityType": "UI Component",
+                "observations": [
+                    "Provides AI-powered music tools",
+                    "Allows music generation and remixing",
+                    "Includes audio processing features",
+                    "Integrates with AI models"
+                ]
+            },
+            {
+                "name": "JamendoIntegration",
+                "entityType": "Utility",
+                "observations": [
+                    "Handles music streaming from Jamendo",
+                    "Manages OAuth authentication",
+                    "Provides music search functionality",
+                    "Handles audio playback"
+                ]
+            },
+            {
+                "name": "AudioEffects",
+                "entityType": "Utility",
+                "observations": [
+                    "Manages audio processing effects",
+                    "Includes equalizer and sound adjustments",
+                    "Supports real-time audio manipulation",
+                    "Integrates with Web Audio API"
+                ]
+            },
+            {
+                "name": "OnboardingFlow",
+                "entityType": "UI Component",
+                "observations": [
+                    "Handles multi-step user onboarding process",
+                    "Includes welcome screens, genre selection, and artist preferences",
+                    "Uses React state management for step progression",
+                    "Implements smooth transitions between steps"
+                ]
+            },
+            {
+                "name": "AudioPlayer",
+                "entityType": "UI Component",
+                "observations": [
+                    "Core audio playback functionality",
+                    "Handles play/pause, seek, and volume controls",
+                    "Integrates with audio worklets for visualization",
+                    "Manages audio state and buffering"
+                ]
+            },
+            {
+                "name": "NowPlayingBar",
+                "entityType": "UI Component",
+                "observations": [
+                    "Displays currently playing track information",
+                    "Shows playback progress",
+                    "Provides quick access to player controls",
+                    "Updates in real-time with playback"
+                ]
+            },
+            {
+                "name": "SpectrumVisualizer",
+                "entityType": "UI Component",
+                "observations": [
+                    "Visualizes audio frequency spectrum",
+                    "Uses Web Audio API for analysis",
+                    "Renders dynamic visualizations",
+                    "Supports customization of visual style"
+                ]
+            },
+            {
+                "name": "MusicPlayback",
+                "entityType": "Feature",
+                "observations": [
+                    "Manages audio playback state",
+                    "Handles track queuing and playlists",
+                    "Supports various audio formats",
+                    "Implements crossfade and gapless playback"
+                ]
+            },
+            {
+                "name": "UserPreferences",
+                "entityType": "Feature",
+                "observations": [
+                    "Stores user settings and preferences",
+                    "Manages theme selection",
+                    "Handles audio quality settings",
+                    "Synchronizes preferences across devices"
+                ]
+            },
+            {
+                "name": "TONBlockchain",
+                "entityType": "Integration",
+                "observations": [
+                    "Handles NFT minting and transactions",
+                    "Manages wallet connections",
+                    "Interacts with TON smart contracts",
+                    "Provides blockchain state management"
+                ]
+            },
+            {
+                "name": "AudioUtils",
+                "entityType": "Utility",
+                "observations": [
+                    "Provides audio processing functions",
+                    "Handles format conversion",
+                    "Manages audio effects",
+                    "Implements audio analysis algorithms"
+                ]
+            },
+            {
+                "name": "TelegramWebApp",
+                "entityType": "Utility",
+                "observations": [
+                    "Manages Telegram WebApp initialization",
+                    "Handles user data from Telegram",
+                    "Provides UI components matching Telegram's design",
+                    "Manages WebApp events and callbacks"
+                ]
+            },
+            {
+                "name": "TuneTON",
+                "entityType": "Music Platform",
+                "observations": [
+                    "A music streaming and NFT marketplace application",
+                    "Built with React, TypeScript, and Vite",
+                    "Implements Telegram Web App integration",
+                    "Uses Supabase for backend services"
+                ]
+            },
+            {
+                "name": "Frontend",
+                "entityType": "Application Layer",
+                "observations": [
+                    "Built with React and TypeScript",
+                    "Uses Vite for development and building",
+                    "Implements responsive design with Tailwind CSS",
+                    "Uses React Router for navigation"
+                ]
+            },
+            {
+                "name": "Backend",
+                "entityType": "Application Layer",
+                "observations": [
+                    "Uses Supabase for authentication and database",
+                    "Implements serverless functions",
+                    "Uses Deno for server-side code",
+                    "Provides RESTful API endpoints"
+                ]
+            },
+            {
+                "name": "Authentication System",
+                "entityType": "Feature",
+                "observations": [
+                    "Implements Telegram Web App authentication",
+                    "Uses JWT tokens for API authentication",
+                    "Integrates with Supabase Auth",
+                    "Handles user sessions securely"
+                ]
+            },
+            {
+                "name": "Music Player",
+                "entityType": "Feature",
+                "observations": [
+                    "Plays audio tracks",
+                    "Shows currently playing track",
+                    "Includes play/pause and skip controls",
+                    "Displays track progress"
+                ]
+            },
+            {
+                "name": "NFT Marketplace",
+                "entityType": "Feature",
+                "observations": [
+                    "Allows users to buy and sell music NFTs",
+                    "Integrates with TON blockchain",
+                    "Shows NFT collections",
+                    "Handles NFT transactions"
+                ]
+            },
+            {
+                "name": "TONWalletLogin",
+                "entityType": "UI Component",
+                "observations": [
+                    "Handles TON Wallet login UI",
+                    "Initiates wallet connection flow",
+                    "Manages wallet connection state"
+                ]
+            },
+            {
+                "name": "useTelegramAuth",
+                "entityType": "Hook",
+                "observations": [
+                    "Manages Telegram authentication state",
+                    "Handles Telegram user data",
+                    "Manages session with backend"
+                ]
+            },
+            {
+                "name": "telegramAuth",
+                "entityType": "Utility",
+                "observations": [
+                    "Handles Telegram WebApp initialization",
+                    "Manages authentication tokens",
+                    "Provides Telegram API utilities"
+                ]
+            },
+            {
+                "name": "Supabase",
+                "entityType": "Service",
+                "observations": [
+                    "Provides authentication services",
+                    "Manages database operations",
+                    "Handles serverless functions"
+                ]
+            }
+        ],
+        "relations": [
+            {
+                "from": "TuneTON_New",
+                "to": "TuneTON",
+                "relationType": "evolved_from",
+                "observations": ["New version with enhanced UI/UX", "Improved component architecture", "Added new features and integrations"]
+            },
+            {
+                "from": "MusicPlayer_New",
+                "to": "AudioPlayer",
+                "relationType": "replaces",
+                "observations": ["Enhanced audio playback features", "Added visualizations and effects", "Improved state management"]
+            },
+            {
+                "from": "NFTMarketplace_New",
+                "to": "NFT Marketplace",
+                "relationType": "replaces",
+                "observations": ["Added auction functionality", "Improved NFT card display", "Enhanced user experience"]
+            },
+            {
+                "from": "TelegramAuthProvider",
+                "to": "useTelegramAuth",
+                "relationType": "replaces",
+                "observations": ["Moved to context-based authentication", "Better state management", "Improved session handling"]
+            },
+            {
+                "from": "MusicApp",
+                "to": "App",
+                "relationType": "enhances",
+                "observations": ["Centralized routing and state management", "Improved tab navigation", "Better component composition"]
+            },
+            {
+                "from": "OnboardingFlow_New",
+                "to": "OnboardingFlow",
+                "relationType": "replaces",
+                "observations": ["Multi-step onboarding process", "Improved user experience", "Added progress tracking"]
+            },
+            {
+                "from": "JamendoIntegration",
+                "to": "MusicPlayback_New",
+                "relationType": "powers",
+                "observations": ["Provides music streaming capabilities", "Handles audio data", "Manages playback state"]
+            },
+            {
+                "from": "AudioEffects",
+                "to": "MusicPlayback_New",
+                "relationType": "enhances",
+                "observations": ["Adds audio processing capabilities", "Enables equalizer and effects", "Improves sound quality"]
+            },
+            {
+                "from": "SwipeNavigation",
+                "to": "TuneTON_New",
+                "relationType": "adds_feature",
+                "observations": ["Enables horizontal swiping between pages", "Improves mobile navigation", "Enhances user experience"]
+            },
+            {
+                "from": "AIStudio",
+                "to": "TuneTON_New",
+                "relationType": "adds_feature",
+                "observations": ["Adds AI-powered music tools", "Enables music generation", "Provides creative features"]
+            },
+            {
+                "from": "NFTAuction",
+                "to": "NFTMarketplace_New",
+                "relationType": "adds_feature",
+                "observations": ["Enables bidding on NFTs", "Adds auction functionality", "Enhances marketplace features"]
+            },
+            {
+                "from": "UserProfilePage",
+                "to": "TuneTON_New",
+                "relationType": "enhances",
+                "observations": ["Adds user profile management", "Shows user activity", "Enhances social features"]
+            },
+            {
+                "from": "PlaylistDetail",
+                "to": "TuneTON_New",
+                "relationType": "enhances",
+                "observations": ["Adds playlist management", "Shows playlist contents", "Enables playlist editing"]
+            },
+            {
+                "from": "SearchPage",
+                "to": "TuneTON_New",
+                "relationType": "enhances",
+                "observations": ["Adds global search functionality", "Improves content discovery", "Enhances user experience"]
+            },
+            {
+                "from": "TuneTON_New",
+                "to": "TuneTON",
+                "relationType": "is_enhanced_version_of"
+            },
+            {
+                "from": "SwipeNavigation",
+                "to": "TuneTON_New",
+                "relationType": "is_feature_of"
+            },
+            {
+                "from": "MusicPlayback_New",
+                "to": "TuneTON_New",
+                "relationType": "is_feature_of"
+            },
+            {
+                "from": "NFTMarketplace_New",
+                "to": "TuneTON_New",
+                "relationType": "is_feature_of"
+            },
+            {
+                "from": "TelegramAuthProvider",
+                "to": "Authentication System",
+                "relationType": "enhances"
+            },
+            {
+                "from": "AIStudio",
+                "to": "TuneTON_New",
+                "relationType": "is_component_of"
+            },
+            {
+                "from": "JamendoIntegration",
+                "to": "MusicPlayback_New",
+                "relationType": "provides_content_for"
+            },
+            {
+                "from": "AudioEffects",
+                "to": "MusicPlayback_New",
+                "relationType": "enhances"
+            },
+            {
+                "from": "MusicPlayback_New",
+                "to": "MusicPlayback",
+                "relationType": "replaces"
+            },
+            {
+                "from": "NFTMarketplace_New",
+                "to": "NFT Marketplace",
+                "relationType": "replaces"
+            },
+            {
+                "from": "OnboardingFlow",
+                "to": "TuneTON",
+                "relationType": "is_component_of"
+            },
+            {
+                "from": "AudioPlayer",
+                "to": "MusicPlayback",
+                "relationType": "implements"
+            },
+            {
+                "from": "NowPlayingBar",
+                "to": "AudioPlayer",
+                "relationType": "extends"
+            },
+            {
+                "from": "SpectrumVisualizer",
+                "to": "AudioPlayer",
+                "relationType": "visualizes"
+            },
+            {
+                "from": "UserPreferences",
+                "to": "MusicPlayback",
+                "relationType": "configures"
+            },
+            {
+                "from": "TONBlockchain",
+                "to": "NFT Marketplace",
+                "relationType": "powers"
+            },
+            {
+                "from": "AudioUtils",
+                "to": "AudioPlayer",
+                "relationType": "provides_utilities_for"
+            },
+            {
+                "from": "TelegramWebApp",
+                "to": "Authentication System",
+                "relationType": "integrates_with"
+            },
+            {
+                "from": "Frontend",
+                "to": "TuneTON",
+                "relationType": "is_part_of",
+                "observations": ["Primary user interface built with React and TypeScript"]
+            },
+            {
+                "from": "Backend",
+                "to": "TuneTON",
+                "relationType": "is_part_of",
+                "observations": ["Server-side logic and data management"]
+            },
+            {
+                "from": "Authentication System",
+                "to": "TuneTON",
+                "relationType": "is_feature_of",
+                "observations": ["Handles user authentication and session management"]
+            },
+            {
+                "from": "Music Player",
+                "to": "TuneTON",
+                "relationType": "is_feature_of",
+                "observations": ["Core audio playback functionality"]
+            },
+            {
+                "from": "NFT Marketplace",
+                "to": "TuneTON",
+                "relationType": "is_feature_of",
+                "observations": ["Blockchain integration for NFT transactions"]
+            },
+            {
+                "from": "TONWalletLogin",
+                "to": "Authentication System",
+                "relationType": "is_component_of",
+                "observations": ["Handles TON wallet connection and authentication"]
+            },
+            {
+                "from": "useTelegramAuth",
+                "to": "Authentication System",
+                "relationType": "manages_state_for",
+                "observations": ["Manages Telegram authentication state and user data"]
+            },
+            {
+                "from": "telegramAuth",
+                "to": "Authentication System",
+                "relationType": "provides_utilities_for",
+                "observations": ["Provides low-level Telegram WebApp utilities"]
+            },
+            {
+                "from": "Supabase",
+                "to": "Backend",
+                "relationType": "powers",
+                "observations": ["Provides database, authentication, and serverless functions"]
+            },
+            {
+                "from": "Authentication System",
+                "to": "Supabase",
+                "relationType": "uses_service",
+                "observations": ["Uses Supabase Auth for user management"]
+            },
+            {
+                "from": "Frontend",
+                "to": "Backend",
+                "relationType": "communicates_with",
+                "observations": ["RESTful API calls for data exchange"]
+            },
+            {
+                "from": "TONWalletLogin",
+                "to": "TON Blockchain",
+                "relationType": "interacts_with",
+                "observations": ["Connects to TON wallet for blockchain operations"]
+            },
+            {
+                "from": "NFT Marketplace",
+                "to": "TON Blockchain",
+                "relationType": "interacts_with",
+                "observations": ["Handles NFT minting, buying, and selling on TON"]
+            },
+            {
+                "from": "Music Player",
+                "to": "Backend",
+                "relationType": "depends_on",
+                "observations": ["Fetches audio streams and metadata"]
+            },
+            {
+                "from": "useTelegramAuth",
+                "to": "telegramAuth",
+                "relationType": "uses",
+                "observations": ["Uses utilities from telegramAuth for low-level operations"]
+            },
+            {
+                "from": "TuneTON_New",
+                "to": "TelegramWebLogin",
+                "relationType": "implements",
+                "observations": ["Implements Telegram Web Login for user authentication"]
+            },
+            {
+                "from": "TuneTON_New",
+                "to": "TelegramPayments",
+                "relationType": "integrates",
+                "observations": ["Integrates Telegram Payments for in-app purchases"]
+            },
+            {
+                "from": "TuneTON_New",
+                "to": "MiniAppStore",
+                "relationType": "publishes_to",
+                "observations": ["Publishes to Mini App Store for user discovery"]
+            },
+            {
+                "from": "TelegramWebLogin",
+                "to": "TelegramPayments",
+                "relationType": "enables",
+                "observations": ["Web Login enables secure payment processing"]
+            },
+            {
+                "from": "MiniAppStore",
+                "to": "TelegramPayments",
+                "relationType": "requires",
+                "observations": ["Mini App Store requires Telegram Payments for monetization"]
+            }
+        ]
+    },
+    "node_telegram_api": {
+        "name": "Telegram Web App API",
+        "type": "API_DOCS",
+        "component_reference": {
+            "title": "Telegram API Component Reference",
+            "description": "Key components in node_telegram_api and their line numbers for quick reference",
+            "important_relations": [
+                {
+                    "from": "TelegramMiniApps",
+                    "to": "MiniAppLaunchMethods",
+                    "line": 2017,
+                    "relationType": "includes_feature",
+                    "purpose": "Shows how Mini Apps can be launched through different methods"
+                },
+                {
+                    "from": "WebAppInitialization",
+                    "to": "TelegramWebApp",
+                    "line": 2023,
+                    "relationType": "creates_instance_of",
+                    "purpose": "Shows the initialization flow of the Web App"
+                },
+                {
+                    "from": "ThemeIntegration",
+                    "to": "UIFeatures",
+                    "line": 2028,
+                    "relationType": "enhances",
+                    "purpose": "Demonstrates how theming enhances UI features"
+                },
+                {
+                    "from": "DeviceIntegration",
+                    "to": "TelegramWebApp",
+                    "line": 2033,
+                    "relationType": "extends_functionality_of",
+                    "purpose": "Shows how device capabilities extend Web App functionality"
+                },
+                {
+                    "from": "Viewport",
+                    "to": "TelegramWebApp",
+                    "line": 2038,
+                    "relationType": "manages_ui_for",
+                    "purpose": "Shows how viewport management affects the Web App UI"
+                }
+            ],
+            "components": [
+                {
+                    "name": "MiniAppLaunchMethods",
+                    "line": 1170,
+                    "type": "Feature",
+                    "purpose": "Handles different methods to launch Mini Apps (profile button, keyboard button, etc.)"
+                },
+                {
+                    "name": "WebAppInitialization",
+                    "line": 1189,
+                    "type": "Implementation",
+                    "purpose": "Initializes the Telegram Web App with theme settings and device features"
+                },
+                {
+                    "name": "ThemeIntegration",
+                    "line": 1198,
+                    "type": "Feature",
+                    "purpose": "Manages theme integration with dark/light mode support"
+                },
+                {
+                    "name": "Popup",
+                    "line": 1321,
+                    "type": "UI_Component",
+                    "purpose": "Shows native popup dialogs"
+                },
+                {
+                    "name": "WebAppChat",
+                    "line": 1432,
+                    "type": "Object",
+                    "purpose": "Represents a Telegram chat"
+                },
+                {
+                    "name": "DownloadFileParams",
+                    "line": 1546,
+                    "type": "Object",
+                    "purpose": "Configures file download behavior"
+                },
+                {
+                    "name": "DeviceOrientationStartParams",
+                    "line": 1650,
+                    "type": "Object",
+                    "purpose": "Configures device orientation data collection"
+                },
+                {
+                    "name": "Security",
+                    "line": 1763,
+                    "type": "Concept",
+                    "purpose": "Smart contract security best practices"
+                }
+            ]
+        },
+        "description": "Comprehensive documentation for Telegram Web Apps (Mini Apps) integration, including Mini Apps Store features and seamless Telegram integration",
+        "features": [
+            "Mini Apps Discovery & Store Listing",
+            "In-App Purchases with Telegram Stars",
+            "User Authentication & Profile Access",
+            "Native Payment Processing",
+            "Seamless Telegram Integration",
+            "Customizable Loading Screens",
+            "Full-Screen Mode Support",
+            "Emoji Status Integration",
+            "Media Sharing & Story Integration",
+            "Home Screen Shortcuts"
+        ],
+        "key_capabilities": {
+            "discovery": {
+                "store_featuring": "Chance to be featured in Telegram's Mini App Store",
+                "user_reach": "Access to 500M+ monthly active users",
+                "multilingual_previews": "Support for localized app previews"
+            },
+            "monetization": {
+                "telegram_stars": "Native payment system integration",
+                "in_app_purchases": "Support for digital goods and services",
+                "premium_features": "Subscription and one-time purchase options"
+            },
+            "engagement": {
+                "native_sharing": "Direct sharing to chats and stories",
+                "user_status": "Dynamic emoji status updates",
+                "home_screen": "Pinnable app shortcuts"
+            },
+            "authentication": {
+                "web_login": "Seamless authentication on external websites",
+                "widget_based": "Simple embeddable login widget",
+                "inline_login": "URL-based authentication for smooth redirects",
+                "bot_linking": "Connect website accounts with Telegram bots",
+                "data_validation": "Secure verification of user credentials"
+            }
+        },
+        "version": "6.9",
+        "authentication_methods": [
+            {
+                "type": "web_widget",
+                "description": "Embeddable login widget for websites",
+                "setup_steps": [
+                    "Choose a bot with matching name and profile picture",
+                    "Use /setdomain in @BotFather to link domain",
+                    "Configure widget using Telegram's tool and embed on site"
+                ],
+                "security_notes": [
+                    "Bot must be configured with domain for security",
+                    "Supports request_write_access for additional permissions",
+                    "User data is verified via Telegram's servers"
+                ]
+            },
+            {
+                "type": "inline_login",
+                "description": "URL-based authentication for seamless redirects",
+                "use_cases": [
+                    "Immediate authentication on site load",
+                    "Mobile app deep linking",
+                    "Progressive web app integration"
+                ],
+                "implementation_notes": [
+                    "Uses login_url parameter in inline buttons",
+                    "Supports custom redirect URLs",
+                    "Requires server-side validation"
+                ]
+            }
+        ],
+        "official_docs": [
+            "https://core.telegram.org/bots/features",
+            "https://core.telegram.org/bots/api#authorizing-your-bot",
+            "https://core.telegram.org/bots/api",
+            "https://core.telegram.org/bots/webapps",
+            "https://core.telegram.org/bots/webapps#implementing-mini-apps",
+            "https://core.telegram.org/bots/webapps#initializing-mini-apps"
+        ],
+        "entities": [
+            {
+                "name": "TelegramWebLogin",
+                "entityType": "Authentication",
+                "observations": [
+                    "Provides secure authentication for external websites",
+                    "Supports both widget and inline login methods",
+                    "Verifies user data via Telegram's servers",
+                    "Can request write access to user's account"
+                ]
+            },
+            {
+                "name": "TelegramPayments",
+                "entityType": "Payment_System",
+                "observations": [
+                    "Supports Telegram Stars for digital goods",
+                    "Integrates with third-party payment providers",
+                    "Provides secure transaction processing",
+                    "Includes test mode for development"
+                ]
+            },
+            {
+                "name": "MiniAppStore",
+                "entityType": "Marketplace",
+                "observations": [
+                    "Featured apps reach 500M+ monthly active users",
+                    "Supports app discovery and promotion",
+                    "Includes app previews and ratings",
+                    "Requires Telegram Stars for monetization"
+                ]
+            },
+            {
+                "name": "TelegramMiniApps",
+                "entityType": "Documentation",
+                "observations": [
+                    "Official documentation for Telegram Mini Apps (Web Apps)",
+                    "Version 6.9",
+                    "Provides JavaScript API for creating interactive interfaces within Telegram"
+                ]
+            },
+            {
+                "name": "MiniAppLaunchMethods",
+                "entityType": "Feature",
+                "observations": [
+                    "Seven launch methods: profile button, keyboard button, inline button, bot menu button, inline mode, direct link, attachment menu",
+                    "Keyboard Button: Can send data back to bot using Telegram.WebApp.sendData",
+                    "Inline Button: Receives basic user info and can send messages on behalf of user",
+                    "Menu Button: Customizable button for quick access to Mini App"
+                ]
+            },
+            {
+                "name": "WebAppInitialization",
+                "entityType": "Implementation",
+                "observations": [
+                    "Requires telegram-web-app.js script in <head>",
+                    "Creates window.Telegram.WebApp object",
+                    "Provides access to theme settings, viewport info, and device features",
+                    "Supports dark/light theme detection"
+                ]
+            },
+            {
+                "name": "ThemeIntegration",
+                "entityType": "Feature",
+                "observations": [
+                    "Automatic theme matching with Telegram app",
+                    "CSS variables for theme colors (--tg-theme-*)",
+                    "Real-time theme change detection",
+                    "Supports custom color schemes"
+                ]
+            },
+            {
+                "name": "UIFeatures",
+                "entityType": "Feature",
+                "observations": [
+                    "Viewport management with stable height calculation",
+                    "Safe area insets for device-specific UI elements",
+                    "Native components: BackButton, MainButton, Popup",
+                    "Haptic feedback support"
+                ]
+            },
+            {
+                "name": "DeviceIntegration",
+                "entityType": "Feature",
+                "observations": [
+                    "Access to device features: camera, location, storage",
+                    "Biometric authentication",
+                    "File download/upload capabilities",
+                    "QR code scanning"
+                ]
+            },
+            {
+                "name": "TelegramWebApp",
+                "entityType": "Main Object",
+                "observations": [
+                    "Main entry point for Telegram Web Apps",
+                    "Provides access to all Web App functionality",
+                    "Available as window.Telegram.WebApp in browser"
+                ]
+            },
+            {
+                "name": "initData",
+                "entityType": "Method",
+                "observations": [
+                    "Contains authentication and user data",
+                    "Used for backend validation",
+                    "Includes user, chat, and auth_date information"
+                ]
+            },
+            {
+                "name": "themeParams",
+                "entityType": "Object",
+                "observations": [
+                    "Provides access to Telegram theme colors",
+                    "Updates in real-time when theme changes",
+                    "Includes bg_color, text_color, button_color, etc."
+                ]
+            },
+            {
+                "name": "expand",
+                "entityType": "Method",
+                "observations": [
+                    "Expands the Web App to full viewport",
+                    "Improves user experience",
+                    "Returns a Promise that resolves when animation completes"
+                ]
+            },
+            {
+                "name": "close",
+                "entityType": "Method",
+                "observations": [
+                    "Closes the Web App",
+                    "Can include confirmation dialog",
+                    "Accepts optional callback"
+                ]
+            },
+            {
+                "name": "onEvent",
+                "entityType": "Method",
+                "observations": [
+                    "Subscribes to events",
+                    "Handles theme changes, viewport changes, etc.",
+                    "Returns cleanup function"
+                ]
+            },
+            {
+                "name": "offEvent",
+                "entityType": "Method",
+                "observations": [
+                    "Unsubscribes from events",
+                    "Should be called in cleanup",
+                    "Prevents memory leaks"
+                ]
+            },
+            {
+                "name": "MainButton",
+                "entityType": "Component",
+                "observations": [
+                    "Shows action button at the bottom",
+                    "Customizable text and colors",
+                    "Supports loading states"
+                ]
+            },
+            {
+                "name": "BackButton",
+                "entityType": "Component",
+                "observations": [
+                    "Shows back button in header",
+                    "Automatically handles navigation",
+                    "Visible/hidden based on navigation state"
+                ]
+            },
+            {
+                "name": "Popup",
+                "entityType": "Component",
+                "observations": [
+                    "Shows native popup dialogs",
+                    "Supports alerts, confirmations, and inputs",
+                    "Matches Telegram's design system"
+                ]
+            },
+            {
+                "name": "HapticFeedback",
+                "entityType": "Utility",
+                "observations": [
+                    "Provides tactile feedback",
+                    "Different impact styles available",
+                    "Improves UX for actions"
+                ]
+            },
+            {
+                "name": "CloudStorage",
+                "entityType": "Service",
+                "observations": [
+                    "Persistent key-value storage",
+                    "10MB limit per user",
+                    "Synchronized across devices",
+                    "Methods: setItem, getItem, getItems, removeItem, getKeys"
+                ]
+            },
+            {
+                "name": "WebAppInitData",
+                "entityType": "Object",
+                "observations": [
+                    "Contains initialization data for the Web App",
+                    "Includes user, chat, and auth information",
+                    "Used for backend validation",
+                    "Contains query_id for sending messages back to bot"
+                ]
+            },
+            {
+                "name": "Viewport",
+                "entityType": "Component",
+                "observations": [
+                    "Manages Web App viewport dimensions",
+                    "Provides viewport height and stable height",
+                    "Emits viewportChanged event on resize",
+                    "Supports CSS variables for responsive design"
+                ]
+            },
+            {
+                "name": "HapticFeedback",
+                "entityType": "Utility",
+                "observations": [
+                    "Provides tactile feedback",
+                    "Impact styles: light, medium, heavy, rigid, soft",
+                    "Notification types: success, warning, error",
+                    "Selection change feedback"
+                ]
+            },
+            {
+                "name": "BiometricManager",
+                "entityType": "Service",
+                "observations": [
+                    "Handles biometric authentication",
+                    "Supports fingerprint, face ID, and other biometric methods",
+                    "Methods: isBiometricAvailable, requestAccess, authenticate"
+                ]
+            },
+            {
+                "name": "Popup",
+                "entityType": "UI_Component",
+                "observations": [
+                    "Shows native popup dialogs",
+                    "Supports alerts, confirmations, and inputs",
+                    "Customizable buttons and actions",
+                    "Matches Telegram's design system"
+                ]
+            },
+            {
+                "name": "BackButton",
+                "entityType": "UI_Component",
+                "observations": [
+                    "Shows back button in header",
+                    "Automatically handles navigation",
+                    "Visibility can be toggled",
+                    "Emits click event"
+                ]
+            },
+            {
+                "name": "MainButton",
+                "entityType": "UI_Component",
+                "observations": [
+                    "Persistent action button at bottom",
+                    "Customizable text, color, and state",
+                    "Supports loading and progress indicators",
+                    "Click event handler"
+                ]
+            },
+            {
+                "name": "DeviceIntegration",
+                "entityType": "Feature",
+                "observations": [
+                    "Access to device sensors and features",
+                    "Includes: accelerometer, gyroscope, orientation",
+                    "Location services integration",
+                    "Secure storage access"
+                ]
+            },
+            {
+                "name": "SafeAreaInset",
+                "entityType": "Component",
+                "observations": [
+                    "Provides safe area insets for device UI elements",
+                    "Includes top, bottom, left, and right insets",
+                    "Available as CSS variables: --tg-safe-area-inset-{position}",
+                    "Updates dynamically on viewport changes"
+                ]
+            },
+            {
+                "name": "ContentSafeAreaInset",
+                "entityType": "Component",
+                "observations": [
+                    "Defines safe area for content within Web App",
+                    "Takes into account system UI elements",
+                    "Updates on safeAreaChanged event",
+                    "Helps prevent content from being hidden by notches or UI controls"
+                ]
+            },
+            {
+                "name": "ViewportEvents",
+                "entityType": "Event_System",
+                "observations": [
+                    "safeAreaChanged: Fired when safe area insets change",
+                    "contentSafeAreaChanged: Fired when content safe area changes",
+                    "viewportChanged: Fired when viewport dimensions change",
+                    "themeChanged: Fired when device theme changes"
+                ]
+            },
+            {
+                "name": "ThemeParams",
+                "entityType": "Object",
+                "observations": [
+                    "Provides access to user's theme settings",
+                    "Includes colors for different UI elements",
+                    "Available as CSS variables (--tg-theme-*)",
+                    "Updates in real-time when theme changes",
+                    "Includes bg-color, text-color, hint-color, link-color, button-color, etc."
+                ]
+            },
+            {
+                "name": "StoryShareParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures native story sharing",
+                    "Used with the native story editor",
+                    "Premium feature in Telegram",
+                    "Can include custom text and URLs"
+                ]
+            },
+            {
+                "name": "WebAppInitData",
+                "entityType": "Object",
+                "observations": [
+                    "Contains data received from Telegram during Web App initialization",
+                    "Includes user, chat, and authentication information",
+                    "Available as window.Telegram.WebApp.initData",
+                    "Should be validated on the server side"
+                ]
+            },
+            {
+                "name": "WebAppUser",
+                "entityType": "Object",
+                "observations": [
+                    "Represents a Telegram user",
+                    "Contains user ID, first name, last name, username",
+                    "May include profile photo URL and language code",
+                    "Available in WebAppInitData"
+                ]
+            },
+            {
+                "name": "WebAppChat",
+                "entityType": "Object",
+                "observations": [
+                    "Represents a Telegram chat",
+                    "Contains chat ID, title, and type (group/channel)",
+                    "May include photo URL and username",
+                    "Available in WebAppInitData when launched from a chat"
+                ]
+            },
+            {
+                "name": "DataValidation",
+                "entityType": "Process",
+                "observations": [
+                    "Validates data received via the Mini App",
+                    "Verifies initData signature on the server side",
+                    "Prevents data tampering and replay attacks",
+                    "Should be performed for all sensitive operations"
+                ]
+            },
+            {
+                "name": "ThirdPartyValidation",
+                "entityType": "Process",
+                "observations": [
+                    "Validates data for third-party services",
+                    "Includes additional security checks",
+                    "Verifies data integrity and origin",
+                    "Essential for OAuth and API integrations"
+                ]
+            },
+            {
+                "name": "MiniAppEvents",
+                "entityType": "Event_System",
+                "observations": [
+                    "themeChanged: Fired when theme changes",
+                    "viewportChanged: Fired when viewport changes",
+                    "mainButtonClicked: Main button click",
+                    "backButtonClicked: Back button click",
+                    "settingsButtonClicked: Settings button click",
+                    "qrTextReceived: When QR code is scanned",
+                    "clipboardTextReceived: When text is received from clipboard",
+                    "writeAccessRequested: When write access is requested"
+                ]
+            },
+            {
+                "name": "AttachmentMenu",
+                "entityType": "Feature",
+                "observations": [
+                    "Allows bots to add custom buttons to the attachment menu",
+                    "Appears in the attachment menu when sending messages",
+                    "Can be configured with different button types and icons",
+                    "Requires bot token for configuration"
+                ]
+            },
+            {
+                "name": "UserAgentData",
+                "entityType": "Object",
+                "observations": [
+                    "Provides additional data in User-Agent header",
+                    "Includes platform, app version, and device info",
+                    "Useful for analytics and feature detection",
+                    "Available in all web requests from the Mini App"
+                ]
+            },
+            {
+                "name": "StoryWidgetLink",
+                "entityType": "Object",
+                "observations": [
+                    "Defines a widget link for stories",
+                    "Used within StoryShareParams",
+                    "Premium feature in Telegram",
+                    "Can include custom text and URLs"
+                ]
+            },
+            {
+                "name": "ScanQrPopupParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures the native QR code scanner popup",
+                    "Used with WebApp.showScanQrPopup()",
+                    "Can include custom text and button labels",
+                    "Emits 'qrTextReceived' event with scanned content"
+                ]
+            },
+            {
+                "name": "PopupParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures native popup dialogs",
+                    "Supports title, message, and multiple buttons",
+                    "Can be used for alerts, confirmations, and inputs",
+                    "Emits 'popupClosed' event when dismissed"
+                ]
+            },
+            {
+                "name": "PopupButton",
+                "entityType": "Object",
+                "observations": [
+                    "Defines a button in a native popup",
+                    "Can have text and a callback function",
+                    "Supports different styles (default, destructive, etc.)",
+                    "Can close the popup when clicked"
+                ]
+            },
+            {
+                "name": "EmojiStatusParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures emoji status settings",
+                    "Used with WebApp.setUserEmojiStatus()",
+                    "Premium feature in Telegram",
+                    "Allows setting custom emoji status with duration"
+                ]
+            },
+            {
+                "name": "DownloadFileParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures file download behavior",
+                    "Used with WebApp.downloadFile()",
+                    "Requires proper CORS headers on server",
+                    "Supports custom filename and MIME type",
+                    "Requires Content-Disposition header for cross-platform support"
+                ]
+            },
+            {
+                "name": "SafeAreaInset",
+                "entityType": "Object",
+                "observations": [
+                    "Provides safe area insets for device UI elements",
+                    "Includes top, bottom, left, and right insets",
+                    "Available as CSS variables (--tg-safe-area-inset-*)",
+                    "Updates dynamically when device orientation changes",
+                    "Helps prevent content from being hidden by notches or UI controls",
+                    "Represents the physical safe area of the device"
+                ]
+            },
+            {
+                "name": "ContentSafeAreaInset",
+                "entityType": "Object",
+                "observations": [
+                    "Defines safe area for content within Web App",
+                    "Takes into account Telegram UI elements (header, bottom navigation)",
+                    "Available as CSS variables (--tg-content-safe-area-inset-*)",
+                    "Updates when Telegram UI elements are shown/hidden",
+                    "Helps position content within the visible area of the Web App"
+                ]
+            },
+            {
+                "name": "CloudStorage",
+                "entityType": "Service",
+                "observations": [
+                    "Persistent key-value storage for Web Apps",
+                    "Stores up to 1024 items per user",
+                    "Synchronized across user's devices",
+                    "Methods: setItem, getItem, getItems, removeItem, getKeys"
+                ]
+            },
+            {
+                "name": "BiometricManager",
+                "entityType": "Service",
+                "observations": [
+                    "Manages biometric authentication on the device",
+                    "Requires initialization before use",
+                    "Supports fingerprint, face ID, and other biometric methods",
+                    "Methods: init, isBiometricAvailable, requestAccess, authenticate"
+                ]
+            },
+            {
+                "name": "BiometricRequestAccessParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures the biometric access request popup",
+                    "Used with BiometricManager.requestAccess()",
+                    "Can include custom title and message",
+                    "Defines available biometric types"
+                ]
+            },
+            {
+                "name": "BiometricAuthenticateParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures the biometric authentication popup",
+                    "Used with BiometricManager.authenticate()",
+                    "Can include custom title and message",
+                    "Defines authentication behavior and fallback options"
+                ]
+            },
+            {
+                "name": "Accelerometer",
+                "entityType": "Service",
+                "observations": [
+                    "Provides access to device accelerometer data",
+                    "Requires user permission",
+                    "Emits 'accelerometerChanged' event with x, y, z coordinates",
+                    "Methods: start, stop, isStarted"
+                ]
+            },
+            {
+                "name": "AccelerometerStartParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures accelerometer data collection",
+                    "Used with Accelerometer.start()",
+                    "Can set update interval in milliseconds",
+                    "Defines coordinate system and reference frame"
+                ]
+            },
+            {
+                "name": "DeviceOrientation",
+                "entityType": "Service",
+                "observations": [
+                    "Provides access to device orientation data",
+                    "Requires user permission",
+                    "Emits 'deviceOrientationChanged' event with alpha, beta, gamma angles",
+                    "Methods: start, stop, isStarted"
+                ]
+            },
+            {
+                "name": "DeviceOrientationStartParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures device orientation data collection",
+                    "Used with DeviceOrientation.start()",
+                    "Can set update interval in milliseconds",
+                    "Defines reference frame and coordinate system"
+                ]
+            },
+            {
+                "name": "Gyroscope",
+                "entityType": "Service",
+                "observations": [
+                    "Provides access to device gyroscope data",
+                    "Requires user permission",
+                    "Emits 'gyroscopeChanged' event with x, y, z rotation rates",
+                    "Methods: start, stop, isStarted"
+                ]
+            },
+            {
+                "name": "GyroscopeStartParams",
+                "entityType": "Object",
+                "observations": [
+                    "Configures gyroscope data collection",
+                    "Used with Gyroscope.start()",
+                    "Can set update interval in milliseconds",
+                    "Defines coordinate system and reference frame"
+                ]
+            },
+            {
+                "name": "LocationManager",
+                "entityType": "Service",
+                "observations": [
+                    "Manages device location services",
+                    "Provides access to current location and updates",
+                    "Requires user permission",
+                    "Methods: getCurrentPosition, watchPosition, clearWatch"
+                ]
+            },
+            {
+                "name": "LocationData",
+                "entityType": "Object",
+                "observations": [
+                    "Contains geographical location data",
+                    "Includes latitude, longitude, and accuracy",
+                    "May include altitude, speed, and heading",
+                    "Timestamp indicates when the location was determined"
+                ]
+            },
+            {
+                "name": "DeviceStorage",
+                "entityType": "Service",
+                "observations": [
+                    "Provides access to device's local storage",
+                    "Persists data even after app restart",
+                    "Stores data in key-value pairs",
+                    "Methods: setItem, getItem, removeItem, clear"
+                ]
+            },
+            {
+                "name": "SecureStorage",
+                "entityType": "Service",
+                "observations": [
+                    "Provides secure storage for sensitive data",
+                    "Encrypts data at rest",
+                    "Requires device security (e.g., PIN, biometrics)",
+                    "Methods: set, get, remove, clear"
+                ]
+            },
+            {
+                "name": "Fees",
+                "entityType": "Concept",
+                "observations": [
+                    "TON blockchain charges fees for computation, storage, and message forwarding",
+                    "Fees are paid in TON cryptocurrency (nanoTON precision)",
+                    "Smart contracts need to maintain a balance to cover fees",
+                    "Three main fee types: Storage, Computation, and Forward fees"
+                ]
+            },
+            {
+                "name": "Storage_Fee",
+                "entityType": "Fee_Type",
+                "observations": [
+                    "Cost of storing contract data on-chain",
+                    "Charged per second of storage",
+                    "Uses GETSTORAGEFEE opcode for calculation",
+                    "Considers bits and cells used by contract data",
+                    "Deduplicates identical cells to optimize storage"
+                ]
+            },
+            {
+                "name": "Computation_Fee",
+                "entityType": "Fee_Type",
+                "observations": [
+                    "Cost of executing smart contract code",
+                    "Calculated based on gas used during execution",
+                    "Uses GETGASFEE opcode for calculation",
+                    "Varies by workchain (masterchain more expensive)",
+                    "Should be tested with worst-case scenarios"
+                ]
+            },
+            {
+                "name": "Forward_Fee",
+                "entityType": "Fee_Type",
+                "observations": [
+                    "Cost of sending outgoing messages",
+                    "Uses GETFORWARDFEE or GETORIGINALFWDFEE opcodes",
+                    "Deduplicates identical message cells",
+                    "Can be estimated using SENDMSG with +1024 mode",
+                    "Message modes affect fee calculation"
+                ]
+            },
+            {
+                "name": "Security",
+                "entityType": "Concept",
+                "observations": [
+                    "Smart contract security best practices",
+                    "Common vulnerabilities and mitigations",
+                    "Secure coding patterns",
+                    "Audit and testing requirements",
+                    "Critical severity issues",
+                    "Medium severity issues",
+                    "Security checklists"
+                ]
+            },
+            {
+                "name": "Critical_Vulnerabilities",
+                "entityType": "Security_Category",
+                "observations": [
+                    "Missing impure modifier on critical functions",
+                    "Incorrect use of modifying/non-modifying methods",
+                    "Signed/unsigned integer vulnerabilities",
+                    "Insecure random number generation",
+                    "Missing bounced message handling",
+                    "Account destruction race conditions",
+                    "Missing replay protection"
+                ]
+            },
+            {
+                "name": "Medium_Vulnerabilities",
+                "entityType": "Security_Category",
+                "observations": [
+                    "Race conditions in message flows",
+                    "Improper gas management",
+                    "Fake token validation issues",
+                    "Missing function return value checks",
+                    "Name collision vulnerabilities",
+                    "Incorrect data type handling",
+                    "Cross-contract data access issues"
+                ]
+            },
+            {
+                "name": "Secure_Programming_Patterns",
+                "entityType": "Best_Practices",
+                "observations": [
+                    "Always use impure modifier for state-changing functions",
+                    "Use ~ for modifying methods that should update state",
+                    "Validate all integer operations for overflow/underflow",
+                    "Implement proper access controls",
+                    "Handle bounced messages appropriately",
+                    "Use secure randomness sources"
+                ]
+            },
+            {
+                "name": "Smart_Contracts",
+                "entityType": "Component",
+                "observations": [
+                    "Written in FunC (TON's native language)",
+                    "Supports TVM (TON Virtual Machine)",
+                    "Gas-efficient execution model",
+                    "Standard token contracts (Jettons)",
+                    "Asynchronous message-based communication",
+                    "Can process internal/external messages and get methods",
+                    "Get methods allow reading contract state without fees",
+                    "State includes: balance, code, data, and status (Nonexist/Uninit/Active/Frozen)",
+                    "Development uses Blueprint for project scaffolding"
+                ]
+            },
+            {
+                "name": "Message_Processing",
+                "entityType": "Component",
+                "observations": [
+                    "Uses actor model for message passing",
+                    "Supports internal and external messages",
+                    "Internal messages: from other contracts, can carry value",
+                    "External messages: from outside blockchain, no value transfer",
+                    "Message body typically includes opcode for operation type",
+                    "Implements role-based access control patterns",
+                    "Uses message flags for controlling behavior"
+                ]
+            },
+            {
+                "name": "Internal_Messages",
+                "entityType": "Message_Type",
+                "observations": [
+                    "Originate from other smart contracts",
+                    "Can carry TON coins (value)",
+                    "Processed with recv_internal()",
+                    "Can be bounced back if unhandled",
+                    "Common for contract-to-contract communication"
+                ]
+            },
+            {
+                "name": "External_Messages",
+                "entityType": "Message_Type",
+                "observations": [
+                    "Originate from outside the blockchain",
+                    "Cannot carry value (no TON coins)",
+                    "Processed with recv_external()",
+                    "Used for contract initialization and privileged operations",
+                    "Should be used with caution due to security implications"
+                ]
+            },
+            {
+                "name": "Contract_Storage",
+                "entityType": "Component",
+                "observations": [
+                    "Uses Cell as fundamental data structure",
+                    "Cells can store up to 1023 bits (128 bytes)",
+                    "Cells can reference up to 4 child cells",
+                    "Immutable once created",
+                    "Accessed via get_data()/set_data() in FunC",
+                    "Supports serialization/deserialization patterns"
+                ]
+            },
+            {
+                "name": "Get_Methods",
+                "entityType": "Feature",
+                "observations": [
+                    "Allow reading contract state without fees",
+                    "Do not modify contract state",
+                    "Can be called without creating a transaction",
+                    "Useful for querying contract data",
+                    "Return values are serialized using Cell format",
+                    "Executed off-chain",
+                    "Commonly used for data retrieval in wallets and explorers"
+                ]
+            },
+            {
+                "name": "TON_DApps",
+                "entityType": "Documentation",
+                "observations": [
+                    "Comprehensive guide for developing DApps on TON",
+                    "Includes TON Connect 2.0 integration",
+                    "Covers wallet integration and smart contract interaction"
+                ]
+            },
+            {
+                "name": "TON_Connect",
+                "entityType": "Protocol",
+                "observations": [
+                    "Open protocol for wallet-DApp communication",
+                    "Version 2.0 with improved security",
+                    "Supports multiple wallets and authentication methods",
+                    "Enables transaction signing and message sending"
+                ]
+            },
+            {
+                "name": "Security",
+                "entityType": "Concept",
+                "observations": [
+                    "Smart contract security best practices",
+                    "Common vulnerabilities and mitigations",
+                    "Secure coding patterns",
+                    "Audit and testing requirements",
+                    "Critical severity issues",
+                    "Medium severity issues",
+                    "Security checklists"
+                ]
+            },
+            {
+                "name": "Critical_Vulnerabilities",
+                "entityType": "Security_Category",
+                "observations": [
+                    "Missing impure modifier on critical functions",
+                    "Incorrect use of modifying/non-modifying methods",
+                    "Signed/unsigned integer vulnerabilities",
+                    "Insecure random number generation",
+                    "Missing bounced message handling",
+                    "Account destruction race conditions",
+                    "Missing replay protection"
+                ]
+            },
+            {
+                "name": "Medium_Vulnerabilities",
+                "entityType": "Security_Category",
+                "observations": [
+                    "Race conditions in message flows",
+                    "Improper gas management",
+                    "Fake token validation issues",
+                    "Missing function return value checks",
+                    "Name collision vulnerabilities",
+                    "Incorrect data type handling",
+                    "Cross-contract data access issues"
+                ]
+            },
+            {
+                "name": "Secure_Programming_Patterns",
+                "entityType": "Best_Practices",
+                "observations": [
+                    "Always use impure modifier for state-changing functions",
+                    "Use ~ for modifying methods that should update state",
+                    "Validate all integer operations for overflow/underflow",
+                    "Implement proper access controls",
+                    "Handle bounced messages appropriately",
+                    "Use secure randomness sources"
+                ]
+            }
+        ],
+        "relations": [
+            {
+                "from": "TelegramMiniApps",
+                "to": "MiniAppLaunchMethods",
+                "relationType": "includes_feature"
+            },
+            {
+                "from": "WebAppInitialization",
+                "to": "TelegramWebApp",
+                "relationType": "creates_instance_of"
+            },
+            {
+                "from": "ThemeIntegration",
+                "to": "UIFeatures",
+                "relationType": "enhances"
+            },
+            {
+                "from": "DeviceIntegration",
+                "to": "TelegramWebApp",
+                "relationType": "extends_functionality_of"
+            },
+            {
+                "from": "Viewport",
+                "to": "TelegramWebApp",
+                "relationType": "manages_ui_for"
+            },
+            {
+                "from": "WebAppInitData",
+                "to": "TelegramWebApp",
+                "relationType": "provides_context_to"
+            },
+            {
+                "from": "HapticFeedback",
+                "to": "UIFeatures",
+                "relationType": "enhances"
+            },
+            {
+                "from": "BiometricManager",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "Popup",
+                "to": "UIFeatures",
+                "relationType": "is_component_of"
+            },
+            {
+                "from": "BackButton",
+                "to": "UIFeatures",
+                "relationType": "is_component_of"
+            },
+            {
+                "from": "MainButton",
+                "to": "UIFeatures",
+                "relationType": "is_component_of"
+            },
+            {
+                "from": "SafeAreaInset",
+                "to": "Viewport",
+                "relationType": "provides_device_safe_area_for"
+            },
+            {
+                "from": "ContentSafeAreaInset",
+                "to": "Viewport",
+                "relationType": "provides_content_safe_area_for"
+            },
+            {
+                "from": "ContentSafeAreaInset",
+                "to": "SafeAreaInset",
+                "relationType": "extends"
+            },
+            {
+                "from": "ViewportEvents",
+                "to": "Viewport",
+                "relationType": "manages_events_for"
+            },
+            {
+                "from": "SafeAreaInset",
+                "to": "UIFeatures",
+                "relationType": "enhances"
+            },
+            {
+                "from": "ThemeParams",
+                "to": "UIFeatures",
+                "relationType": "provides_theme_for"
+            },
+            {
+                "from": "StoryShareParams",
+                "to": "UIFeatures",
+                "relationType": "enables"
+            },
+            {
+                "from": "StoryWidgetLink",
+                "to": "StoryShareParams",
+                "relationType": "is_used_in"
+            },
+            {
+                "from": "WebAppUser",
+                "to": "WebAppInitData",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "WebAppChat",
+                "to": "WebAppInitData",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "WebAppInitData",
+                "to": "TelegramWebApp",
+                "relationType": "initializes"
+            },
+            {
+                "from": "DataValidation",
+                "to": "WebAppInitData",
+                "relationType": "validates"
+            },
+            {
+                "from": "ThirdPartyValidation",
+                "to": "DataValidation",
+                "relationType": "extends"
+            },
+            {
+                "from": "MiniAppEvents",
+                "to": "TelegramWebApp",
+                "relationType": "provides_events_for"
+            },
+            {
+                "from": "AttachmentMenu",
+                "to": "UIFeatures",
+                "relationType": "extends"
+            },
+            {
+                "from": "UserAgentData",
+                "to": "TelegramWebApp",
+                "relationType": "provides_metadata_for"
+            },
+            {
+                "from": "ThemeParams",
+                "to": "ViewportEvents",
+                "relationType": "updates_on"
+            },
+            {
+                "from": "ScanQrPopupParams",
+                "to": "UIFeatures",
+                "relationType": "configures"
+            },
+            {
+                "from": "PopupParams",
+                "to": "UIFeatures",
+                "relationType": "enables"
+            },
+            {
+                "from": "PopupButton",
+                "to": "PopupParams",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "EmojiStatusParams",
+                "to": "UIFeatures",
+                "relationType": "configures"
+            },
+            {
+                "from": "DownloadFileParams",
+                "to": "DeviceIntegration",
+                "relationType": "enables"
+            },
+            {
+                "from": "SafeAreaInset",
+                "to": "Viewport",
+                "relationType": "provides_layout_for"
+            },
+            {
+                "from": "CloudStorage",
+                "to": "DeviceIntegration",
+                "relationType": "enhances"
+            },
+            {
+                "from": "BiometricManager",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "BiometricRequestAccessParams",
+                "to": "BiometricManager",
+                "relationType": "configures"
+            },
+            {
+                "from": "BiometricAuthenticateParams",
+                "to": "BiometricManager",
+                "relationType": "configures"
+            },
+            {
+                "from": "Accelerometer",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "AccelerometerStartParams",
+                "to": "Accelerometer",
+                "relationType": "configures"
+            },
+            {
+                "from": "DeviceOrientation",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "DeviceOrientationStartParams",
+                "to": "DeviceOrientation",
+                "relationType": "configures"
+            },
+            {
+                "from": "Gyroscope",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "GyroscopeStartParams",
+                "to": "Gyroscope",
+                "relationType": "configures"
+            },
+            {
+                "from": "LocationManager",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "LocationData",
+                "to": "LocationManager",
+                "relationType": "returns"
+            },
+            {
+                "from": "DeviceStorage",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "SecureStorage",
+                "to": "DeviceIntegration",
+                "relationType": "is_part_of"
+            },
+            {
+                "from": "SecureStorage",
+                "to": "DeviceStorage",
+                "relationType": "enhances"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "Fees",
+                "relationType": "incur"
+            },
+            {
+                "from": "Fees",
+                "to": "Storage_Fee",
+                "relationType": "includes"
+            },
+            {
+                "from": "Fees",
+                "to": "Computation_Fee",
+                "relationType": "includes"
+            },
+            {
+                "from": "Fees",
+                "to": "Forward_Fee",
+                "relationType": "includes"
+            },
+            {
+                "from": "Storage_Fee",
+                "to": "GETSTORAGEFEE",
+                "relationType": "uses_opcode"
+            },
+            {
+                "from": "Computation_Fee",
+                "to": "GETGASFEE",
+                "relationType": "uses_opcode"
+            },
+            {
+                "from": "Forward_Fee",
+                "to": "GETFORWARDFEE",
+                "relationType": "uses_opcode"
+            },
+            {
+                "from": "Forward_Fee",
+                "to": "SENDMSG",
+                "relationType": "can_use_opcode"
+            },
+            {
+                "from": "Smart_Contract_Development",
+                "to": "Security",
+                "relationType": "must_consider"
+            },
+            {
+                "from": "Security",
+                "to": "Security_Focus_Areas",
+                "relationType": "includes"
+            },
+            {
+                "from": "Testing",
+                "to": "Critical_Vulnerabilities",
+                "relationType": "verifies_absence_of"
+            },
+            {
+                "from": "Testing",
+                "to": "Medium_Vulnerabilities",
+                "relationType": "verifies_absence_of"
+            },
+            {
+                "from": "Smart_Contract_Development",
+                "to": "Secure_Programming_Patterns",
+                "relationType": "follows"
+            },
+            {
+                "from": "Critical_Vulnerabilities",
+                "to": "impure_modifier",
+                "relationType": "includes_example"
+            },
+            {
+                "from": "Critical_Vulnerabilities",
+                "to": "integer_overflow",
+                "relationType": "includes_example"
+            },
+            {
+                "from": "Critical_Vulnerabilities",
+                "to": "insecure_randomness",
+                "relationType": "includes_example"
+            },
+            {
+                "from": "Testing",
+                "to": "Blueprint_Testing_Framework",
+                "relationType": "uses"
+            },
+            {
+                "from": "Smart_Contract_Development",
+                "to": "Testing",
+                "relationType": "includes"
+            },
+            {
+                "from": "Testing",
+                "to": "Blueprint_Testing_Framework",
+                "relationType": "uses"
+            },
+            {
+                "from": "Testing",
+                "to": "Test_Case_Patterns",
+                "relationType": "follows"
+            },
+            {
+                "from": "Testing",
+                "to": "Transaction_Validation",
+                "relationType": "includes"
+            },
+            {
+                "from": "Testing",
+                "to": "Gas_Analysis",
+                "relationType": "includes"
+            },
+            {
+                "from": "Blueprint_Testing_Framework",
+                "to": "TypeScript",
+                "relationType": "built_with"
+            },
+            {
+                "from": "Blueprint_Testing_Framework",
+                "to": "Jest",
+                "relationType": "inspired_by"
+            },
+            {
+                "from": "Test_Case_Patterns",
+                "to": "Unit_Testing",
+                "relationType": "includes"
+            },
+            {
+                "from": "Test_Case_Patterns",
+                "to": "Integration_Testing",
+                "relationType": "includes"
+            },
+            {
+                "from": "Transaction_Validation",
+                "to": "Smart_Contracts",
+                "relationType": "validates"
+            },
+            {
+                "from": "Gas_Analysis",
+                "to": "Computation_Fee",
+                "relationType": "monitors"
+            }
+        ]
+    },
+    "node_ton_blockchain": {
+        "name": "TON_Blockchain",
+        "type": "BLOCKCHAIN_PLATFORM",
+        "version": "v3.0",
+        "component_reference": {
+            "title": "TON Blockchain Component Reference",
+            "description": "Key components in TON Blockchain and their line numbers for quick reference",
+            "important_relations": [
+                {
+                    "from": "TON_Blockchain",
+                    "to": "TON_Smart_Contracts",
+                    "line": 2626,
+                    "relationType": "includes",
+                    "purpose": "Core smart contract platform for TON Blockchain"
+                },
+                {
+                    "from": "TON_Blockchain",
+                    "to": "TON_Network_Nodes",
+                    "line": 2744,
+                    "relationType": "relies_on",
+                    "purpose": "Distributed network of nodes maintaining the blockchain"
+                },
+                {
+                    "from": "TON_Blockchain",
+                    "to": "DApp_Development",
+                    "line": 2901,
+                    "relationType": "supports",
+                    "purpose": "Development of decentralized applications on TON"
+                },
+                {
+                    "from": "TON_Blockchain",
+                    "to": "TON_Storage",
+                    "line": 2719,
+                    "relationType": "integrates_with",
+                    "purpose": "Decentralized storage solution for TON ecosystem"
+                },
+                {
+                    "from": "TON_Blockchain",
+                    "to": "TON_Wallet",
+                    "line": 2612,
+                    "relationType": "manages_assets_through",
+                    "purpose": "Non-custodial wallet for TON and TON-based assets"
+                }
+            ],
+            "components": [
+                {
+                    "name": "TON_Smart_Contracts",
+                    "line": 2626,
+                    "type": "Platform",
+                    "purpose": "Turing-complete smart contract platform supporting multiple programming languages"
+                },
+                {
+                    "name": "TON_Network_Nodes",
+                    "line": 2744,
+                    "type": "Infrastructure",
+                    "purpose": "Network infrastructure including validator, full, and archive nodes"
+                },
+                {
+                    "name": "DApp_Development",
+                    "line": 2901,
+                    "type": "Development_Area",
+                    "purpose": "Tools and resources for building decentralized applications"
+                },
+                {
+                    "name": "TON_Storage",
+                    "line": 2719,
+                    "type": "Storage_Solution",
+                    "purpose": "Decentralized file storage system integrated with TON Blockchain"
+                },
+                {
+                    "name": "TON_Wallet",
+                    "line": 2612,
+                    "type": "Wallet",
+                    "purpose": "Non-custodial wallet for storing and managing TON and digital assets"
+                }
+            ]
+        },
+        "last_updated": "2025-08-17",
+        "official_documentation": [
+            "https://docs.ton.org/v3/guidelines/get-started-with-ton",
+            "https://docs.ton.org/v3/guidelines/quick-start/getting-started"
+        ],
+        "description": {
+            "overview": "The Open Network (TON) is a fast, secure and scalable blockchain and network project, capable of handling millions of transactions per second.",
+            "key_features": [
+                "High transaction throughput (up to 1M TPS)",
+                "Low transaction fees",
+                "2-second transaction confirmation time",
+                "Proof-of-Stake consensus",
+                "Support for smart contracts",
+                "Built-in support for decentralized storage (TON Storage)",
+                "Decentralized domain name system (TON DNS)",
+                "Integrated payment channels (TON Payments)"
+            ],
+            "native_currency": "Toncoin (TON)"
+        },
+        "architecture": {
+            "consensus": "Proof-of-Stake (PoS)",
+            "smart_contracts": "Actor model with asynchronous messaging",
+            "scalability": "Infinite Sharding Paradigm"
+        },
+        "ecosystem": {
+            "wallets": ["Tonkeeper", "Tonhub", "OpenMask", "MyTonWallet"],
+            "explorers": ["TON Scan", "TonViewer", "TON API"],
+            "bridges": ["TON Bridge", "Orbit Bridge", "Multichain"],
+            "dapps": ["TON Diamonds", "TON Punks", "TON Whales"]
+        },
+        "development_resources": {
+            "sdk": ["ton", "tonweb", "ton-http-api"],
+            "languages": ["FunC", "Tact", "Fift"],
+            "tools": ["TON Dev", "TON IDE", "TON CLI"],
+            "getting_started": {
+                "name": "TON Hello World Series",
+                "description": "Step-by-step tutorials for new TON developers",
+                "tutorials": [
+                    {
+                        "title": "Working with your wallet",
+                        "url": "https://helloworld.tonstudio.io/02-contract"
+                    },
+                    {
+                        "title": "Writing first smart contract",
+                        "url": "https://helloworld.tonstudio.io/03-client"
+                    },
+                    {
+                        "title": "Building first web client",
+                        "url": "https://helloworld.tonstudio.io/04-testing"
+                    },
+                    {
+                        "title": "Testing your smart contract",
+                        "url": "https://helloworld.tonstudio.io/04-testing"
+                    }
+                ]
+            },
+            "testnet": {
+                "name": "TON Testnet",
+                "faucet": "https://t.me/testgiver_ton_bot",
+                "explorer": "https://testnet.tonscan.org"
+            }
+        },
+        "dapp_development": {
+            "name": "TON_DApp_Development",
+            "type": "DEVELOPMENT_FRAMEWORK",
+            "description": "Comprehensive resources and guidelines for building decentralized applications on TON",
+            "resources": {
+                "getting_started": "https://docs.ton.org/v3/guidelines/dapps/overview",
+                "cookbook": "https://docs.ton.org/v3/guidelines/dapps/cookbook",
+                "transactions": "https://docs.ton.org/v3/guidelines/dapps/transactions/overview",
+                "apis_sdks": "https://docs.ton.org/guidelines/api-sdk",
+                "tutorials": "https://docs.ton.org/guidelines/tutorials-and-examples",
+                "telegram_mini_apps": "https://docs.ton.org/guidelines/tma",
+                "asset_processing": "https://docs.ton.org/guidelines/advanced-asset-processing"
+            },
+            "key_areas": [
+                "Smart contract development",
+                "Frontend integration",
+                "Wallet connections",
+                "Transaction handling",
+                "Testing and deployment",
+                "Security best practices"
+            ],
+            "recommended_prerequisites": [
+                "Understanding of blockchain fundamentals",
+                "Familiarity with TON's architecture",
+                "Basic knowledge of smart contracts"
+            ]
+        },
+        "web3": {
+            "name": "TON_Web3",
+            "type": "DECENTRALIZED_WEB_PLATFORM",
+            "description": "TON's implementation of Web3 technologies for decentralized applications and services",
+            "components": {
+                "ton_dns": {
+                    "name": "TON_DNS",
+                    "description": "Decentralized naming system for human-readable addresses",
+                    "features": [
+                        ".ton domain registration",
+                        "Subdomain management",
+                        "Integration with TON Storage",
+                        "Auction system for premium domains"
+                    ],
+                    "documentation": "https://docs.ton.org/guidelines/ton-dns"
+                },
+                "ton_proxy": {
+                    "name": "TON_Proxy",
+                    "description": "Decentralized proxy and content delivery network",
+                    "features": [
+                        "Decentralized content hosting",
+                        "Censorship resistance",
+                        "Distributed content delivery"
+                    ],
+                    "documentation": "https://docs.ton.org/guidelines/proxy-and-sites"
+                },
+                "ton_storage": {
+                    "name": "TON_Storage",
+                    "description": "Distributed file storage system",
+                    "features": [
+                        "Decentralized file storage",
+                        "Content-addressable storage",
+                        "Built-in CDN",
+                        "Support for large files"
+                    ],
+                    "documentation": "https://docs.ton.org/guidelines/ton-storage"
+                }
+            },
+            "use_cases": [
+                "Decentralized websites",
+                "Content distribution",
+                "Censorship-resistant applications",
+                "Distributed file storage"
+            ],
+            "documentation": {
+                "overview": "https://docs.ton.org/guidelines/web3-guidelines",
+                "technical_docs": "https://docs.ton.org/v3/guidelines/web3/overview"
+            }
+        },
+        "ton_connect": {
+            "name": "TON_Connect",
+            "type": "WALLET_CONNECTION_PROTOCOL",
+            "description": "Open-source protocol for secure wallet connections to TON-based applications",
+            "features": [
+                "Secure authentication without passwords",
+                "Seamless wallet integration",
+                "Support for multiple wallet providers",
+                "Transaction signing and verification",
+                "Cross-platform compatibility"
+            ],
+            "documentation": {
+                "overview": "https://docs.ton.org/guidelines/ton-connect",
+                "quick_start": "https://docs.ton.org/v3/guidelines/ton-connect/quick-start",
+                "dapp_guide": "https://docs.ton.org/guidelines/dapp-guide",
+                "wallet_integration": "https://docs.ton.org/v3/guidelines/ton-connect/wallet",
+                "sdks": "https://docs.ton.org/v3/guidelines/ton-connect/guidelines/developers"
+            },
+            "use_cases": [
+                "DApp authentication",
+                "Transaction signing",
+                "Wallet-to-DApp communication",
+                "Secure token transfers"
+            ],
+            "compatible_wallets": [
+                "Tonkeeper",
+                "OpenMask",
+                "Tonhub",
+                "MyTonWallet"
+            ]
+        },
+        "components": {
+            "wallet": {
+                "name": "TON_Wallet",
+                "type": "WALLET",
+                "description": "Non-custodial wallet for storing TON and interacting with TON Blockchain",
+                "features": [
+                    "Secure key management",
+                    "Support for TON and Jetton tokens",
+                    "Built-in DApp browser",
+                    "Transaction history",
+                    "Staking capabilities"
+                ],
+                "documentation": "https://ton.org/wallets"
+            },
+            "smart_contracts": {
+                "name": "TON_Smart_Contracts",
+                "type": "SMART_CONTRACT_PLATFORM",
+                "description": "Turing-complete smart contract platform with support for various programming languages",
+                "security": {
+                    "name": "Security_Measures",
+                    "type": "SECURITY_FRAMEWORK",
+                    "description": "Comprehensive security guidelines and best practices for TON Smart Contracts",
+                    "key_areas": {
+                        "smart_contract_security": {
+                            "name": "Smart Contract Security",
+                            "description": "Best practices for developing secure smart contracts on TON",
+                            "guidelines": [
+                                "Input validation and sanitization",
+                                "Access control and authorization",
+                                "Reentrancy protection",
+                                "Secure random number generation",
+                                "Gas optimization and limits"
+                            ],
+                            "documentation": "https://docs.ton.org/v3/guidelines/smart-contracts/security/common-vulnerabilities"
+                        },
+                        "secure_programming": {
+                            "name": "Secure Programming Practices",
+                            "description": "Guidelines for writing secure code in FunC",
+                            "topics": [
+                                "Safe arithmetic operations",
+                                "Proper error handling",
+                                "State management",
+                                "Message processing security",
+                                "External call security"
+                            ],
+                            "documentation": "https://docs.ton.org/v3/guidelines/smart-contracts/security/secure-programming"
+                        },
+                        "random_number_generation": {
+                            "name": "Secure Random Number Generation",
+                            "description": "Techniques for generating secure random numbers in TON smart contracts",
+                            "recommendations": [
+                                "Avoid using plain random() function for critical operations",
+                                "Use block random seed with additional entropy",
+                                "Implement commit-reveal schemes for fairness",
+                                "Consider using external oracles for critical randomness"
+                            ],
+                            "documentation": "https://docs.ton.org/v3/guidelines/smart-contracts/security/random-number-generation"
+                        },
+                        "common_vulnerabilities": {
+                            "name": "Common Vulnerabilities",
+                            "description": "Frequently encountered security issues in TON smart contracts",
+                            "examples": [
+                                "Reentrancy attacks",
+                                "Integer overflows/underflows",
+                                "Unchecked return values",
+                                "Access control issues",
+                                "Front-running vulnerabilities"
+                            ],
+                            "documentation": "https://docs.ton.org/v3/guidelines/smart-contracts/security/common-vulnerabilities"
+                        }
+                    },
+                    "resources": {
+                        "ton_hack_challenge": "https://docs.ton.org/v3/guidelines/smart-contracts/security/ton-hack-challenge-1",
+                        "development_guidelines": "https://docs.ton.org/v3/guidelines/smart-contracts/security/things-to-focus",
+                        "block_random_seed": "https://docs.ton.org/v3/guidelines/smart-contracts/security/random"
+                    },
+                    "best_practices": [
+                        "Always validate external inputs",
+                        "Use the checks-effects-interactions pattern",
+                        "Implement proper access control mechanisms",
+                        "Conduct thorough testing and security audits",
+                        "Keep contracts simple and modular",
+                        "Follow the principle of least privilege"
+                    ]
+                },
+                "features": [
+                    "Support for FunC and Tact programming languages",
+                    "TVM (TON Virtual Machine)",
+                    "Standard token interfaces (Jetton, NFT)",
+                    "On-chain governance"
+                ],
+                "guidelines": {
+                    "overview": "https://docs.ton.org/v3/guidelines/smart-contracts/guidelines",
+                    "get_methods": "https://docs.ton.org/v3/guidelines/smart-contracts/get-methods",
+                    "fee_calculation": "https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation",
+                    "testing": "https://docs.ton.org/guidelines/testing",
+                    "security_measures": "https://docs.ton.org/guidelines/security-measures",
+                    "how_to_guides": "https://docs.ton.org/guidelines/how-to"
+                },
+                "best_practices": [
+                    "Understand FunC programming language requirements",
+                    "Implement proper error handling and validation",
+                    "Optimize gas usage in contract methods",
+                    "Follow security best practices for smart contract development",
+                    "Implement comprehensive testing strategies"
+                ],
+                "documentation": "https://docs.ton.org/v3/develop/smart-contracts/"
+            },
+            "storage": {
+                "name": "TON_Storage",
+                "type": "STORAGE_SOLUTION",
+                "description": "Decentralized file storage system integrated with TON Blockchain",
+                "features": [
+                    "Distributed file storage",
+                    "Content-addressable storage",
+                    "Built-in CDN",
+                    "Support for large files"
+                ],
+                "documentation": "https://docs.ton.org/v3/participate/ton-storage/"
+            },
+            "dns": {
+                "name": "TON_DNS",
+                "type": "NAMING_SERVICE",
+                "description": "Decentralized domain name system for human-readable addresses",
+                "features": [
+                    ".ton domain names",
+                    "Subdomains support",
+                    "Integration with TON Storage",
+                    "Auction system for domain registration"
+                ],
+                "documentation": "https://docs.ton.org/v3/participate/ton-dns/"
+            },
+            "network_nodes": {
+                "name": "TON_Network_Nodes",
+                "type": "INFRASTRUCTURE",
+                "version": "1.0.0",
+                "documentation": {
+                    "main_guidelines": "https://docs.ton.org/guidelines/nodes-guidelines",
+                    "overview": "https://docs.ton.org/v3/guidelines/nodes/overview",
+                    "running_nodes": "https://docs.ton.org/guidelines/running-nodes",
+                    "maintenance": "https://docs.ton.org/guidelines/maintenance-guidelines",
+                    "custom_overlays": "https://docs.ton.org/v3/guidelines/nodes/custom-overlays",
+                    "security": "https://docs.ton.org/v3/guidelines/nodes/node-maintenance-and-security",
+                    "performance": "https://docs.ton.org/v3/guidelines/nodes/monitoring/performance-monitoring",
+                    "troubleshooting": "https://docs.ton.org/v3/guidelines/nodes/nodes-troubleshooting",
+                    "faq": "https://docs.ton.org/v3/guidelines/nodes/faq"
+                },
+                "guidelines": {
+                    "overview": "Comprehensive guidelines for managing nodes on TON Blockchain",
+                    "key_areas": [
+                        "Node deployment and configuration",
+                        "Maintenance and security best practices",
+                        "Performance monitoring",
+                        "Troubleshooting common issues",
+                        "Custom overlay networks",
+                        "Persistent state management"
+                    ],
+                    "node_types": [
+                        {
+                            "name": "Validator Node",
+                            "description": "Participates in consensus and block validation",
+                            "purpose": "Confirms transactions and adds them to the blockchain",
+                            "requirements": "Stake in TON, reliable hardware, 24/7 uptime",
+                            "docs": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/validator-node"
+                        },
+                        {
+                            "name": "Full Node",
+                            "description": "Maintains complete blockchain state and validates all transactions",
+                            "purpose": "Processes and validates all blockchain data, serves light clients",
+                            "requirements": {
+                                "os": ["Ubuntu 20.04", "Ubuntu 22.04", "Debian 11"],
+                                "hardware": {
+                                    "cpu": "32 vCPUs (16 cores)",
+                                    "ram": "128 GB (ECC recommended)",
+                                    "storage": {
+                                        "type": "NVMe SSD",
+                                        "capacity": "1TB+ (64k+ IOPS recommended)",
+                                        "performance": "High-end NVMe recommended"
+                                    }
+                                },
+                                "network": {
+                                    "bandwidth": "1 Gbit/s (sustained)",
+                                    "monthly_traffic": "64 TB (100 TB peak)",
+                                    "ip": "Public, fixed IP address required",
+                                    "ports": {
+                                        "incoming": "UDP (configurable)",
+                                        "outgoing": "All (random ports)"
+                                    }
+                                },
+                                "notes": [
+                                    "Not recommended for personal machines due to disk wear",
+                                    "Requires stable power and internet connection",
+                                    "Regular maintenance required"
+                                ]
+                            },
+                            "recommended_providers": [
+                                {
+                                    "name": "Google Cloud",
+                                    "instance": "n2-standard-16",
+                                    "specs": "32 vCPUs, 128GB RAM, 1TB NVMe SSD, 16 Gbps"
+                                },
+                                {
+                                    "name": "AWS",
+                                    "instance": "i4i.8xlarge",
+                                    "specs": "32 vCPUs, 256GB RAM, 2x3.75TB NVMe, 25 Gbps"
+                                },
+                                {
+                                    "name": "Bare Metal",
+                                    "specs": "16C/32T, 128GB RAM, 1.92TB NVMe, 10 Gbps"
+                                }
+                            ],
+                            "documentation": {
+                                "main": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/full-node",
+                                "installation": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/full-node#run-a-node-text"
+                            }
+                        },
+                        {
+                            "name": "LiteServer Node",
+                            "description": "Light client interface for applications",
+                            "purpose": "Provides efficient API access to blockchain data",
+                            "requirements": "Moderate resources, optimized for queries",
+                            "docs": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/liteserver-node"
+                        },
+                        {
+                            "name": "Archive Node",
+                            "description": "Stores complete historical blockchain data with extended history",
+                            "purpose": "Historical data access and analysis for blockchain explorers and indexers",
+                            "requirements": {
+                                "os": ["Ubuntu 20.04", "Ubuntu 22.04", "Debian 11"],
+                                "cpu": "16-core CPU",
+                                "memory": "128 GB ECC RAM",
+                                "storage": {
+                                    "type": "SSD with ZFS compression recommended",
+                                    "capacity": {
+                                        "current": "12 TB (as of 2025)",
+                                        "growth_rate": "0.1-1 TB per month",
+                                        "uncompressed": "12 TB",
+                                        "compressed": "11 TB with ZFS"
+                                    },
+                                    "performance": "64k+ IOPS"
+                                },
+                                "network": {
+                                    "bandwidth": "1 Gbit/s (symmetrical)",
+                                    "monthly_traffic": "16 TB (peak)",
+                                    "ip": "Public, fixed IP address required"
+                                },
+                                "os_config": {
+                                    "open_files_limit": "> 400,000"
+                                }
+                            },
+                            "maintenance": {
+                                "snapshots": "Supports dump snapshots",
+                                "backups": "Recommended for data safety"
+                            },
+                            "documentation": {
+                                "main": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/archive-node",
+                                "troubleshooting": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/archive-node#troubleshooting-and-backups"
+                            }
+                        }
+                    ],
+                    "maintenance": {
+                        "troubleshooting": "https://docs.ton.org/v3/guidelines/nodes/nodes-troubleshooting",
+                        "security": "https://docs.ton.org/v3/guidelines/nodes/node-maintenance-and-security",
+                        "faq": "https://docs.ton.org/v3/guidelines/nodes/faq",
+                        "secure_guidelines": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/secure-guidelines"
+                    },
+                    "staking": {
+                        "overview": "https://ton.org/stake",
+                        "nominator_pools": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/staking-with-nominator-pools",
+                        "mytonctrl": {
+                            "description": "Node management tool with Docker support",
+                            "docs": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/run-mytonctrl-docker"
+                        }
+                    },
+                    "development": {
+                        "local_ton": {
+                            "name": "MyLocalTon",
+                            "description": "Personal blockchain development environment",
+                            "docs": "https://docs.ton.org/v3/guidelines/nodes/running-nodes/running-a-local-ton"
+                        }
+                    },
+                    "key_aspects": [
+                        "Node deployment and configuration",
+                        "Maintenance and security",
+                        "Performance monitoring",
+                        "Persistent states management",
+                        "Troubleshooting common issues"
+                    ]
+                }
+            },
+            "dapp_development": {
+                "name": "DApp_Development",
+                "type": "DEVELOPMENT_AREA",
+                "version": "1.0.0",
+                "description": {
+                    "purpose": "Development of decentralized applications on TON blockchain",
+                    "scope": ["Smart Contracts", "Frontend Integration", "Wallet Interactions"],
+                    "dependencies": ["Smart_Contracts", "Wallets"]
+                },
+                "key_components": [
+                    "Smart Contracts (FunC, Tact)",
+                    "TON Connect for wallet integration",
+                    "TON API for blockchain interaction",
+                    "SDKs for multiple languages (JavaScript, Python, Go)",
+                    "Testing and deployment tools"
+                ],
+                "resources": [
+                    "TON Cookbook for best practices",
+                    "Developer documentation",
+                    "Example projects and tutorials",
+                    "Testnet for development"
+                ]
+            }
+        },
+        "official_docs": [
+            "https://docs.ton.org/v3/guidelines/quick-start/blockchain-interaction/reading-from-network",
+            "https://docs.ton.org/v3/guidelines/dapps/",
+            "https://docs.ton.org/v3/guidelines/smart-contracts/guidelines",
+            "https://docs.ton.org/v3/guidelines/ton-connect/overview"
+        ],
+        "interaction_methods": [
+            {
+                "name": "getContractState",
+                "description": "Retrieves full account state including balance, code, and data",
+                "endpoint": "/getContractState",
+                "type": "read"
+            },
+            {
+                "name": "runMethod",
+                "description": "Executes a get method on a smart contract without modifying state",
+                "endpoint": "/runMethod",
+                "type": "read"
+            },
+            {
+                "name": "sendTransfer",
+                "description": "Sends TON or executes smart contract methods by creating transactions",
+                "type": "write",
+                "authentication_required": true,
+                "fee_required": true
+            },
+            {
+                "name": "sendNftTransfer",
+                "description": "Transfers NFT ownership to another address",
+                "type": "write",
+                "authentication_required": true,
+                "fee_required": true
+            }
+        ],
+        "networks": [
+            {
+                "name": "Mainnet",
+                "description": "Primary network with real economic value"
+            },
+            {
+                "name": "Testnet",
+                "description": "Development and testing network with test coins"
+            }
+        ],
+        "entities": [
+            {
+                "name": "TON_DApps",
+                "entityType": "Documentation",
+                "observations": [
+                    "Comprehensive guide for developing DApps on TON",
+                    "Includes TON Connect 2.0 integration",
+                    "Covers wallet integration and smart contract interaction"
+                ]
+            },
+            {
+                "name": "TON_Connect",
+                "entityType": "Protocol",
+                "observations": [
+                    "Open protocol for wallet-DApp communication",
+                    "Version 2.0 with improved security",
+                    "Supports multiple wallets and authentication methods",
+                    "Enables transaction signing and message sending"
+                ]
+            },
+            {
+                "name": "Smart_Contracts",
+                "entityType": "Component",
+                "observations": [
+                    "Written in FunC (TON's native language)",
+                    "Supports TVM (TON Virtual Machine)",
+                    "Gas-efficient execution model",
+                    "Standard token contracts (Jettons)",
+                    "Asynchronous message-based communication",
+                    "Can process internal/external messages and get methods",
+                    "Get methods allow reading contract state without fees",
+                    "State includes: balance, code, data, and status (Nonexist/Uninit/Active/Frozen)",
+                    "Development uses Blueprint for project scaffolding"
+                ]
+            },
+            {
+                "name": "Message_Processing",
+                "entityType": "Component",
+                "observations": [
+                    "Uses actor model for message passing",
+                    "Supports internal and external messages",
+                    "Internal messages: from other contracts, can carry value",
+                    "External messages: from outside blockchain, no value transfer",
+                    "Message body typically includes opcode for operation type",
+                    "Implements role-based access control patterns",
+                    "Uses message flags for controlling behavior"
+                ]
+            },
+            {
+                "name": "Internal_Messages",
+                "entityType": "Message_Type",
+                "observations": [
+                    "Originate from other smart contracts",
+                    "Can carry TON coins (value)",
+                    "Processed with recv_internal()",
+                    "Can be bounced back if unhandled",
+                    "Common for contract-to-contract communication"
+                ]
+            },
+            {
+                "name": "External_Messages",
+                "entityType": "Message_Type",
+                "observations": [
+                    "Originate from outside the blockchain",
+                    "Cannot carry value (no TON coins)",
+                    "Processed with recv_external()",
+                    "Used for contract initialization and privileged operations",
+                    "Should be used with caution due to security implications"
+                ]
+            },
+            {
+                "name": "Contract_Storage",
+                "entityType": "Component",
+                "observations": [
+                    "Uses Cell as fundamental data structure",
+                    "Cells can store up to 1023 bits (128 bytes)",
+                    "Cells can reference up to 4 child cells",
+                    "Immutable once created",
+                    "Accessed via get_data()/set_data() in FunC",
+                    "Supports serialization/deserialization patterns"
+                ]
+            },
+            {
+                "name": "Get_Methods",
+                "entityType": "Feature",
+                "observations": [
+                    "Allow reading contract state without fees",
+                    "Do not modify contract state",
+                    "Can be called without creating a transaction",
+                    "Useful for querying contract data",
+                    "Return values are serialized using Cell format",
+                    "Executed off-chain",
+                    "Commonly used for data retrieval in wallets and explorers"
+                ]
+            },
+            {
+                "name": "Basic_Get_Methods",
+                "entityType": "Pattern",
+                "observations": [
+                    "Retrieve single data points from contract state",
+                    "No parameters, return single value",
+                    "Example: get_balance(), get_public_key()",
+                    "Fast and efficient for common queries"
+                ]
+            },
+            {
+                "name": "Advanced_Get_Methods",
+                "entityType": "Pattern",
+                "observations": [
+                    "Retrieve computed or aggregated data",
+                    "May accept parameters",
+                    "Can perform calculations before returning results",
+                    "Examples: get_wallet_data(), get_wallet_address()"
+                ]
+            },
+            {
+                "name": "Conditional_Get_Methods",
+                "entityType": "Pattern",
+                "observations": [
+                    "Return data based on conditions (e.g., time-based)",
+                    "Can check contract state or external factors",
+                    "Example: get_ready_to_be_used() checks timestamp"
+                ]
+            },
+            {
+                "name": "Development_Environment",
+                "entityType": "Requirement",
+                "observations": [
+                    "Node.js v20+ and npm",
+                    "Blueprint SDK for project scaffolding",
+                    "IDE with TypeScript support (VSCode recommended)",
+                    "TON Testnet access",
+                    "Git for version control"
+                ]
+            },
+            {
+                "name": "Contract_Deployment",
+                "entityType": "Process",
+                "observations": [
+                    "Deployment via npx blueprint run scriptName",
+                    "Supports Mainnet and Testnet deployment",
+                    "Uses TON Connect for wallet integration",
+                    "Requires TON for deployment fees",
+                    "Deployment scripts use contract wrappers",
+                    "Generates contract address from code + initial data",
+                    "Supports custom network configuration"
+                ]
+            },
+            {
+                "name": "Deployment_Networks",
+                "entityType": "Infrastructure",
+                "observations": [
+                    "Mainnet: Production network with real TON",
+                    "Testnet: Public test network with test TON",
+                    "Custom: Local or private networks",
+                    "Each network has unique configuration",
+                    "Different endpoints for each network"
+                ]
+            },
+            {
+                "name": "TON_Connect",
+                "entityType": "Protocol",
+                "observations": [
+                    "Wallet connection standard for TON",
+                    "Supports multiple wallet providers",
+                    "Uses QR codes for mobile wallet connections",
+                    "Securely signs transactions",
+                    "Integrates with Tonkeeper, MyTonWallet, Tonhub"
+                ]
+            },
+            {
+                "name": "Blueprint_Project_Structure",
+                "entityType": "Project_Template",
+                "observations": [
+                    "/contracts: Contains smart contract source code",
+                    "/wrappers: TypeScript classes for contract interaction",
+                    "/tests: Test files for smart contracts",
+                    "/scripts: Deployment and interaction scripts",
+                    "package.json: Project configuration and dependencies"
+                ]
+            },
+            {
+                "name": "Development_Workflow",
+                "entityType": "Process",
+                "observations": [
+                    "1. Edit contract code in /contracts and run build",
+                    "2. Update wrappers in /wrappers",
+                    "3. Write and run tests in /tests",
+                    "4. Iterate until desired functionality is achieved",
+                    "5. Update and run deployment scripts in /scripts"
+                ]
+            },
+            {
+                "name": "FunC",
+                "entityType": "Language",
+                "observations": [
+                    "TON's native smart contract language",
+                    "Low-level, stack-based",
+                    "Compiles to TVM bytecode",
+                    "Used for performance-critical contracts"
+                ]
+            },
+            {
+                "name": "Tact",
+                "entityType": "Language",
+                "observations": [
+                    "High-level language for TON",
+                    "Type-safe and developer-friendly",
+                    "Compiles to FunC",
+                    "Modern syntax with familiar constructs",
+                    "Uses .tact file extension",
+                    "Supports contract inheritance",
+                    "Includes built-in testing support",
+                    "Seamless TypeScript integration",
+                    "Automatic message serialization/deserialization",
+                    "Object-oriented contract definition",
+                    "Automatic TVM cell handling"
+                ]
+            },
+            {
+                "name": "Tact_Storage",
+                "entityType": "Feature",
+                "observations": [
+                    "Class-based state variable declaration",
+                    "Automatic serialization to TVM cells",
+                    "Type-safe field access via 'self' reference",
+                    "Supports primitive types with bit-width specification",
+                    "State variables stored in contract's data register"
+                ]
+            },
+            {
+                "name": "Tact_Messages",
+                "entityType": "Feature",
+                "observations": [
+                    "Message-based contract interaction",
+                    "Automatic opcode assignment",
+                    "Type-safe message definitions",
+                    "Support for empty message bodies",
+                    "Automatic serialization/deserialization"
+                ]
+            },
+            {
+                "name": "Tact_Get_Methods",
+                "entityType": "Feature",
+                "observations": [
+                    "Marked with 'get fun' keyword",
+                    "Can only be called off-chain",
+                    "Used for reading contract state",
+                    "Type-safe return values",
+                    "Automatically exposed in TypeScript wrappers"
+                ]
+            },
+            {
+                "name": "Tact_Project_Structure",
+                "entityType": "Project_Template",
+                "observations": [
+                    "/contracts: Contains .tact source files",
+                    "/scripts: Deployment and interaction scripts",
+                    "/tests: Test files using TypeScript/Jest",
+                    "/wrappers: TypeScript wrappers for contracts",
+                    "package.json: Project configuration"
+                ]
+            },
+            {
+                "name": "Tact_Deployment",
+                "entityType": "Process",
+                "observations": [
+                    "Uses blueprint run command for deployment",
+                    "Supports multiple networks (Mainnet/Testnet)",
+                    "Requires TON Connect for wallet integration",
+                    "Needs deployment fee in TON",
+                    "Generates contract address from code + initial data"
+                ]
+            },
+            {
+                "name": "Tact_Development_Workflow",
+                "entityType": "Process",
+                "observations": [
+                    "1. Edit .tact contract files",
+                    "2. Run npx blueprint build",
+                    "3. Update TypeScript wrappers",
+                    "4. Write and run tests",
+                    "5. Deploy using npx blueprint run"
+                ]
+            },
+            {
+                "name": "TON_HTTP_API",
+                "entityType": "Service",
+                "observations": [
+                    "Primary interface for interacting with blockchain data",
+                    "Supports read operations (getContractState, runMethod)",
+                    "Supports write operations (sendTransfer, sendNftTransfer)",
+                    "Testnet endpoint: https://testnet.toncenter.com/api/v2/jsonRPC",
+                    "Used with @ton/ton SDK for TypeScript/JavaScript",
+                    "Requires API key for write operations"
+                ]
+            },
+            {
+                "name": "TON_Wallet_Contracts",
+                "entityType": "Component",
+                "observations": [
+                    "Multiple versions available (V3R2, V4, V5R1)",
+                    "Handle transaction signing and sequence management",
+                    "Support different networks via networkGlobalId (-3 for Testnet, -239 for Mainnet)",
+                    "Provide methods for sending transactions and handling fees"
+                ]
+            },
+            {
+                "name": "NFT_Standard",
+                "entityType": "Standard",
+                "observations": [
+                    "TEP-62: Non-Fungible Token Standard",
+                    "Uses NFT Collection and NFT Item contracts",
+                    "Supports transfer operations with custom payloads",
+                    "Allows attaching messages to transfers"
+                ]
+            },
+            {
+                "name": "Wallets",
+                "entityType": "Component",
+                "observations": [
+                    "Smart contracts for managing user funds on TON",
+                    "Handle transaction signing and verification",
+                    "Support multiple versions (v3, v4, high-load)",
+                    "Process external and internal messages",
+                    "Implement replay protection via seqno or query_id",
+                    "Support subwallets through subwallet_id",
+                    "Can be customized for different use cases"
+                ]
+            },
+            {
+                "name": "Wallet_v3",
+                "entityType": "Contract_Type",
+                "observations": [
+                    "Most commonly used wallet version",
+                    "Uses seqno for replay protection",
+                    "Supports subwallets via subwallet_id",
+                    "Implements external message validation",
+                    "Public key stored for signature verification"
+                ]
+            },
+            {
+                "name": "High_Load_Wallet",
+                "entityType": "Contract_Type",
+                "observations": [
+                    "Optimized for high transaction volume",
+                    "Uses query_id instead of seqno",
+                    "Tracks processed queries to prevent replays",
+                    "More gas efficient for multiple transactions"
+                ]
+            },
+            {
+                "name": "Wallet_v4",
+                "entityType": "Contract_Type",
+                "observations": [
+                    "Latest wallet version",
+                    "Enhanced security features",
+                    "Backward compatible with v3",
+                    "Supports plugins and extensions"
+                ]
+            },
+            {
+                "name": "Toncoin",
+                "entityType": "Cryptocurrency",
+                "observations": [
+                    "Native cryptocurrency of TON Blockchain",
+                    "Used for transaction fees",
+                    "Can be obtained via wallet apps or exchanges"
+                ]
+            },
+            {
+                "name": "TON_Storage",
+                "entityType": "Service",
+                "observations": [
+                    "Decentralized file storage solution",
+                    "Supports large file storage",
+                    "Integrated with TON DNS for human-readable addresses",
+                    "Used for NFT metadata and DApp assets"
+                ]
+            },
+            {
+                "name": "TON_DNS",
+                "entityType": "Service",
+                "observations": [
+                    "Decentralized naming service",
+                    "Human-readable addresses for wallets and services",
+                    "Supports subdomains and custom TLDs",
+                    "Integrated with TON Storage"
+                ]
+            },
+            {
+                "name": "TON_Security_Guidelines",
+                "entityType": "Best_Practices",
+                "observations": [
+                    "Follow common vulnerability prevention",
+                    "Implement secure programming patterns",
+                    "Use proper random number generation",
+                    "Conduct thorough testing",
+                    "Review TON hack challenge findings"
+                ]
+            },
+            {
+                "name": "TON_Scaling_Techniques",
+                "entityType": "Best_Practices",
+                "observations": [
+                    "Implement sharding strategies",
+                    "Optimize contract storage",
+                    "Use off-chain computation when possible",
+                    "Minimize on-chain operations"
+                ]
+            },
+            {
+                "name": "TON_Testing_Approach",
+                "entityType": "Process",
+                "observations": [
+                    "Unit testing with Blueprint",
+                    "Gas usage metrics collection",
+                    "Test coverage analysis",
+                    "Integration testing with wallets"
+                ]
+            },
+            {
+                "name": "TON_Hello_World_Series",
+                "entityType": "Tutorial_Series",
+                "observations": [
+                    "Part 1: Working with TON wallet (Wallet setup, funding, deployment)",
+                    "Part 2: Writing first smart contract",
+                    "Part 3: Building first web client",
+                    "Part 4: Testing smart contracts",
+                    "Uses TypeScript/JavaScript",
+                    "Covers both mainnet and testnet deployment"
+                ]
+            },
+            {
+                "name": "TON_Wallet_Setup",
+                "entityType": "Process",
+                "observations": [
+                    "1. Choose between mainnet (real funds) or testnet (free)",
+                    "2. Install a non-custodial wallet (e.g., Tonkeeper)",
+                    "3. Backup the 24-word recovery phrase",
+                    "4. Fund the wallet (for mainnet)",
+                    "5. Deploy the wallet contract (happens on first transaction)",
+                    "6. Interact with the wallet programmatically"
+                ]
+            },
+            {
+                "name": "TON_Getting_Started",
+                "entityType": "Guide",
+                "observations": [
+                    "1. Create TON wallet (e.g., Tonkeeper) with Testnet mode",
+                    "2. Get test tokens from faucet",
+                    "3. Understand smart contract concepts (addresses, cells)",
+                    "4. Interact with TON using TypeScript SDK",
+                    "5. Compile and send transactions"
+                ]
+            }
+        ],
+        "relations": [
+            {
+                "from": "DApp_Development",
+                "to": "TON_Blockchain",
+                "relationType": "runs_on"
+            },
+            {
+                "from": "DApp_Development",
+                "to": "Smart_Contracts",
+                "relationType": "utilizes"
+            },
+            {
+                "from": "DApp_Development",
+                "to": "Wallets",
+                "relationType": "integrates_with"
+            },
+            {
+                "from": "DApp_Development",
+                "to": "TON_Connect",
+                "relationType": "uses_for_wallet_interaction"
+            },
+            {
+                "from": "DApp_Development",
+                "to": "TON_HTTP_API",
+                "relationType": "queries_for_data"
+            },
+            {
+                "from": "TVM",
+                "to": "Smart_Contracts",
+                "relationType": "executes"
+            },
+            {
+                "from": "FunC",
+                "to": "TVM",
+                "relationType": "compiles_to"
+            },
+            {
+                "from": "TON_Validator",
+                "to": "TON_Blockchain",
+                "relationType": "secures"
+            },
+            {
+                "from": "TON_Proxy",
+                "to": "TON_Blockchain",
+                "relationType": "provides_privacy_for"
+            },
+            {
+                "from": "TON_Connect",
+                "to": "TON_Wallet",
+                "relationType": "enables_connection_with"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "TON_Security_Guidelines",
+                "relationType": "follows"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "TON_Scaling_Techniques",
+                "relationType": "incorporates"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "TON_Testing_Approach",
+                "relationType": "includes"
+            },
+            {
+                "from": "TON_Security_Guidelines",
+                "to": "TON_Hack_Challenge",
+                "relationType": "references"
+            },
+            {
+                "from": "TON_Scaling_Techniques",
+                "to": "Sharding",
+                "relationType": "uses"
+            },
+            {
+                "from": "TON_Testing_Approach",
+                "to": "Blueprint",
+                "relationType": "uses"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "Get_Methods",
+                "relationType": "includes"
+            },
+            {
+                "from": "Get_Methods",
+                "to": "Basic_Get_Methods",
+                "relationType": "includes"
+            },
+            {
+                "from": "Get_Methods",
+                "to": "Advanced_Get_Methods",
+                "relationType": "includes"
+            },
+            {
+                "from": "Get_Methods",
+                "to": "Conditional_Get_Methods",
+                "relationType": "includes"
+            },
+            {
+                "from": "Wallets",
+                "to": "Get_Methods",
+                "relationType": "uses_for_queries"
+            },
+            {
+                "from": "Wallets",
+                "to": "Wallet_v3",
+                "relationType": "has_implementation"
+            },
+            {
+                "from": "Wallets",
+                "to": "Wallet_v4",
+                "relationType": "has_implementation"
+            },
+            {
+                "from": "Wallets",
+                "to": "High_Load_Wallet",
+                "relationType": "has_implementation"
+            },
+            {
+                "from": "Wallet_v4",
+                "to": "Wallet_v3",
+                "relationType": "backward_compatible_with"
+            },
+            {
+                "from": "Explorers",
+                "to": "Get_Methods",
+                "relationType": "uses_for_queries"
+            },
+            {
+                "from": "Get_Methods",
+                "to": "TVM",
+                "relationType": "executed_by"
+            },
+            {
+            },
+            {
+                "from": "Wallets",
+                "to": "TON_Blockchain",
+                "relationType": "interacts_with"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "Wallets",
+                "relationType": "can_interact_with"
+            },
+            {
+                "from": "Toncoin",
+                "to": "Smart_Contracts",
+                "relationType": "funds_execution_of"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "TON_HTTP_API",
+                "relationType": "exposes_state_through"
+            },
+            {
+                "from": "Wallets",
+                "to": "TON_HTTP_API",
+                "relationType": "interacts_with"
+            },
+            {
+                "from": "TON_HTTP_API",
+                "to": "TON_Blockchain",
+                "relationType": "provides_access_to"
+            },
+            {
+                "from": "TON_Wallet_Contracts",
+                "to": "TON_HTTP_API",
+                "relationType": "interacts_with"
+            },
+            {
+                "from": "TON_Wallet_Contracts",
+                "to": "Wallets",
+                "relationType": "implements"
+            },
+            {
+                "from": "NFT_Standard",
+                "to": "Smart_Contracts",
+                "relationType": "extends"
+            },
+            {
+                "from": "Wallets",
+                "to": "NFT_Standard",
+                "relationType": "can_interact_with"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "Smart_Contracts",
+                "relationType": "used_for_developing"
+            },
+            {
+                "from": "FunC",
+                "to": "Smart_Contracts",
+                "relationType": "compiles_to"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "Contract_Storage",
+                "relationType": "uses_for_state"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "Get_Methods",
+                "relationType": "exposes_state_through"
+            },
+            {
+                "from": "Contract_Storage",
+                "to": "Cell",
+                "relationType": "uses_structure"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "Message_Processing",
+                "relationType": "uses_for_communication"
+            },
+            {
+                "from": "Message_Processing",
+                "to": "Internal_Messages",
+                "relationType": "handles_type"
+            },
+            {
+                "from": "Message_Processing",
+                "to": "External_Messages",
+                "relationType": "handles_type"
+            },
+            {
+                "from": "TON_Wallet_Contracts",
+                "to": "External_Messages",
+                "relationType": "validates"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "Contract_Deployment",
+                "relationType": "supports_process"
+            },
+            {
+                "from": "Contract_Deployment",
+                "to": "Deployment_Networks",
+                "relationType": "targets"
+            },
+            {
+                "from": "Contract_Deployment",
+                "to": "TON_Connect",
+                "relationType": "uses_for_auth"
+            },
+            {
+                "from": "TON_Connect",
+                "to": "TON_Wallet_Contracts",
+                "relationType": "integrates_with"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "Contract_Deployment",
+                "relationType": "deployed_via"
+            },
+            {
+                "from": "Tact",
+                "to": "FunC",
+                "relationType": "compiles_to"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "TON_Blockchain",
+                "relationType": "supports_development_for"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "Blueprint_Project_Structure",
+                "relationType": "uses_template"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "Tact_Project_Structure",
+                "relationType": "supports"
+            },
+            {
+                "from": "Tact",
+                "to": "Tact_Project_Structure",
+                "relationType": "uses_structure"
+            },
+            {
+                "from": "Tact",
+                "to": "Tact_Development_Workflow",
+                "relationType": "follows_process"
+            },
+            {
+                "from": "Tact",
+                "to": "Tact_Storage",
+                "relationType": "includes_feature"
+            },
+            {
+                "from": "Tact",
+                "to": "Tact_Messages",
+                "relationType": "uses_for_communication"
+            },
+            {
+                "from": "Tact",
+                "to": "Tact_Get_Methods",
+                "relationType": "provides_access_to"
+            },
+            {
+                "from": "Tact_Storage",
+                "to": "Contract_Storage",
+                "relationType": "implements"
+            },
+            {
+                "from": "Tact_Get_Methods",
+                "to": "Get_Methods",
+                "relationType": "implements"
+            },
+            {
+                "from": "Tact_Messages",
+                "to": "Message_Processing",
+                "relationType": "works_with"
+            },
+            {
+                "from": "Tact_Development_Workflow",
+                "to": "Tact_Deployment",
+                "relationType": "includes_step"
+            },
+            {
+                "from": "Tact_Deployment",
+                "to": "Contract_Deployment",
+                "relationType": "implements"
+            },
+            {
+                "from": "Tact_Deployment",
+                "to": "Deployment_Networks",
+                "relationType": "supports"
+            },
+            {
+                "from": "Tact_Deployment",
+                "to": "TON_Connect",
+                "relationType": "uses_for_auth"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "Development_Workflow",
+                "relationType": "follows_process"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "Cloud_Development",
+                "relationType": "includes_option"
+            },
+            {
+                "from": "Development_Environment",
+                "to": "Local_Development",
+                "relationType": "includes_option"
+            },
+            {
+                "from": "Cloud_Development",
+                "to": "GitHub_Codespaces",
+                "relationType": "uses"
+            },
+            {
+                "from": "Local_Development",
+                "to": "NodeJS",
+                "relationType": "requires"
+            },
+            {
+                "from": "Local_Development",
+                "to": "Git",
+                "relationType": "requires"
+            },
+            {
+                "from": "Local_Development",
+                "to": "VSCode",
+                "relationType": "recommends"
+            },
+            {
+                "from": "TON_Bridge",
+                "to": "TON_Blockchain",
+                "relationType": "connects_to_external_chains"
+            },
+            {
+                "from": "TON_Connect",
+                "to": "TON_DApps",
+                "relationType": "enables_authentication_for"
+            },
+            {
+                "from": "Smart_Contracts",
+                "to": "TON_DApps",
+                "relationType": "powers"
+            },
+            {
+                "from": "TON_Storage",
+                "to": "TON_DApps",
+                "relationType": "provides_storage_for"
+            },
+            {
+                "from": "TON_DNS",
+                "to": "TON_Storage",
+                "relationType": "provides_naming_for"
+            },
+            {
+                "from": "TON_Blockchain",
+                "to": "Telegram_Web_App_API",
+                "relationType": "integrates_with"
+            },
+            {
+                "from": "TON_DApps",
+                "to": "TonConnect",
+                "relationType": "includes_feature"
+            },
+            {
+                "from": "TON_DApps",
+                "to": "SmartContracts",
+                "relationType": "includes_feature"
+            },
+            {
+                "from": "TON_DApps",
+                "to": "TonConnect",
+                "relationType": "includes_feature"
+            }
+        ]
+    },
+    "node_supabase": {
+        "name": "TuneTON Backend",
+        "type": "Backend_Service",
+        "version": "v3.0",
+        "component_reference": {
+            "title": "Supabase Backend Component Reference",
+            "description": "Key components in TuneTON's Supabase backend and their line numbers for quick reference",
+            "important_relations": [
+                {
+                    "from": "Supabase_Backend",
+                    "to": "PostgreSQL_Database",
+                    "line": 3935,
+                    "relationType": "uses",
+                    "purpose": "Primary data storage with Row Level Security"
+                },
+                {
+                    "from": "Supabase_Backend",
+                    "to": "Authentication_Service",
+                    "line": 3960,
+                    "relationType": "manages",
+                    "purpose": "Handles user authentication and sessions"
+                },
+                {
+                    "from": "Supabase_Backend",
+                    "to": "Storage_Service",
+                    "line": 3973,
+                    "relationType": "provides",
+                    "purpose": "Manages file storage for media and uploads"
+                },
+                {
+                    "from": "Supabase_Backend",
+                    "to": "Realtime_API",
+                    "line": 3928,
+                    "relationType": "enables",
+                    "purpose": "Powers live updates and real-time features"
+                },
+                {
+                    "from": "Supabase_Backend",
+                    "to": "Edge_Functions",
+                    "line": 3930,
+                    "relationType": "includes",
+                    "purpose": "Serverless functions for custom business logic"
+                }
+            ],
+            "components": [
+                {
+                    "name": "PostgreSQL_Database",
+                    "line": 3935,
+                    "type": "Database",
+                    "purpose": "Relational database with tables for users, tracks, playlists, and transactions"
+                },
+                {
+                    "name": "Authentication_Service",
+                    "line": 3960,
+                    "type": "Security",
+                    "purpose": "Manages user authentication with Telegram and TON Connect integration"
+                },
+                {
+                    "name": "Storage_Service",
+                    "line": 3973,
+                    "type": "Storage",
+                    "purpose": "Handles file storage for audio tracks, covers, and user avatars"
+                },
+                {
+                    "name": "Realtime_API",
+                    "line": 3928,
+                    "type": "API",
+                    "purpose": "Enables live updates and real-time features across the application"
+                },
+                {
+                    "name": "Edge_Functions",
+                    "line": 3930,
+                    "type": "Serverless",
+                    "purpose": "Custom serverless functions for specific business logic and API endpoints"
+                }
+            ]
+        },
+        "last_updated": "2025-08-17",
+        "official_documentation": [
+            "https://supabase.com/docs",
+            "https://supabase.com/docs/guides/platform",
+            "https://supabase.com/docs/reference/javascript/installing",
+            "https://supabase.com/docs/reference/csharp/introduction",
+            "https://supabase.com/docs/reference/cli/introduction",
+            "https://supabase.com/docs/reference/api/introduction"
+        ],
+        "description": {
+            "overview": "Supabase serves as the primary backend service for TuneTON, providing database, authentication, and real-time capabilities.",
+            "key_features": [
+                "PostgreSQL database with Row Level Security",
+                "JWT authentication with custom claims",
+                "Real-time subscriptions for live updates",
+                "Storage for user uploads and media",
+                "Edge Functions for serverless APIs"
+            ],
+            "integrations": [
+                "TON Connect for wallet authentication",
+                "Telegram Web App for user sessions",
+                "TON Blockchain for on-chain data verification"
+            ]
+        },
+        "database_schema": {
+            "tables": [
+                {
+                    "name": "profiles",
+                    "description": "User profiles and preferences",
+                    "columns": ["id", "username", "avatar_url", "created_at", "updated_at"]
+                },
+                {
+                    "name": "tracks",
+                    "description": "Music tracks metadata",
+                    "columns": ["id", "title", "artist_id", "ton_nft_address", "duration", "created_at"]
+                },
+                {
+                    "name": "playlists",
+                    "description": "User playlists",
+                    "columns": ["id", "user_id", "title", "is_public", "created_at"]
+                },
+                {
+                    "name": "transactions",
+                    "description": "TON blockchain transactions",
+                    "columns": ["id", "user_id", "tx_hash", "amount", "status", "created_at"]
+                }
+            ],
+            "rls_policies": [
+                "Users can only read/write their own profile",
+                "Public read access to tracks and playlists",
+                "Restricted write access to transactions"
+            ]
+        },
+        "authentication": {
+            "providers": ["telegram", "ton_connect"],
+            "session_management": "JWT with refresh tokens",
+            "security_measures": [
+                "Rate limiting",
+                "Email confirmation",
+                "Password strength requirements"
+            ]
+        },
+        "storage": {
+            "buckets": [
+                {
+                    "name": "tracks",
+                    "public": true,
+                    "file_size_limit": "50MB",
+                    "allowed_mime_types": ["audio/mpeg", "audio/wav", "audio/flac"]
+                },
+                {
+                    "name": "covers",
+                    "public": true,
+                    "file_size_limit": "5MB",
+                    "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"]
+                },
+                {
+                    "name": "avatars",
+                    "public": true,
+                    "file_size_limit": "2MB",
+                    "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"]
+                }
+            ]
+        },
+        "edge_functions": [
+            {
+                "name": "process-payment",
+                "description": "Handle TON payments and NFT minting"
+            },
+            {
+                "name": "sync-ton-data",
+                "description": "Synchronize on-chain data with the database"
+            },
+            {
+                "name": "generate-streaming-url",
+                "description": "Generate secure streaming URLs for audio files"
+            }
+        ],
+        "monitoring": {
+            "enabled": true,
+            "tools": ["Logflare", "OpenTelemetry"],
+            "alerts": ["Error rate > 1%", "Response time > 500ms"]
+        },
+        "backup": {
+            "frequency": "Daily",
+            "retention": "30 days",
+            "recovery_point_objective": "5 minutes"
+        }
+    }
+}   

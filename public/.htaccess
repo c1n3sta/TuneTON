@@ -1,0 +1,32 @@
+RewriteEngine On
+
+# Handle API requests
+RewriteRule ^api/tracks$ api/tracks.php [L]
+
+# Handle playback increment (if needed)
+RewriteRule ^api/playbacks/([0-9]+)$ api/playback.php?id=$1 [L]
+
+# Serve existing files and directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirect all other requests to index.html for SPA routing
+RewriteRule ^ index.html [L]
+
+# Set headers for API responses
+<FilesMatch "\.(php)$">
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</FilesMatch> On
+
+# If an existing asset or directory is requested, serve it
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
+RewriteRule ^ - [L]
+
+# If the requested resource doesn't exist, use index.html
+RewriteRule ^ index.html [L]
+
+# Handle API requests
+RewriteRule ^api/(.*)$ /api.php?path=$1 [QSA,L]
