@@ -1,0 +1,690 @@
+{
+    "node": {
+        "name": "TuneTON",
+        "type": "application",
+        "entities": [
+            {
+                "name": "TuneTON_New",
+                "entityType": "Application",
+                "observations": [
+                    "Updated version of TuneTON with enhanced features",
+                    "Built with React and TypeScript",
+                    "Implements modern UI/UX patterns",
+                    "Includes NFT marketplace integration"
+                ]
+            },
+            {
+                "name": "SwipeNavigation",
+                "entityType": "Feature",
+                "observations": [
+                    "Implements horizontal swipe navigation between pages",
+                    "Uses SwipeablePage and SwipeableTabContent components",
+                    "Provides smooth transitions between sections",
+                    "Includes visual indicators for current position"
+                ]
+            },
+            {
+                "name": "MusicPlayback_New",
+                "entityType": "Feature",
+                "observations": [
+                    "Enhanced music player with effects",
+                    "Includes equalizer and audio processing",
+                    "Supports playlists and queue management",
+                    "Integrates with MusicPlayer and MusicPlayerNew components"
+                ]
+            },
+            {
+                "name": "NFTMarketplace_New",
+                "entityType": "Feature",
+                "observations": [
+                    "Allows minting and trading music NFTs",
+                    "Includes NFTAuction and NFTCard components",
+                    "Shows NFT details and ownership",
+                    "Integrates with TON blockchain"
+                ]
+            },
+            {
+                "name": "TelegramAuthProvider",
+                "entityType": "UI Component",
+                "observations": [
+                    "Manages Telegram WebApp authentication",
+                    "Handles user sessions",
+                    "Provides authentication context",
+                    "Integrates with Telegram WebApp API"
+                ]
+            },
+            {
+                "name": "AIStudio",
+                "entityType": "UI Component",
+                "observations": [
+                    "Provides AI-powered music tools",
+                    "Allows music generation and remixing",
+                    "Includes audio processing features",
+                    "Integrates with AI models"
+                ]
+            },
+            {
+                "name": "JamendoIntegration",
+                "entityType": "Utility",
+                "observations": [
+                    "Handles music streaming from Jamendo",
+                    "Manages OAuth authentication",
+                    "Provides music search functionality",
+                    "Handles audio playback"
+                ]
+            },
+            {
+                "name": "AudioEffects",
+                "entityType": "Utility",
+                "observations": [
+                    "Manages audio processing effects",
+                    "Includes equalizer and sound adjustments",
+                    "Supports real-time audio manipulation",
+                    "Integrates with Web Audio API"
+                ]
+            },
+            {
+                "name": "OnboardingFlow",
+                "entityType": "UI Component",
+                "observations": [
+                    "Handles multi-step user onboarding process",
+                    "Includes welcome screens, genre selection, and artist preferences",
+                    "Uses React state management for step progression",
+                    "Implements smooth transitions between steps"
+                ]
+            },
+            {
+                "name": "AudioPlayer",
+                "entityType": "UI Component",
+                "observations": [
+                    "Core audio playback functionality",
+                    "Handles play/pause, seek, and volume controls",
+                    "Integrates with audio worklets for visualization",
+                    "Manages audio state and buffering"
+                ]
+            },
+            {
+                "name": "NowPlayingBar",
+                "entityType": "UI Component",
+                "observations": [
+                    "Displays currently playing track information",
+                    "Shows playback progress",
+                    "Provides quick access to player controls",
+                    "Updates in real-time with playback"
+                ]
+            },
+            {
+                "name": "SpectrumVisualizer",
+                "entityType": "UI Component",
+                "observations": [
+                    "Visualizes audio frequency spectrum",
+                    "Uses Web Audio API for analysis",
+                    "Renders dynamic visualizations",
+                    "Supports customization of visual style"
+                ]
+            },
+            {
+                "name": "MusicPlayback",
+                "entityType": "Feature",
+                "observations": [
+                    "Manages audio playback state",
+                    "Handles track queuing and playlists",
+                    "Supports various audio formats",
+                    "Implements crossfade and gapless playback"
+                ]
+            },
+            {
+                "name": "UserPreferences",
+                "entityType": "Feature",
+                "observations": [
+                    "Stores user settings and preferences",
+                    "Manages theme selection",
+                    "Handles audio quality settings",
+                    "Synchronizes preferences across devices"
+                ]
+            },
+            {
+                "name": "TONBlockchain",
+                "entityType": "Integration",
+                "observations": [
+                    "Handles NFT minting and transactions",
+                    "Manages wallet connections",
+                    "Interacts with TON smart contracts",
+                    "Provides blockchain state management"
+                ]
+            },
+            {
+                "name": "AudioUtils",
+                "entityType": "Utility",
+                "observations": [
+                    "Provides audio processing functions",
+                    "Handles format conversion",
+                    "Manages audio effects",
+                    "Implements audio analysis algorithms"
+                ]
+            },
+            {
+                "name": "TelegramWebApp",
+                "entityType": "Utility",
+                "observations": [
+                    "Manages Telegram WebApp initialization",
+                    "Handles user data from Telegram",
+                    "Provides UI components matching Telegram's design",
+                    "Manages WebApp events and callbacks"
+                ]
+            },
+            {
+                "name": "TuneTON",
+                "entityType": "Music Platform",
+                "observations": [
+                    "A music streaming and NFT marketplace application",
+                    "Built with React, TypeScript, and Vite",
+                    "Implements Telegram Web App integration",
+                    "Uses Supabase for backend services"
+                ]
+            },
+            {
+                "name": "Frontend",
+                "entityType": "Application Layer",
+                "observations": [
+                    "Built with React and TypeScript",
+                    "Uses Vite for development and building",
+                    "Implements responsive design with Tailwind CSS",
+                    "Uses React Router for navigation"
+                ]
+            },
+            {
+                "name": "Backend",
+                "entityType": "Application Layer",
+                "observations": [
+                    "Uses Supabase for authentication and database",
+                    "Implements serverless functions",
+                    "Uses Deno for server-side code",
+                    "Provides RESTful API endpoints"
+                ]
+            },
+            {
+                "name": "Authentication System",
+                "entityType": "Feature",
+                "observations": [
+                    "Implements Telegram Web App authentication",
+                    "Uses JWT tokens for API authentication",
+                    "Integrates with Supabase Auth",
+                    "Handles user sessions securely"
+                ]
+            },
+            {
+                "name": "Music Player",
+                "entityType": "Feature",
+                "observations": [
+                    "Plays audio tracks",
+                    "Shows currently playing track",
+                    "Includes play/pause and skip controls",
+                    "Displays track progress"
+                ]
+            },
+            {
+                "name": "NFT Marketplace",
+                "entityType": "Feature",
+                "observations": [
+                    "Allows users to buy and sell music NFTs",
+                    "Integrates with TON blockchain",
+                    "Shows NFT collections",
+                    "Handles NFT transactions"
+                ]
+            },
+            {
+                "name": "TONWalletLogin",
+                "entityType": "UI Component",
+                "observations": [
+                    "Handles TON Wallet login UI",
+                    "Initiates wallet connection flow",
+                    "Manages wallet connection state"
+                ]
+            },
+            {
+                "name": "useTelegramAuth",
+                "entityType": "Hook",
+                "observations": [
+                    "Manages Telegram authentication state",
+                    "Handles Telegram user data",
+                    "Manages session with backend"
+                ]
+            },
+            {
+                "name": "telegramAuth",
+                "entityType": "Utility",
+                "observations": [
+                    "Handles Telegram WebApp initialization",
+                    "Manages authentication tokens",
+                    "Provides Telegram API utilities"
+                ]
+            },
+            {
+                "name": "Supabase",
+                "entityType": "Service",
+                "observations": [
+                    "Provides authentication services",
+                    "Manages database operations",
+                    "Handles serverless functions"
+                ]
+            }
+        ],
+        "relations": [
+            {
+                "from": "TuneTON_New",
+                "to": "TuneTON",
+                "relationType": "evolved_from",
+                "observations": ["New version with enhanced UI/UX", "Improved component architecture", "Added new features and integrations"]
+            },
+            {
+                "from": "MusicPlayer_New",
+                "to": "AudioPlayer",
+                "relationType": "replaces",
+                "observations": ["Enhanced audio playback features", "Added visualizations and effects", "Improved state management"]
+            },
+            {
+                "from": "NFTMarketplace_New",
+                "to": "NFT Marketplace",
+                "relationType": "replaces",
+                "observations": ["Added auction functionality", "Improved NFT card display", "Enhanced user experience"]
+            },
+            {
+                "from": "TelegramAuthProvider",
+                "to": "useTelegramAuth",
+                "relationType": "replaces",
+                "observations": ["Moved to context-based authentication", "Better state management", "Improved session handling"]
+            },
+            {
+                "from": "MusicApp",
+                "to": "App",
+                "relationType": "enhances",
+                "observations": ["Centralized routing and state management", "Improved tab navigation", "Better component composition"]
+            },
+            {
+                "from": "OnboardingFlow_New",
+                "to": "OnboardingFlow",
+                "relationType": "replaces",
+                "observations": ["Multi-step onboarding process", "Improved user experience", "Added progress tracking"]
+            },
+            {
+                "from": "JamendoIntegration",
+                "to": "MusicPlayback_New",
+                "relationType": "powers",
+                "observations": ["Provides music streaming capabilities", "Handles audio data", "Manages playback state"]
+            },
+            {
+                "from": "AudioEffects",
+                "to": "MusicPlayback_New",
+                "relationType": "enhances",
+                "observations": ["Adds audio processing capabilities", "Enables equalizer and effects", "Improves sound quality"]
+            },
+            {
+                "from": "SwipeNavigation",
+                "to": "TuneTON_New",
+                "relationType": "adds_feature",
+                "observations": ["Enables horizontal swiping between pages", "Improves mobile navigation", "Enhances user experience"]
+            },
+            {
+                "from": "AIStudio",
+                "to": "TuneTON_New",
+                "relationType": "adds_feature",
+                "observations": ["Adds AI-powered music tools", "Enables music generation", "Provides creative features"]
+            },
+            {
+                "from": "NFTAuction",
+                "to": "NFTMarketplace_New",
+                "relationType": "adds_feature",
+                "observations": ["Enables bidding on NFTs", "Adds auction functionality", "Enhances marketplace features"]
+            },
+            {
+                "from": "UserProfilePage",
+                "to": "TuneTON_New",
+                "relationType": "enhances",
+                "observations": ["Adds user profile management", "Shows user activity", "Enhances social features"]
+            },
+            {
+                "from": "PlaylistDetail",
+                "to": "TuneTON_New",
+                "relationType": "enhances",
+                "observations": ["Adds playlist management", "Shows playlist contents", "Enables playlist editing"]
+            },
+            {
+                "from": "SearchPage",
+                "to": "TuneTON_New",
+                "relationType": "enhances",
+                "observations": ["Adds global search functionality", "Improves content discovery", "Enhances user experience"]
+            },
+            {
+                "from": "TuneTON_New",
+                "to": "TuneTON",
+                "relationType": "is_enhanced_version_of"
+            },
+            {
+                "from": "SwipeNavigation",
+                "to": "TuneTON_New",
+                "relationType": "is_feature_of"
+            },
+            {
+                "from": "MusicPlayback_New",
+                "to": "TuneTON_New",
+                "relationType": "is_feature_of"
+            },
+            {
+                "from": "NFTMarketplace_New",
+                "to": "TuneTON_New",
+                "relationType": "is_feature_of"
+            },
+            {
+                "from": "TelegramAuthProvider",
+                "to": "Authentication System",
+                "relationType": "enhances"
+            },
+            {
+                "from": "AIStudio",
+                "to": "TuneTON_New",
+                "relationType": "is_component_of"
+            },
+            {
+                "from": "JamendoIntegration",
+                "to": "MusicPlayback_New",
+                "relationType": "provides_content_for"
+            },
+            {
+                "from": "AudioEffects",
+                "to": "MusicPlayback_New",
+                "relationType": "enhances"
+            },
+            {
+                "from": "MusicPlayback_New",
+                "to": "MusicPlayback",
+                "relationType": "replaces"
+            },
+            {
+                "from": "NFTMarketplace_New",
+                "to": "NFT Marketplace",
+                "relationType": "replaces"
+            },
+            {
+                "from": "OnboardingFlow",
+                "to": "TuneTON",
+                "relationType": "is_component_of"
+            },
+            {
+                "from": "AudioPlayer",
+                "to": "MusicPlayback",
+                "relationType": "implements"
+            },
+            {
+                "from": "NowPlayingBar",
+                "to": "AudioPlayer",
+                "relationType": "extends"
+            },
+            {
+                "from": "SpectrumVisualizer",
+                "to": "AudioPlayer",
+                "relationType": "visualizes"
+            },
+            {
+                "from": "UserPreferences",
+                "to": "MusicPlayback",
+                "relationType": "configures"
+            },
+            {
+                "from": "TONBlockchain",
+                "to": "NFT Marketplace",
+                "relationType": "powers"
+            },
+            {
+                "from": "AudioUtils",
+                "to": "AudioPlayer",
+                "relationType": "provides_utilities_for"
+            },
+            {
+                "from": "TelegramWebApp",
+                "to": "Authentication System",
+                "relationType": "integrates_with"
+            },
+            {
+                "from": "Frontend",
+                "to": "TuneTON",
+                "relationType": "is_part_of",
+                "observations": ["Primary user interface built with React and TypeScript"]
+            },
+            {
+                "from": "Backend",
+                "to": "TuneTON",
+                "relationType": "is_part_of",
+                "observations": ["Server-side logic and data management"]
+            },
+            {
+                "from": "Authentication System",
+                "to": "TuneTON",
+                "relationType": "is_feature_of",
+                "observations": ["Handles user authentication and session management"]
+            },
+            {
+                "from": "Music Player",
+                "to": "TuneTON",
+                "relationType": "is_feature_of",
+                "observations": ["Core audio playback functionality"]
+            },
+            {
+                "from": "NFT Marketplace",
+                "to": "TuneTON",
+                "relationType": "is_feature_of",
+                "observations": ["Blockchain integration for NFT transactions"]
+            },
+            {
+                "from": "TONWalletLogin",
+                "to": "Authentication System",
+                "relationType": "is_component_of",
+                "observations": ["Handles TON wallet connection and authentication"]
+            },
+            {
+                "from": "useTelegramAuth",
+                "to": "Authentication System",
+                "relationType": "manages_state_for",
+                "observations": ["Manages Telegram authentication state and user data"]
+            },
+            {
+                "from": "telegramAuth",
+                "to": "Authentication System",
+                "relationType": "provides_utilities_for",
+                "observations": ["Provides low-level Telegram WebApp utilities"]
+            },
+            {
+                "from": "Supabase",
+                "to": "Backend",
+                "relationType": "powers",
+                "observations": ["Provides database, authentication, and serverless functions"]
+            },
+            {
+                "from": "Authentication System",
+                "to": "Supabase",
+                "relationType": "uses_service",
+                "observations": ["Uses Supabase Auth for user management"]
+            },
+            {
+                "from": "Frontend",
+                "to": "Backend",
+                "relationType": "communicates_with",
+                "observations": ["RESTful API calls for data exchange"]
+            },
+            {
+                "from": "TONWalletLogin",
+                "to": "TON Blockchain",
+                "relationType": "interacts_with",
+                "observations": ["Connects to TON wallet for blockchain operations"]
+            },
+            {
+                "from": "NFT Marketplace",
+                "to": "TON Blockchain",
+                "relationType": "interacts_with",
+                "observations": ["Handles NFT minting, buying, and selling on TON"]
+            },
+            {
+                "from": "Music Player",
+                "to": "Backend",
+                "relationType": "depends_on",
+                "observations": ["Fetches audio streams and metadata"]
+            },
+            {
+                "from": "useTelegramAuth",
+                "to": "telegramAuth",
+                "relationType": "uses",
+                "observations": ["Uses utilities from telegramAuth for low-level operations"]
+            }
+        ]
+    },
+    "node_1": {
+        "name": "Telegram Web App API",
+        "type": "API_DOCS",
+        "description": "Comprehensive documentation for Telegram Web Apps integration",
+        "version": "6.9",
+        "official_docs": [
+            "https://core.telegram.org/api",
+            "https://core.telegram.org/bots/webapps",
+            "https://core.telegram.org/bots"
+        ],
+        "entities": [
+            {
+                "name": "TelegramWebApp",
+                "entityType": "Main Object",
+                "observations": [
+                    "Main entry point for Telegram Web Apps",
+                    "Provides access to all Web App functionality",
+                    "Available as window.Telegram.WebApp in browser"
+                ]
+            },
+            {
+                "name": "initData",
+                "entityType": "Method",
+                "observations": [
+                    "Contains authentication and user data",
+                    "Used for backend validation",
+                    "Includes user, chat, and auth_date information"
+                ]
+            },
+            {
+                "name": "themeParams",
+                "entityType": "Object",
+                "observations": [
+                    "Provides access to Telegram theme colors",
+                    "Updates in real-time when theme changes",
+                    "Includes bg_color, text_color, button_color, etc."
+                ]
+            },
+            {
+                "name": "expand",
+                "entityType": "Method",
+                "observations": [
+                    "Expands the Web App to full viewport",
+                    "Improves user experience",
+                    "Returns a Promise that resolves when animation completes"
+                ]
+            },
+            {
+                "name": "close",
+                "entityType": "Method",
+                "observations": [
+                    "Closes the Web App",
+                    "Can include confirmation dialog",
+                    "Accepts optional callback"
+                ]
+            },
+            {
+                "name": "onEvent",
+                "entityType": "Method",
+                "observations": [
+                    "Subscribes to events",
+                    "Handles theme changes, viewport changes, etc.",
+                    "Returns cleanup function"
+                ]
+            },
+            {
+                "name": "offEvent",
+                "entityType": "Method",
+                "observations": [
+                    "Unsubscribes from events",
+                    "Should be called in cleanup",
+                    "Prevents memory leaks"
+                ]
+            },
+            {
+                "name": "MainButton",
+                "entityType": "Component",
+                "observations": [
+                    "Shows action button at the bottom",
+                    "Customizable text and colors",
+                    "Supports loading states"
+                ]
+            },
+            {
+                "name": "BackButton",
+                "entityType": "Component",
+                "observations": [
+                    "Shows back button in header",
+                    "Automatically handles navigation",
+                    "Visible/hidden based on navigation state"
+                ]
+            },
+            {
+                "name": "Popup",
+                "entityType": "Component",
+                "observations": [
+                    "Shows native popup dialogs",
+                    "Supports alerts, confirmations, and inputs",
+                    "Matches Telegram's design system"
+                ]
+            },
+            {
+                "name": "HapticFeedback",
+                "entityType": "Utility",
+                "observations": [
+                    "Provides tactile feedback",
+                    "Different impact styles available",
+                    "Improves UX for actions"
+                ]
+            },
+            {
+                "name": "CloudStorage",
+                "entityType": "Service",
+                "observations": [
+                    "Persistent key-value storage",
+                    "10MB limit per user",
+                    "Synchronized across devices"
+                ]
+            }
+           
+                ]
+            }
+        ],
+        "relations": [
+            {
+                "from": "TONWalletLogin",
+                "to": "TON Blockchain",
+                "relationType": "interacts_with",
+                "observations": ["Connects to TON wallet for blockchain operations"]
+            },
+            {
+                "from": "NFT Marketplace",
+                "to": "TON Blockchain",
+                "relationType": "interacts_with",
+                "observations": ["Handles NFT minting, buying, and selling on TON"]
+            },
+            {
+                "from": "Music Player",
+                "to": "Backend",
+                "relationType": "depends_on",
+                "observations": ["Fetches audio streams and metadata"]
+            },
+            {
+                "from": "useTelegramAuth",
+                "to": "telegramAuth",
+                "relationType": "uses",
+                "observations": ["Uses utilities from telegramAuth for low-level operations"]
+            }
+        ]
+    }
+}
