@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import '../styles/theme.css';
 import './HomeScreen.css';
+
+// Icons
+import { Search, Bell, ChevronRight } from 'lucide-react';
 
 // Components
 import TopNavigation from './home/TopNavigation';
 import BottomNavigation from './home/BottomNavigation';
 import NowPlayingBar from './home/NowPlayingBar';
-
-// Helper function to get time of day greeting
-const getTimeOfDay = (): string => {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Morning';
-  if (hour < 18) return 'Afternoon';
-  return 'Evening';
-};
+import RecentlyPlayed from './home/RecentlyPlayed';
+import FeaturedPlaylists from './home/FeaturedPlaylists';
+import ActiveContests from './home/ActiveContests';
 
 // Types
-interface Track {
-  id: string;
+export interface Track {
+  id: string | number;
   title: string;
   artist: string;
   cover: string;
@@ -25,17 +23,18 @@ interface Track {
   isPlaying?: boolean;
 }
 
-interface Playlist {
-  id: string;
+export interface Playlist {
+  id: string | number;
   title: string;
   description: string;
   cover: string;
   tracks: number;
+  tracksCount: number;
   duration: string;
 }
 
-interface Contest {
-  id: string;
+export interface Contest {
+  id: string | number;
   title: string;
   description: string;
   cover: string;
@@ -57,46 +56,22 @@ const HomeScreen: React.FC = () => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   
-  // Sample Tracks Data
+  // Sample Data
   const [sampleTracks, setSampleTracks] = useState<Track[]>([
     {
-      id: '1',
-      title: 'Summer Vibes',
-      artist: 'DJ MixMaster',
-      cover: 'https://example.com/cover1.jpg',
+      id: 1,
+      title: 'Starlight Serenade',
+      artist: 'MelodyMix Artist',
+      cover: 'http://localhost:3845/assets/b13483f5f235f1c26e9cbdbfb40edb8ca3b9c11c.png',
       duration: '3:45',
       isPlaying: false,
     },
     {
-      id: '2',
-      title: 'Chill Beats',
-      artist: 'Ambient Dreams',
-      cover: 'https://example.com/cover2.jpg',
+      id: 2,
+      title: 'Midnight Groove',
+      artist: 'Rhythm Masters',
+      cover: 'http://localhost:3845/assets/5c0570c22db9da4233071e8dc020249fbd9aeece.png',
       duration: '4:20',
-      isPlaying: false,
-    },
-    {
-      id: '3',
-      title: 'Night Drive',
-      artist: 'Midnight Cruisers',
-      cover: 'https://example.com/cover3.jpg',
-      duration: '5:15',
-      isPlaying: false,
-    },
-    {
-      id: '4',
-      title: 'Morning Coffee',
-      artist: 'Acoustic Mornings',
-      cover: 'https://example.com/cover4.jpg',
-      duration: '3:30',
-      isPlaying: false,
-    },
-    {
-      id: '5',
-      title: 'Deep Focus',
-      artist: 'Concentration Flow',
-      cover: 'https://example.com/cover5.jpg',
-      duration: '6:45',
       isPlaying: false,
     },
   ]);
@@ -108,7 +83,8 @@ const HomeScreen: React.FC = () => {
       title: "Chill Vibes", 
       description: "Relaxing beats for your day",
       cover: "http://localhost:3845/assets/e4df5775c88dbb71f1c09a72f65ba80adc015b71.png",
-      tracks: 15, 
+      tracks: 15,
+      tracksCount: 15, 
       duration: "45:30" 
     },
     { 
@@ -116,7 +92,8 @@ const HomeScreen: React.FC = () => {
       title: "Workout Mix", 
       description: "High energy tracks",
       cover: "http://localhost:3845/assets/059d630bf1b73c65663230f6fe3660d07bc060b8.png",
-      tracks: 22, 
+      tracks: 22,
+      tracksCount: 22, 
       duration: "1:15:45" 
     },
     { 
@@ -124,15 +101,16 @@ const HomeScreen: React.FC = () => {
       title: "Focus Beats", 
       description: "Concentration music",
       cover: "http://localhost:3845/assets/20bb8fe31b212ec3236e8224dd3efe441043be2f.png",
-      tracks: 10, 
+      tracks: 10,
+      tracksCount: 10, 
       duration: "35:20" 
     },
   ];
 
   // Sample Contests Data
-  const sampleContests: Contest[] = [
+  const [sampleContests, setSampleContests] = useState<Contest[]>([
     {
-      id: '1',
+      id: 1,
       title: "Remix Rumble",
       description: "Create your best remix and win amazing prizes!",
       cover: "http://localhost:3845/assets/92af5e42f7a6be5cc4a3570d7557d9b846376457.png",
@@ -157,122 +135,151 @@ const HomeScreen: React.FC = () => {
         avatar: "http://localhost:3845/assets/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png"
       }
     },
-  ];
+  ]);
 
   // Handle search functionality
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     // TODO: Implement search logic
-  };
+  }, []);
 
   // Toggle play/pause for the current track
-  const togglePlayPause = () => {
-    setIsPlaying(prev => !prev);
-  };
+  const togglePlayPause = useCallback(() => {
+    setIsPlaying(prev => {
+      const newState = !prev;
+      // Update the isPlaying state for the current track
+      setSampleTracks(prevTracks => 
+        prevTracks.map((track, idx) => 
+          idx === currentTrackIndex ? { ...track, isPlaying: newState } : track
+        )
+      );
+      return newState;
+    });
+  }, [currentTrackIndex]);
 
   // Handle tab changes
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
-  };
+  }, []);
+
+  // Handle track selection
+  const handleTrackSelect = useCallback((trackId: number | string) => {
+    const trackIndex = sampleTracks.findIndex(track => track.id === trackId);
+    if (trackIndex !== -1) {
+      setCurrentTrackIndex(trackIndex);
+      setIsPlaying(true);
+      // Update isPlaying state for all tracks
+      setSampleTracks(prevTracks => 
+        prevTracks.map((track, idx) => ({
+          ...track,
+          isPlaying: idx === trackIndex
+        }))
+      );
+    }
+  }, [sampleTracks]);
+
+  // Handle next track
+  const handleNextTrack = useCallback(() => {
+    setCurrentTrackIndex(prev => (prev + 1) % sampleTracks.length);
+    setIsPlaying(true);
+    setSampleTracks(prevTracks => 
+      prevTracks.map((track, idx) => ({
+        ...track,
+        isPlaying: idx === (currentTrackIndex + 1) % sampleTracks.length
+      }))
+    );
+  }, [currentTrackIndex, sampleTracks.length]);
+
+  // Handle previous track
+  const handlePreviousTrack = useCallback(() => {
+    setCurrentTrackIndex(prev => (prev - 1 + sampleTracks.length) % sampleTracks.length);
+    setIsPlaying(true);
+    setSampleTracks(prevTracks => 
+      prevTracks.map((track, idx) => ({
+        ...track,
+        isPlaying: idx === (currentTrackIndex - 1 + sampleTracks.length) % sampleTracks.length
+      }))
+    );
+  }, [currentTrackIndex, sampleTracks.length]);
+
+  // Get current track
+  const currentTrack = sampleTracks[currentTrackIndex] || null;
 
   return (
-    <div className="home-screen">
-      {/* Top Navigation */}
-      <TopNavigation 
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        userName="DJ MixMaster"
-      />
-      
-      {/* Main Content Area */}
-      <main className="main-content">
-        {/* Welcome Banner */}
-        <section className="welcome-banner">
-          <h1>Good {getTimeOfDay()}, DJ MixMaster</h1>
-          <p>Discover new music and join the community</p>
-        </section>
-
-        {/* Recently Played Section */}
-        <section className="section">
-          <div className="section-header">
-            <h2 className="section-title">Recently Played</h2>
-            <button className="btn-text" onClick={() => {}}>
-              See all
-            </button>
-          </div>
-          <div className="recently-played-card">
-            <div className="recently-played-content">
-              <div className="album-art" style={{ backgroundImage: `url(${sampleTracks[0].cover})` }} />
-              <div className="track-info">
-                <h3 className="track-title">{sampleTracks[0].title}</h3>
-                <p className="track-artist">{sampleTracks[0].artist}</p>
-              </div>
-              <div className="play-button" onClick={togglePlayPause}>
-                {isPlaying ? (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 19C9.1 19 10 18.1 10 17V7C10 5.9 9.1 5 8 5C6.9 5 6 5.9 6 7V17C6 18.1 6.9 19 8 19ZM16 7V17C16 18.1 16.9 19 18 19C19.1 19 20 18.1 20 17V7C20 5.9 19.1 5 18 5C16.9 5 16 5.9 16 7Z" fill="#8B949E"/>
-                  </svg>
-                ) : (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5V19L19 12L8 5Z" fill="#58A6FF"/>
-                  </svg>
-                )}
-              </div>
+    <div className="min-h-screen bg-[#0D1117] text-[#E6EDF3] flex flex-col">
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto pb-24">
+        <div className="container mx-auto px-4 py-6">
+          {/* Header */}
+          <header className="mb-8">
+            <h1 className="text-2xl font-bold mb-1">Good Evening</h1>
+            <p className="text-[#8B949E] text-sm">Let's find something great to listen to</p>
+          </header>
+          
+          {/* Search Bar */}
+          <div className="relative mb-6">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-[#8B949E]" />
             </div>
-            <div className="visualizer">
-              {[1, 2, 3, 4, 5].map((_, index) => (
-                <div key={index} className="bar" style={{
-                  height: `${Math.random() * 60 + 20}%`,
-                  animationDelay: `${index * 0.1}s`
-                }} />
-              ))}
+            <input
+              type="text"
+              placeholder="Search for tracks, artists, or playlists"
+              className="w-full bg-[#161B22] rounded-lg py-2 pl-10 pr-4 text-sm text-[#E6EDF3] placeholder-[#8B949E] focus:outline-none focus:ring-2 focus:ring-[#58A6FF] focus:border-transparent"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          {/* Recently Played Section */}
+          <section className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Recently Played</h2>
+              <button className="text-sm text-[#58A6FF] hover:underline">See All</button>
             </div>
-          </div>
-        </section>
-
-        {/* Playlists Section */}
-        <section className="section">
-          <div className="section-header">
-            <h2 className="section-title">My Playlists</h2>
-            <button className="btn-text">View All</button>
-          </div>
-          <div className="playlists-grid">
-            {samplePlaylists.map(playlist => (
-              <div key={playlist.id} className="playlist-card">
-                <div className="playlist-cover" style={{ backgroundImage: `url(${playlist.cover})` }} />
-                <div className="playlist-info">
-                  <h3 className="playlist-title">{playlist.title}</h3>
-                  <p className="playlist-tracks">{playlist.tracksCount} tracks • {playlist.duration}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Contests Section */}
-        <section className="section">
-          <div className="section-header">
-            <h2 className="section-title">Active Contests</h2>
-            <button className="btn-text">View All</button>
-          </div>
-          <div className="contests-list">
-            {sampleContests.map(contest => (
-              <div key={contest.id} className="contest-card">
-                <div className="contest-cover" style={{ backgroundImage: `url(${contest.cover})` }} />
-                <div className="contest-details">
-                  <h3 className="contest-title">{contest.title}</h3>
-                  <p className="contest-prize">Prize: {contest.prize}</p>
-                  <div className="contest-meta">
-                    <span className="contest-participants">{contest.participants} participants</span>
-                    <span className="contest-deadline">Ends {contest.deadline}</span>
-                  </div>
-                  <button className="btn-primary btn-sm">Enter Now</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+            <RecentlyPlayed 
+              tracks={sampleTracks} 
+              onTrackSelect={handleTrackSelect}
+              isPlaying={isPlaying}
+              currentTrackId={currentTrack?.id}
+            />
+          </section>
+          
+          {/* Featured Playlists Section */}
+          <section className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Featured Playlists</h2>
+              <button className="text-sm text-[#58A6FF] hover:underline">See All</button>
+            </div>
+            <FeaturedPlaylists 
+              playlists={samplePlaylists}
+              onPlaylistSelect={(id) => console.log('Selected playlist:', id)}
+            />
+          </section>
+          
+          {/* Active Contests Section */}
+          <section className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Active Contests</h2>
+              <button className="text-sm text-[#58A6FF] hover:underline">See All</button>
+            </div>
+            <ActiveContests 
+              contests={sampleContests}
+              onContestSelect={(id) => console.log('Selected contest:', id)}
+            />
+          </section>
+        </div>
       </main>
+      
+      {/* Now Playing Bar */}
+      {currentTrack && (
+        <NowPlayingBar 
+          track={currentTrack}
+          isPlaying={isPlaying}
+          onPlayPause={togglePlayPause}
+          onNext={handleNextTrack}
+          onPrevious={handlePreviousTrack}
+        />
+      )}
       
       {/* Bottom Navigation */}
       <BottomNavigation 

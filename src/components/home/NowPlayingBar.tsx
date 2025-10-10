@@ -1,89 +1,98 @@
 import React from 'react';
+import { Play, Pause, SkipBack, SkipForward, Heart, Share2, MoreHorizontal } from 'lucide-react';
+import { Track } from '../HomeScreen';
 import './NowPlayingBar.css';
 
 interface NowPlayingBarProps {
-  track: {
-    title: string;
-    artist: string;
-    cover: string;
-    duration: string;
-  } | null;
+  track: Track;
   isPlaying: boolean;
-  progress?: number;
   onPlayPause: () => void;
   onNext: () => void;
   onPrevious: () => void;
-};
+}
 
 const NowPlayingBar: React.FC<NowPlayingBarProps> = ({
   track,
   isPlaying,
-  progress = 0,
   onPlayPause,
   onNext,
   onPrevious,
 }) => {
   if (!track) return null;
 
-  // Format time helper function
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
-  // Calculate current time based on progress
-  const totalDuration = 210; // 3:30 in seconds for demo
-  const currentTime = (progress / 100) * totalDuration;
-
   return (
-    <div className="now-playing-bar">
-      <div className="now-playing-content">
-        <div className="now-playing-info">
-          <div 
-            className="now-playing-cover" 
-            style={{ backgroundImage: track ? `url(${track.cover})` : 'none' }}
-          />
-          <div className="now-playing-details">
-            <div className="now-playing-title">{track ? track.title : 'Not Playing'}</div>
-            <div className="now-playing-artist">{track ? track.artist : 'Select a track'}</div>
+    <div className="fixed bottom-16 left-0 right-0 bg-[#161B22] border-t border-[#30363D] z-40">
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex items-center justify-between">
+          {/* Track Info */}
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            <img
+              src={track.cover}
+              alt={track.title}
+              className="w-10 h-10 rounded-lg object-cover"
+            />
+            <div className="min-w-0">
+              <h3 className="text-sm font-medium text-[#E6EDF3] truncate">{track.title}</h3>
+              <p className="text-xs text-[#8B949E] truncate">{track.artist}</p>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center space-x-4">
+            <button 
+              className="text-[#8B949E] hover:text-[#58A6FF] transition-colors"
+              onClick={onPrevious}
+              aria-label="Previous track"
+            >
+              <SkipBack className="w-5 h-5" />
+            </button>
+            
+            <button 
+              className="bg-[#58A6FF] text-white p-2 rounded-full hover:bg-[#4A8AD4] transition-colors"
+              onClick={onPlayPause}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5 pl-0.5" />
+              )}
+            </button>
+            
+            <button 
+              className="text-[#8B949E] hover:text-[#58A6FF] transition-colors"
+              onClick={onNext}
+              aria-label="Next track"
+            >
+              <SkipForward className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center space-x-3 flex-1 justify-end">
+            <button className="text-[#8B949E] hover:text-[#58A6FF] transition-colors">
+              <Heart className="w-5 h-5" />
+            </button>
+            <button className="text-[#8B949E] hover:text-[#58A6FF] transition-colors">
+              <Share2 className="w-5 h-5" />
+            </button>
+            <button className="text-[#8B949E] hover:text-[#58A6FF] transition-colors">
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
           </div>
         </div>
-        
-        <div className="now-playing-controls">
-          <button 
-            className="control-button"
-            onClick={onPrevious}
-            aria-label="Previous track"
-          >
-            ⏮
-          </button>
-          <button 
-            className="play-pause-button"
-            onClick={onPlayPause}
-            aria-label={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? '⏸' : '▶'}
-          </button>
-          <button 
-            className="control-button"
-            onClick={onNext}
-            aria-label="Next track"
-          >
-            ⏭
-          </button>
-        </div>
-        
-        <div className="now-playing-progress">
-          <div className="progress-bar">
+
+        {/* Progress Bar */}
+        <div className="mt-2">
+          <div className="h-1 bg-[#30363D] rounded-full overflow-hidden">
             <div 
-              className="progress-fill"
-              style={{ width: `${progress}%` }}
+              className="h-full bg-[#58A6FF] rounded-full" 
+              style={{ width: '30%' }} // This should be dynamic based on actual progress
             />
           </div>
-          <div className="time-display">
-            <span>{formatTime(currentTime)}</span>
-            <span>{track ? track.duration : '0:00'}</span>
+          <div className="flex justify-between text-xs text-[#8B949E] mt-1">
+            <span>1:23</span>
+            <span>-2:45</span>
           </div>
         </div>
       </div>

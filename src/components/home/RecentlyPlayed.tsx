@@ -1,112 +1,75 @@
 import React from 'react';
-// Define Track interface locally
-interface Track {
-  id: number;
-  title: string;
-  artist: string;
-  cover: string;
-  duration: string;
-  isPlaying?: boolean;
-}
-import './RecentlyPlayed.css';
+import { Play, Pause } from 'lucide-react';
+// Import Track interface from HomeScreen
+import { Track } from '../HomeScreen';
 
-// Audio visualization component
-const AudioVisualization = () => {
-  return (
-    <div className="audio-visualization">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div 
-          key={i}
-          className="visualization-bar"
-          style={{
-            height: `${Math.random() * 12 + 4}px`,
-            animationDelay: `${i * 0.1}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-type RecentlyPlayedProps = {
+interface RecentlyPlayedProps {
   tracks: Track[];
+  onTrackSelect: (id: string | number) => void;
   isPlaying: boolean;
-  onPlayPause: () => void;
-};
+  currentTrackId?: string | number;
+}
 
-const RecentlyPlayed: React.FC<RecentlyPlayedProps> = ({ tracks, isPlaying, onPlayPause }) => {
-  if (!tracks?.length) return null;
-  
-  const [featuredTrack, ...recentTracks] = tracks;
-
+const RecentlyPlayed: React.FC<RecentlyPlayedProps> = ({
+  tracks,
+  onTrackSelect,
+  isPlaying,
+  currentTrackId,
+}) => {
   return (
-    <section className="recently-played">
-      <div className="section-header">
-        <h2>Recently Played</h2>
-        <button className="see-all">See All</button>
-      </div>
-      
-      {/* Featured Track Card */}
-      <div className="featured-track">
-        <div className="track-content">
-          <div className="track-cover">
-            <img 
-              src={featuredTrack.cover} 
-              alt={featuredTrack.title}
-              loading="lazy"
-            />
-          </div>
-          <div className="track-details">
-            <h3>{featuredTrack.title}</h3>
-            <p>{featuredTrack.artist}</p>
-          </div>
-          <div className="track-controls">
-            <AudioVisualization />
-            <button 
-              className={`play-button ${isPlaying ? 'playing' : ''}`}
-              onClick={onPlayPause}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? '⏸' : '▶'}
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Recently Played Tracks List */}
-      <div className="track-list">
-        {recentTracks.map((track) => (
-          <div key={track.id} className="track-item">
-            <div className="track-cover">
-              <img 
-                src={track.cover} 
-                alt={track.title}
-                loading="lazy"
-              />
+    <div className="space-y-3">
+      {tracks.map((track) => {
+        const isCurrentTrack = track.id === currentTrackId;
+        const isTrackPlaying = isCurrentTrack && isPlaying;
+
+        return (
+          <div
+            key={track.id}
+            className="bg-[#161B22] rounded-xl p-3 flex items-center justify-between hover:bg-[#1F2937] transition-colors cursor-pointer"
+            onClick={() => onTrackSelect(track.id)}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <img
+                  src={track.cover}
+                  alt={track.title}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+                  {isTrackPlaying ? (
+                    <Pause className="text-white w-5 h-5" />
+                  ) : (
+                    <Play className="text-white w-5 h-5 pl-0.5" />
+                  )}
+                </div>
+              </div>
+              <div>
+                <h3 className={`text-sm font-medium ${isCurrentTrack ? 'text-[#58A6FF]' : 'text-[#E6EDF3]'}`}>
+                  {track.title}
+                </h3>
+                <p className="text-xs text-[#8B949E]">{track.artist}</p>
+              </div>
             </div>
-            <div className="track-details">
-              <h3>{track.title}</h3>
-              <p>{track.artist}</p>
+            <div className="flex items-center space-x-4">
+              <span className="text-xs text-[#8B949E]">{track.duration}</span>
+              <button 
+                className="text-[#8B949E] hover:text-[#58A6FF] transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTrackSelect(track.id);
+                }}
+              >
+                {isTrackPlaying ? (
+                  <Pause className="w-5 h-5" />
+                ) : (
+                  <Play className="w-5 h-5 pl-0.5" />
+                )}
+              </button>
             </div>
-            <span className="track-duration">{track.duration}</span>
           </div>
-        ))}
-      </div>
-      
-      {/* Animation styles */}
-      <style>
-        {`
-          @keyframes visualize {
-            0%, 100% {
-              height: 4px;
-            }
-            50% {
-              height: 16px;
-            }
-          }
-        `}
-      </style>
-    </section>
+        );
+      })}
+    </div>
   );
 };
 
