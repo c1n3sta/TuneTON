@@ -169,3 +169,7 @@ yarn-error.log*
 
 # Yarn Integrity file
 .yarn-integrity
+
+# npm cache directory
+.npm-cache/
+.npm/_cacache/
