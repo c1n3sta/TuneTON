@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { WebAudioEngine } from '../core/audio/AudioEngine';
-import { AudioTrack, AudioState, AudioEffect, EffectModuleId } from '../types/audio';
+import type { AudioTrack, AudioState, AudioEffect, EffectModuleId } from '../types/audio';
 import { apiClient } from '../api/client';
 
 export const useAudioPlayer = () => {
@@ -36,8 +36,8 @@ export const useAudioPlayer = () => {
   // Low-pass tone state
   const [lowPassTone, setLowPassToneState] = useState(20000);
   const [lowPassResonance, setLowPassResonanceState] = useState(0.707);
-  const [tempoPitchMix, setTempoPitchMix] = useState(1);
-  const [lofiMix, setLofiMix] = useState(1);
+  const [tempoPitchMix] = useState(1);
+  const [lofiMix] = useState(1);
 
   const audioEngineRef = useRef<WebAudioEngine | null>(null);
   const animationFrameRef = useRef<number | null>(null);

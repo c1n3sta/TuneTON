@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Artist data with their avatar URLs and names
-const ARTISTS = [
-  { id: 'weeknd', name: 'The Weeknd', avatar: 'http://localhost:3845/assets/84d6545ac22a8fa7cc695789dc8e2ff29992a5af.png' },
-  { id: 'beyonce', name: 'Beyoncé', avatar: 'http://localhost:3845/assets/2c1ea409c4a8bfeb11753d30276fdd21b9e259ae.png' },
-  { id: 'sza', name: 'SZA', avatar: 'http://localhost:3845/assets/942f88b3ac884230b9cb4196019616c8ea6fb6a0.png' },
-  { id: 'rihanna', name: 'Rihanna', avatar: 'http://localhost:3845/assets/84d6545ac22a8fa7cc695789dc8e2ff29992a5af.png' },
-  { id: 'frank', name: 'Frank Ocean', avatar: 'http://localhost:3845/assets/fe77acbd3c2d9b2551ab121351073eed5eec763a.png' },
-  { id: 'drake', name: 'Drake', avatar: 'http://localhost:3845/assets/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png' },
-  { id: 'dojacat', name: 'Doja Cat', avatar: 'http://localhost:3845/assets/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png' },
-  { id: 'bruno', name: 'Bruno Mars', avatar: 'http://localhost:3845/assets/02641910bdc93d1d98cf6da313c9fe42f75a5679.png' },
-];
+interface Artist {
+  id: string;
+  name: string;
+  avatar: string;
+}
 
 // Card rotation and positioning for the "thrown on table" look
 const CARD_POSITIONS = [
@@ -31,6 +25,43 @@ interface OnboardingArtistsProps {
 
 const OnboardingArtists: React.FC<OnboardingArtistsProps> = ({ onNext, onSkip }) => {
   const [selectedArtists, setSelectedArtists] = useState<Set<string>>(new Set());
+  const [artists, setArtists] = useState<Artist[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+  useEffect(() => {
+    const fetchPopularArtists = async () => {
+      try {
+        // Dynamically import the Jamendo API to avoid issues with static imports
+        const { jamendoAPI } = await import('../utils/jamendo-api');
+        
+        // Fetch popular artists from Jamendo API
+        const response = await jamendoAPI.getPopularArtists(8);
+        const formattedArtists = response.results.map((artist: any) => ({
+          id: artist.id,
+          name: artist.name,
+          avatar: artist.image
+        }));
+        
+        setArtists(formattedArtists);
+      } catch (error) {
+        console.error('Failed to fetch popular artists:', error);
+        // Fallback to static data if API fails
+        const fallbackArtists = [
+          { id: 'weeknd', name: 'The Weeknd', avatar: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400' },
+          { id: 'beyonce', name: 'Beyoncé', avatar: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400' },
+          { id: 'sza', name: 'SZA', avatar: 'https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400' },
+          { id: 'rihanna', name: 'Rihanna', avatar: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400' },
+          { id: 'frank', name: 'Frank Ocean', avatar: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400' },
+          { id: 'drake', name: 'Drake', avatar: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400' },
+          { id: 'dojacat', name: 'Doja Cat', avatar: 'https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400' },
+          { id: 'bruno', name: 'Bruno Mars', avatar: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400' },
+        ];
+        setArtists(fallbackArtists);
+      }
+    };
+
+    fetchPopularArtists();
+  }, []);
 
   const toggleArtist = (id: string) => {
     setSelectedArtists(prev => {
@@ -61,7 +92,7 @@ const OnboardingArtists: React.FC<OnboardingArtistsProps> = ({ onNext, onSkip })
 
           {/* Artist Cards Container */}
           <div className="relative w-full h-[450px]">
-            {ARTISTS.map((artist, index) => {
+            {artists.map((artist, index) => {
               const position = CARD_POSITIONS[index % CARD_POSITIONS.length];
               const isSelected = selectedArtists.has(artist.id);
               
@@ -70,11 +101,11 @@ const OnboardingArtists: React.FC<OnboardingArtistsProps> = ({ onNext, onSkip })
                   key={artist.id}
                   className={`absolute transition-all duration-200 ${isSelected ? 'z-50 scale-105 shadow-lg' : 'hover:z-30 hover:scale-105'}`}
                   style={{
-                    top: position.top,
-                    left: position.left,
-                    transform: `rotate(${position.rotate})`,
-                    width: position.width,
-                    height: position.size,
+                    top: position?.top ?? '0px',
+                    left: position?.left ?? '0px',
+                    transform: `rotate(${position?.rotate ?? '0deg'})`,
+                    width: position?.width ?? '100px',
+                    height: position?.size ?? '100px',
                   }}
                   onClick={() => toggleArtist(artist.id)}
                 >

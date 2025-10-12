@@ -1,7 +1,7 @@
 import React from 'react';
 import { Play, Pause } from 'lucide-react';
-// Import Track interface from HomeScreen
-import { Track } from '../HomeScreen';
+// Import Track interface from HomeScreen as type-only import
+import type { Track } from '../HomeScreen';
 
 interface RecentlyPlayedProps {
   tracks: Track[];

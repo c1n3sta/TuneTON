@@ -47,10 +47,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
-    "noUnusedPrivateClassMembers": true,
-    "noImplicitUseStrict": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
 
     /* Emit */
     "declaration": true,
@@ -63,16 +60,15 @@
 
     /* Interop Constraints */
     "allowUmdGlobalAccess": true,
-    "preserveSymlinks": true,
-    "preserveValueImports": true
+    "preserveSymlinks": true
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.d.ts",
     "src/**/*.js",
-    "src/**/*.jsx",
-    "vite.config.ts"
+    "src/**/*.jsx"
+    // Removed vite.config.ts from here
   ],
   "exclude": [
     "node_modules",

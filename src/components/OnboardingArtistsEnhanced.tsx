@@ -16,7 +16,21 @@ type Styles = {
   title: React.CSSProperties;
   subtitle: React.CSSProperties;
   cardsContainer: React.CSSProperties;
+  loadingContainer: React.CSSProperties;
 };
+
+interface Artist {
+  id: string;
+  name: string;
+  avatar: string;
+  position?: {
+    top: string;
+    left: string;
+    rotate: string;
+    width: string;
+    height: string;
+  };
+}
 
 // Component styles with proper typing
 const styles: Styles = {
@@ -106,116 +120,30 @@ const styles: Styles = {
     width: '100%',
     height: '100%',
   },
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    color: '#C9D1D9',
+    fontSize: '18px',
+  },
 };
 
-// Artist data with exact positions from Figma
-const ARTISTS = [
-  {
-    id: 'weeknd',
-    name: 'The Weeknd',
-    avatar: 'http://localhost:3845/assets/84d6545ac22a8fa7cc695789dc8e2ff29992a5af.png',
-    position: {
-      top: '3.37%',
-      left: '2.85%',
-      rotate: '355deg',
-      width: '160px',
-      height: '180px'
-    }
-  },
-  {
-    id: 'dojacat',
-    name: 'Doja Cat',
-    avatar: 'http://localhost:3845/assets/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png',
-    position: {
-      top: '-1.22%',
-      left: '55.28%',
-      rotate: '8deg',
-      width: '130px',
-      height: '150px'
-    }
-  },
-  {
-    id: 'sza',
-    name: 'SZA',
-    avatar: 'http://localhost:3845/assets/942f88b3ac884230b9cb4196019616c8ea6fb6a0.png',
-    position: {
-      top: '14.46%',
-      left: '39.41%',
-      rotate: '2deg',
-      width: '100px',
-      height: '120px'
-    }
-  },
-  {
-    id: 'beyonce',
-    name: 'Beyoncé',
-    avatar: 'http://localhost:3845/assets/2c1ea409c4a8bfeb11753d30276fdd21b9e259ae.png',
-    position: {
-      top: '19.9%',
-      left: '39.73%',
-      rotate: '12deg',
-      width: '160px',
-      height: '180px'
-    }
-  },
-  {
-    id: 'frank',
-    name: 'Frank Ocean',
-    avatar: 'http://localhost:3845/assets/fe77acbd3c2d9b2551ab121351073eed5eec763a.png',
-    position: {
-      top: '24.9%',
-      left: '6.58%',
-      rotate: '350deg',
-      width: '130px',
-      height: '150px'
-    }
-  },
-  {
-    id: 'rihanna',
-    name: 'Rihanna',
-    avatar: 'http://localhost:3845/assets/84d6545ac22a8fa7cc695789dc8e2ff29992a5af.png',
-    position: {
-      top: '43%',
-      left: '2.54%',
-      rotate: '7deg',
-      width: '130px',
-      height: '150px'
-    }
-  },
-  {
-    id: 'bruno',
-    name: 'Bruno Mars',
-    avatar: 'http://localhost:3845/assets/02641910bdc93d1d98cf6da313c9fe42f75a5679.png',
-    position: {
-      top: '40.7%',
-      left: '50%',
-      rotate: '357deg',
-      width: '100px',
-      height: '120px'
-    }
-  },
-  {
-    id: 'drake',
-    name: 'Drake',
-    avatar: 'http://localhost:3845/assets/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png',
-    position: {
-      top: '50.5%',
-      left: '54.36%',
-      rotate: '352deg',
-      width: '100px',
-      height: '120px'
-    }
-  }
-];
-
 interface ArtistCardProps {
-  artist: typeof ARTISTS[0];
+  artist: Artist;
   isSelected: boolean;
   onClick: () => void;
 }
 
 const ArtistCard: React.FC<ArtistCardProps> = ({ artist, isSelected, onClick }) => {
-  const { position } = artist;
+  const position = artist.position || {
+    top: '20%',
+    left: '20%',
+    rotate: '0deg',
+    width: '120px',
+    height: '140px'
+  };
   const [isHovered, setIsHovered] = useState(false);
 
   const cardStyle = {
@@ -296,6 +224,201 @@ interface OnboardingArtistsProps {
 
 const OnboardingArtistsEnhanced: React.FC<OnboardingArtistsProps> = ({ onNext, onSkip }) => {
   const [selectedArtists, setSelectedArtists] = useState<Set<string>>(new Set());
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPopularArtists = async () => {
+      try {
+        // Dynamically import the Jamendo API to avoid issues with static imports
+        const { jamendoAPI } = await import('../utils/jamendo-api');
+        
+        // Fetch popular artists from Jamendo API
+        const response = await jamendoAPI.getPopularArtists(8);
+        const formattedArtists = response.results.map((artist: any) => ({
+          id: artist.id,
+          name: artist.name,
+          avatar: artist.image
+        }));
+        
+        // Add positions to artists
+        const artistsWithPositions = formattedArtists.map((artist: Artist, index: number) => {
+          // Predefined positions from Figma
+          const positions = [
+            {
+              top: '3.37%',
+              left: '2.85%',
+              rotate: '355deg',
+              width: '160px',
+              height: '180px'
+            },
+            {
+              top: '-1.22%',
+              left: '55.28%',
+              rotate: '8deg',
+              width: '130px',
+              height: '150px'
+            },
+            {
+              top: '14.46%',
+              left: '39.41%',
+              rotate: '2deg',
+              width: '100px',
+              height: '120px'
+            },
+            {
+              top: '19.9%',
+              left: '39.73%',
+              rotate: '12deg',
+              width: '160px',
+              height: '180px'
+            },
+            {
+              top: '24.9%',
+              left: '6.58%',
+              rotate: '350deg',
+              width: '130px',
+              height: '150px'
+            },
+            {
+              top: '43%',
+              left: '2.54%',
+              rotate: '7deg',
+              width: '130px',
+              height: '150px'
+            },
+            {
+              top: '40.7%',
+              left: '50%',
+              rotate: '357deg',
+              width: '100px',
+              height: '120px'
+            },
+            {
+              top: '50.5%',
+              left: '54.36%',
+              rotate: '352deg',
+              width: '100px',
+              height: '120px'
+            }
+          ];
+          
+          return {
+            ...artist,
+            position: positions[index % positions.length]
+          };
+        });
+        
+        setArtists(artistsWithPositions);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch popular artists:', error);
+        // Fallback to static data if API fails
+        const fallbackArtists: Artist[] = [
+          {
+            id: 'weeknd',
+            name: 'The Weeknd',
+            avatar: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+            position: {
+              top: '3.37%',
+              left: '2.85%',
+              rotate: '355deg',
+              width: '160px',
+              height: '180px'
+            }
+          },
+          {
+            id: 'dojacat',
+            name: 'Doja Cat',
+            avatar: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400',
+            position: {
+              top: '-1.22%',
+              left: '55.28%',
+              rotate: '8deg',
+              width: '130px',
+              height: '150px'
+            }
+          },
+          {
+            id: 'sza',
+            name: 'SZA',
+            avatar: 'https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400',
+            position: {
+              top: '14.46%',
+              left: '39.41%',
+              rotate: '2deg',
+              width: '100px',
+              height: '120px'
+            }
+          },
+          {
+            id: 'beyonce',
+            name: 'Beyoncé',
+            avatar: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400',
+            position: {
+              top: '19.9%',
+              left: '39.73%',
+              rotate: '12deg',
+              width: '160px',
+              height: '180px'
+            }
+          },
+          {
+            id: 'frank',
+            name: 'Frank Ocean',
+            avatar: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+            position: {
+              top: '24.9%',
+              left: '6.58%',
+              rotate: '350deg',
+              width: '130px',
+              height: '150px'
+            }
+          },
+          {
+            id: 'rihanna',
+            name: 'Rihanna',
+            avatar: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+            position: {
+              top: '43%',
+              left: '2.54%',
+              rotate: '7deg',
+              width: '130px',
+              height: '150px'
+            }
+          },
+          {
+            id: 'bruno',
+            name: 'Bruno Mars',
+            avatar: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400',
+            position: {
+              top: '40.7%',
+              left: '50%',
+              rotate: '357deg',
+              width: '100px',
+              height: '120px'
+            }
+          },
+          {
+            id: 'drake',
+            name: 'Drake',
+            avatar: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400',
+            position: {
+              top: '50.5%',
+              left: '54.36%',
+              rotate: '352deg',
+              width: '100px',
+              height: '120px'
+            }
+          }
+        ];
+        setArtists(fallbackArtists);
+        setLoading(false);
+      }
+    };
+
+    fetchPopularArtists();
+  }, []);
 
   const toggleArtist = (id: string) => {
     setSelectedArtists(prev => {
@@ -308,6 +431,18 @@ const OnboardingArtistsEnhanced: React.FC<OnboardingArtistsProps> = ({ onNext, o
       return newSet;
     });
   };
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.mainContainer}>
+          <div style={styles.loadingContainer}>
+            Loading artists...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -326,7 +461,7 @@ const OnboardingArtistsEnhanced: React.FC<OnboardingArtistsProps> = ({ onNext, o
 
           {/* Artist Cards Container */}
           <div style={styles.cardsContainer}>
-            {ARTISTS.map(artist => (
+            {artists.map(artist => (
               <ArtistCard
                 key={artist.id}
                 artist={artist}

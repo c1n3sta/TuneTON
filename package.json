@@ -58,6 +58,9 @@
     "@radix-ui/react-toggle-group": "^1.0.3",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@supabase/supabase-js": "^2.39.0",
+    "@telegram-apps/sdk": "3.11.8",
+    "@telegram-apps/sdk-react": "3.3.9",
+    "@telegram-apps/telegram-ui": "2.1.12",
     "@twa-dev/sdk": "^8.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -77,6 +80,8 @@
     "sonner": "^1.4.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
+    "telegram-webapps-types": "1.0.5",
+    "tone": "15.1.22",
     "vaul": "^0.9.0"
   },
   "devDependencies": {
@@ -111,9 +116,9 @@
     "rollup-plugin-visualizer": "^5.9.2",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
-    "vite": "^5.0.0",
-    "vite-plugin-pwa": "0.17.5",
+    "vite": "7.1.5",
+    "vite-plugin-pwa": "1.0.3",
     "vite-tsconfig-paths": "^4.2.1",
-    "vitest": "^1.0.0"
+    "vitest": "3.2.4"
   }
 }

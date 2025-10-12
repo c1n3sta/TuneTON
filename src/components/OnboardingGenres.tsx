@@ -51,9 +51,9 @@ const OnboardingGenres: React.FC<OnboardingGenresProps> = ({ onNext, defaultSele
                   key={name}
                   onClick={() => toggle(name)}
                   style={{
-                    width: size,
-                    height: size,
-                    borderRadius: size / 2,
+                    width: size || 72,
+                    height: size || 72,
+                    borderRadius: (size || 72) / 2,
                     border: active ? '2px solid #fff' : '2px solid transparent',
                     background: color,
                     color: '#ffffff',

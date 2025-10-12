@@ -1,0 +1,1 @@
+export { default as JamendoOAuthCallback } from './JamendoOAuthCallback';

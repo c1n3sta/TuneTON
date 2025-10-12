@@ -1,114 +1,84 @@
-import React, { useState, useEffect } from 'react';
-import { Track, apiClient } from '../api/client';
-import styles from './Search.module.css';
+import React, { useState } from 'react';
+import type { Track } from '../api/client';
+import { apiClient } from '../api/client';
+import { Search as SearchIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-interface SearchProps {
-  onTrackSelect: (track: Track) => void;
-}
-
-const Search: React.FC<SearchProps> = ({ onTrackSelect }) => {
+const SearchPage: React.FC = () => {
+  const [query, setQuery] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadTracks();
-  }, []);
-
-  useEffect(() => {
-    // Client-side filtering
-    const filtered = tracks.filter(track =>
-      track.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      track.artist.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredTracks(filtered);
-  }, [tracks, searchTerm]);
-
-  const loadTracks = async () => {
+  const handleSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
+    
+    setLoading(true);
     try {
-      setLoading(true);
-      const tracksData = await apiClient.getTracks();
-      setTracks(tracksData);
-      setFilteredTracks(tracksData);
-    } catch (err) {
-      setError('Failed to load tracks');
-      console.error('Error loading tracks:', err);
+      const results = await apiClient.searchTracks(searchQuery);
+      setTracks(results);
+    } catch (error) {
+      console.error('Search error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(query);
   };
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading tracks...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.error}>{error}</div>
-        <button onClick={loadTracks} className={styles.retryButton}>
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>TuneTON</h1>
-        <p>Discover and remix your favorite tracks</p>
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b border-border">
+        <form onSubmit={handleSubmit} className="relative">
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            type="text"
+            placeholder="Search tracks, artists, or albums"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-10 pr-12"
+          />
+          <Button type="submit" variant="ghost" size="sm" className="absolute right-1 top-1/2 transform -translate-y-1/2">
+            <SearchIcon className="w-4 h-4" />
+          </Button>
+        </form>
       </div>
 
-      <div className={styles.searchContainer}>
-        <input
-          type="text"
-          placeholder="Search tracks..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={styles.searchInput}
-        />
-      </div>
-
-      <div className={styles.tracksContainer}>
-        {filteredTracks.length === 0 ? (
-          <div className={styles.noResults}>
-            {searchTerm ? 'No tracks found matching your search.' : 'No tracks available.'}
+      <div className="flex-1 overflow-y-auto p-4">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : tracks.length > 0 ? (
+          <div className="space-y-2">
+            {tracks.map((track) => (
+              <div key={track.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent cursor-pointer">
+                <div className="w-12 h-12 rounded-md bg-gray-200 flex items-center justify-center">
+                  <span className="text-xs text-gray-500">No Image</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{track.title}</p>
+                  <p className="text-sm text-muted-foreground truncate">{track.artist}</p>
+                </div>
+                <span className="text-xs text-muted-foreground">{Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, '0')}</span>
+              </div>
+            ))}
+          </div>
+        ) : query ? (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            No results found
           </div>
         ) : (
-          filteredTracks.map(track => (
-            <div
-              key={track.id}
-              className={styles.trackCard}
-              onClick={() => onTrackSelect(track)}
-            >
-              <div className={styles.trackInfo}>
-                <h3 className={styles.trackTitle}>{track.title}</h3>
-                <p className={styles.trackArtist}>{track.artist}</p>
-                <div className={styles.trackMeta}>
-                  <span className={styles.duration}>{formatDuration(track.duration)}</span>
-                  <span className={styles.playCount}>{track.playCount} plays</span>
-                </div>
-              </div>
-              <div className={styles.playButton}>▶️</div>
-            </div>
-          ))
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            Search for music
+          </div>
         )}
       </div>
     </div>
   );
 };
 
-export default Search;
+export default SearchPage;
