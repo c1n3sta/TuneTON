@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
-import { AudioTrack } from '../../types/audio';
+import type { AudioTrack } from '../../types/audio';
 import Spectrum from '../Spectrum';
 import styles from './AudioPlayer.module.css';
 
@@ -25,7 +25,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     playbackRate,
     tempo,
     pitchSemitones,
-    eqSettings,
     eqBands,
     eqMix,
     eqBypass,
@@ -47,7 +46,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
     setPlaybackRate,
     setTempo,
     setPitchSemitones,
-    setEQ,
+    /*setEQ,*/
     setEffectBypass,
     setEffectMix,
     handleLofiToneChange,
@@ -111,10 +110,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
   const handlePitchSemitonesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value)) setPitchSemitones(value);
-  };
-
-  const handleEQChange = (band: 'low' | 'mid' | 'high') => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEQ(band, parseFloat(e.target.value));
   };
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -275,11 +270,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
                 min="-12"
                 max="12"
                 step="0.5"
-                value={eqBands[index]}
+                value={eqBands[index] ?? 0}
                 onChange={(e) => handleEQBandChange(index, parseFloat(e.target.value))}
                 className={styles.eqSlider}
               />
-              <span>{eqBands[index] > 0 ? `+${eqBands[index]}` : eqBands[index]}dB</span>
+              <span>{(eqBands[index] ?? 0) > 0 ? `+${eqBands[index] ?? 0}` : eqBands[index] ?? 0}dB</span>
             </div>
           ))}
           <div className={styles.inlineControls}>
@@ -407,47 +402,47 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ track, onTrackEnd }) => {
               {reverbBypass ? 'Enable' : 'Bypass'}
             </button>
           </div>
-                  </div>
-        )}
+        </div>
+      )}
 
-        {showLowPass && (
-          <div className={styles.lowPassControls}>
-            <div className={styles.lowPassBand}>
-              <label>Cutoff: {lowPassTone.toFixed(0)}Hz</label>
-              <input
-                type="range"
-                min="20"
-                max="20000"
-                step="10"
-                value={lowPassTone}
-                onChange={(e) => handleLowPassToneChange(parseFloat(e.target.value))}
-                className={styles.lowPassSlider}
-              />
-            </div>
-            
-            <div className={styles.lowPassBand}>
-              <label>Resonance: {lowPassResonance.toFixed(2)}</label>
-              <input
-                type="range"
-                min="0.1"
-                max="10"
-                step="0.1"
-                value={lowPassResonance}
-                onChange={(e) => handleLowPassResonanceChange(parseFloat(e.target.value))}
-                className={styles.lowPassSlider}
-              />
-            </div>
+      {showLowPass && (
+        <div className={styles.lowPassControls}>
+          <div className={styles.lowPassBand}>
+            <label>Cutoff: {lowPassTone.toFixed(0)}Hz</label>
+            <input
+              type="range"
+              min="20"
+              max="20000"
+              step="10"
+              value={lowPassTone}
+              onChange={(e) => handleLowPassToneChange(parseFloat(e.target.value))}
+              className={styles.lowPassSlider}
+            />
           </div>
-        )}
+          
+          <div className={styles.lowPassBand}>
+            <label>Resonance: {lowPassResonance.toFixed(2)}</label>
+            <input
+              type="range"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value={lowPassResonance}
+              onChange={(e) => handleLowPassResonanceChange(parseFloat(e.target.value))}
+              className={styles.lowPassSlider}
+            />
+          </div>
+        </div>
+      )}
 
-        {showSpectrum && (
-          <Spectrum 
-            analyser={getAnalyser() || null}
-            isVisible={showSpectrum && isPlaying}
-          />
-        )}
-      </div>
-    );
-  };
+      {showSpectrum && (
+        <Spectrum 
+          analyser={getAnalyser() || null}
+          isVisible={showSpectrum && isPlaying}
+        />
+      )}
+    </div>
+  );
+};
 
 export default AudioPlayer;

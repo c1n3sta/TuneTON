@@ -167,6 +167,20 @@ class ApiClient {
       return false;
     }
   }
+
+  async searchTracks(query: string): Promise<Track[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/search?q=${encodeURIComponent(query)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Search failed:', error);
+      // Return empty array as fallback
+      return [];
+    }
+  }
 }
 
 export const apiClient = new ApiClient();

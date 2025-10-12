@@ -60,7 +60,7 @@ const Spectrum: React.FC<SpectrumProps> = ({ analyser, isVisible }) => {
       ctx.fillStyle = 'rgba(156, 39, 176, 0.8)'; // Purple theme
 
       for (let i = 0; i < bufferLength; i++) {
-        barHeight = (dataArray[i] / 255) * height;
+        barHeight = ((dataArray[i] || 0) / 255) * height;
 
         // Create gradient effect
         const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);

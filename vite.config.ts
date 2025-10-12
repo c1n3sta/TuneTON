@@ -1,4 +1,4 @@
-import { defineConfig, splitVendorChunkPlugin } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -8,7 +8,6 @@ import path from 'path';
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
-    splitVendorChunkPlugin(),
     mode === 'analyze' && visualizer({
       open: true,
       filename: 'bundle-analyzer-report.html',
@@ -63,6 +62,7 @@ export default defineConfig(({ mode }) => ({
     reportCompressedSize: true,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
+      external: ['@21st-extension/toolbar-react', '@21st-extension/react'], // Externalize the problematic modules
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {

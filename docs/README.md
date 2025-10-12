@@ -13,16 +13,16 @@ Music streaming and NFT marketplace on the TON Blockchain.
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-username/tuneton.git
    cd tuneton
    ```
-
 2. Install dependencies:
+
    ```bash
    npm install
    ```
-
 3. Create a `.env` file based on `.env.example` and fill in the required environment variables.
 
 ### Available Scripts

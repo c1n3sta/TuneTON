@@ -1,4 +1,4 @@
-import { AudioTrack, AudioEngine, AudioEffect, EffectModuleId } from '../../types/audio';
+import type { AudioTrack, AudioEngine, AudioEffect, EffectModuleId } from '../../types/audio';
 import * as Tone from 'tone';
 
 export class WebAudioEngine implements AudioEngine {
@@ -44,7 +44,7 @@ export class WebAudioEngine implements AudioEngine {
   private reverbConvolver: ConvolverNode | null = null;
   private reverbPreDelay: DelayNode;
   private reverbDamping: BiquadFilterNode;
-  private reverbPreset: 'small' | 'medium' | 'large' = 'medium';
+  // private reverbPreset: 'small' | 'medium' | 'large' = 'medium';
   // Low-pass tone control
   private lowPassTone: BiquadFilterNode;
 
@@ -59,13 +59,12 @@ export class WebAudioEngine implements AudioEngine {
   private pitchPostLPF2: BiquadFilterNode | null = null;
   private workletPitchNode: AudioWorkletNode | null = null;
   private readonly enableExperimentalWorklet: boolean = false;
-  private pitchShifter: any; // Will be implemented later
-  private currentTrack: AudioTrack | null = null;
+  // private pitchShifter: any; // Will be implemented later
+
   private startTime = 0;
   private pauseTime = 0;
   private isPlayingFlag = false;
   private playbackRate = 1.0; // legacy UI rate selector
-  private tempoValue = 1.0; // decoupled tempo target
   private pitchRatio = 1.0; // from semitones
   private volume = 1.0;
   private eqSettings = {
@@ -328,18 +327,24 @@ export class WebAudioEngine implements AudioEngine {
     for (let i = 0; i < 7; i++) {
       const band = this.audioContext.createBiquadFilter();
       band.type = 'peaking';
-      band.frequency.value = eqFrequencies[i];
-      band.Q.value = eqQValues[i];
+      band.frequency.value = eqFrequencies[i]!;
+      band.Q.value = eqQValues[i]!;
       band.gain.value = 0; // Start at unity (0 dB)
       this.eqBands.push(band);
     }
 
     // Wire EQ chain: eqIn → band0 → band1 → ... → band6 → eqWet
-    this.eqIn.connect(this.eqBands[0]);
-    for (let i = 0; i < 6; i++) {
-      this.eqBands[i].connect(this.eqBands[i + 1]);
+    if (this.eqBands[0]) {
+      this.eqIn.connect(this.eqBands[0]);
     }
-    this.eqBands[6].connect(this.eqWet);
+    for (let i = 0; i < 6; i++) {
+      if (this.eqBands[i] && this.eqBands[i + 1]) {
+        this.eqBands[i]!.connect(this.eqBands[i + 1]!);
+      }
+    }
+    if (this.eqBands[6]) {
+      this.eqBands[6]!.connect(this.eqWet);
+    }
 
     // Set initial mix and bypass
     this.eqMix.gain.value = 1;
@@ -392,7 +397,7 @@ export class WebAudioEngine implements AudioEngine {
 
   async loadTrack(track: AudioTrack): Promise<void> {
     this.stop();
-    this.currentTrack = track;
+    // this.currentTrack = track;
     
     // Prefer using HTMLMediaElement for tempo without pitch change
     if (typeof track.source === 'string') {
@@ -623,11 +628,9 @@ export class WebAudioEngine implements AudioEngine {
     // TODO: Implement pitch shifting
   }
 
-  setTempo(tempo: number): void {
-    const clamped = Math.max(0.5, Math.min(1.5, tempo));
-    this.tempoValue = clamped;
+  setTempo(e: number): void {
+    const clamped = Math.max(0.5, Math.min(1.5, e));
     if (this.mediaElement) {
-      // Always preserve pitch on media element path for pure tempo change
       try {
         (this.mediaElement as any).preservesPitch = true;
         (this.mediaElement as any).mozPreservesPitch = true;
@@ -636,7 +639,6 @@ export class WebAudioEngine implements AudioEngine {
       this.mediaElement.playbackRate = Math.max(0.25, Math.min(4, clamped));
       return;
     }
-    // Fallback: map to playbackRate (coupled)
     this.setPlaybackRate(clamped);
   }
 
@@ -763,7 +765,7 @@ export class WebAudioEngine implements AudioEngine {
     this.lofiWowLFO.frequency.setValueAtTime(Math.max(0.05, Math.min(5, rateHz)), this.audioContext.currentTime);
   }
 
-  setLofiCrackle(amountPerSec: number): void {
+  setLofiCrackle(_amountPerSec: number): void {
     // Placeholder: could schedule impulses into a convolver or gain pops
     // For now, no-op to avoid artifacts
   }
@@ -804,7 +806,7 @@ export class WebAudioEngine implements AudioEngine {
   }
 
   setReverbPreset(preset: 'small' | 'medium' | 'large'): void {
-    this.reverbPreset = preset;
+    (this as any).reverbPreset = preset;
     this.loadReverbImpulse(preset);
   }
 
@@ -886,7 +888,7 @@ export class WebAudioEngine implements AudioEngine {
   destroy(): void {
     this.stop();
     this.audioBuffer = null;
-    this.currentTrack = null;
+    // this.currentTrack = null;
     if (this.mediaSourceNode) {
       try { this.mediaSourceNode.disconnect(); } catch {}
       this.mediaSourceNode = null;

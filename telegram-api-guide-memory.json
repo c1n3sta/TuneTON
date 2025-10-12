@@ -1,0 +1,426 @@
+{
+  "title": "Telegram API Guide for Bots and Mini Apps",
+  "version": "1.0",
+  "last_updated": "2025-10-11",
+  "documentation_links": {
+    "official_telegram_bot_api": "https://core.telegram.org/bots/api",
+    "telegram_bots_introduction": "https://core.telegram.org/bots",
+    "telegram_bot_features": "https://core.telegram.org/bots/features",
+    "telegram_bot_tutorial": "https://core.telegram.org/bots/tutorial",
+    "telegram_bot_samples": "https://core.telegram.org/bots/samples",
+    "telegram_mini_apps": "https://core.telegram.org/bots/webapps",
+    "telegram_mini_apps_sdk": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x",
+    "telegram_mini_apps_react_sdk": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk-react/1-x"
+  },
+  "overview": {
+    "description": "Comprehensive guide to Telegram Bot API and Mini Apps integration for the tuneTON_MVP project",
+    "target_audience": "Developers working on tuneTON_MVP with Telegram integration",
+    "platform": "Telegram Bot API and Mini Apps"
+  },
+  "core_concepts": {
+    "bots": {
+      "definition": "Small applications that run entirely within the Telegram app",
+      "documentation": "https://core.telegram.org/bots",
+      "key_characteristics": [
+        "Do not need a phone number to set up",
+        "Connected to owner's server via HTTPS interface",
+        "Have 'bot' label instead of 'last seen' status",
+        "Limited cloud storage - older messages may be removed",
+        "Cannot start conversations with users (users must initiate)",
+        "In groups, by default only see relevant messages (Privacy Mode)"
+      ],
+      "use_cases": [
+        "Replace entire websites with Mini Apps",
+        "Manage business operations",
+        "Receive payments via Telegram Stars",
+        "Create custom tools",
+        "Integrate with services and devices",
+        "Host games",
+        "Build social networks",
+        "Monetize services",
+        "Promote projects"
+      ]
+    },
+    "mini_apps": {
+      "definition": "JavaScript applications that can be launched inside Telegram and completely replace websites",
+      "documentation": "https://core.telegram.org/bots/webapps",
+      "key_features": [
+        "Seamless authorization",
+        "Payments via third-party providers",
+        "Push notifications",
+        "Full-screen mode support",
+        "Homescreen shortcuts",
+        "Emoji status integration",
+        "Media sharing and file downloads",
+        "Geolocation access",
+        "Device motion tracking",
+        "Subscription plans and gifts for Telegram Stars",
+        "Loading screen customization",
+        "Hardware-specific optimizations"
+      ],
+      "advantages": [
+        "Infinitely flexible interfaces",
+        "No need for separate website hosting",
+        "Native Telegram integration",
+        "Cross-platform compatibility",
+        "Built-in user authentication",
+        "Direct access to Telegram features"
+      ]
+    }
+  },
+  "getting_started": {
+    "creating_bot": {
+      "steps": [
+        "Message @BotFather on Telegram",
+        "Issue /newbot command",
+        "Follow steps to get bot token",
+        "Configure bot settings via @BotFather"
+      ],
+      "documentation": "https://core.telegram.org/bots#how-do-i-create-a-bot",
+      "important_notes": [
+        "Bot token is unique identifier - store securely",
+        "Treat token like password - don't share with unauthorized people",
+        "Tokens can be revoked via @BotFather"
+      ]
+    },
+    "essential_commands": {
+      "documentation": "https://core.telegram.org/bots/features#commands",
+      "global_commands": [
+        {
+          "command": "/start",
+          "purpose": "Begins interaction with user, sends introductory message",
+          "deep_linking": "Can pass additional parameters via start parameter"
+        },
+        {
+          "command": "/help",
+          "purpose": "Returns help message with bot capabilities and command list"
+        },
+        {
+          "command": "/settings",
+          "purpose": "Shows bot settings for user and suggests commands to edit them"
+        }
+      ]
+    }
+  },
+  "api_integration": {
+    "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x",
+    "setup_instructions": {
+      "sdk_initialization": "Import and call init() function at the root of your application",
+      "sdk_example": "import { init } from '@telegram-apps/sdk';\ninit();",
+      "react_provider_setup": "Wrap your application with SDKProvider component",
+      "react_provider_example": "import { SDKProvider } from '@telegram-apps/sdk-react';\n\nfunction App() {\n  return (\n    <SDKProvider acceptCustomStyles debug>\n      <div>My application!</div>\n    </SDKProvider>\n  );\n}"
+    },
+    "sdk_options": {
+      "javascript_typescript": [
+        {
+          "name": "@telegram-apps/sdk",
+          "type": "TypeScript library",
+          "description": "Made-from-scratch TypeScript library for seamless communication with Telegram Mini Apps functionality",
+          "installation": "npm i @telegram-apps/sdk",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x",
+          "setup": "import { init } from '@telegram-apps/sdk';\ninit();",
+          "common_api_calls": {
+            "init": "init() - Initialize the package and actualize all global dependencies",
+            "backButton": "backButton.mount() - Mount the back button component",
+            "mainButton": "mainButton.setText('Click Me').show() - Set text and show main button"
+          },
+          "features": [
+            "Simplifies developer interaction with Telegram Mini Apps",
+            "Consists of individual components for specific aspects",
+            "Uses @telegram-apps/bridge under the hood"
+          ]
+        },
+        {
+          "name": "@telegram-apps/bridge",
+          "type": "Communication layer",
+          "description": "Lowest level communication layer with Telegram Mini Apps",
+          "installation": "npm i @telegram-apps/bridge",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-bridge",
+          "features": [
+            "Fundamental utilities and types for Telegram Mini Apps",
+            "Can be used alone but recommended to use with higher-level packages",
+            "Provides direct communication with Telegram native application"
+          ]
+        },
+        {
+          "name": "@telegram-apps/sdk-react",
+          "type": "React bindings",
+          "description": "React JS bindings for client SDK with hooks, components and utilities",
+          "installation": "npm i @telegram-apps/sdk-react",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk-react/1-x",
+          "setup": "import { SDKProvider } from '@telegram-apps/sdk-react';\n\nfunction App() {\n  return (\n    <SDKProvider acceptCustomStyles debug>\n      <div>My application!</div>\n    </SDKProvider>\n  );\n}",
+          "common_hooks": {
+            "useBackButton": "const backButton = useBackButton(); - Access back button component",
+            "useMainButton": "const mainButton = useMainButton(); - Access main button component",
+            "useViewport": "const viewport = useViewport(); - Access viewport information",
+            "useThemeParams": "const themeParams = useThemeParams(); - Access theme parameters"
+          },
+          "hook_examples": {
+            "useBackButton": "import { useBackButton } from '@telegram-apps/sdk-react';\nimport { useEffect } from 'react';\n\nconst MyComponent = () => {\n  const backButton = useBackButton();\n\n  useEffect(() => {\n    if (backButton) {\n      backButton.show();\n      const handleBack = () => {\n        // Handle back navigation\n        console.log('Back button pressed');\n      };\n      backButton.onClick(handleBack);\n\n      // Cleanup\n      return () => {\n        backButton.offClick(handleBack);\n        backButton.hide();\n      };\n    }\n  }, [backButton]);\n\n  return <div>My Component</div>;\n};",
+            "useMainButton": "import { useMainButton } from '@telegram-apps/sdk-react';\nimport { useEffect } from 'react';\n\nconst MyComponent = () => {\n  const mainButton = useMainButton();\n\n  useEffect(() => {\n    if (mainButton) {\n      mainButton\n        .setText('Save')\n        .show()\n        .enable();\n\n      const handleClick = () => {\n        // Handle main button click\n        console.log('Main button clicked');\n      };\n\n      mainButton.onClick(handleClick);\n\n      // Cleanup\n      return () => {\n        mainButton.offClick(handleClick);\n      };\n    }\n  }, [mainButton]);\n\n  return <div>My Component</div>;\n};",
+            "useThemeParams": "import { useThemeParams } from '@telegram-apps/sdk-react';\n\nconst MyComponent = () => {\n  const themeParams = useThemeParams();\n\n  // Apply Telegram theme to your component\n  const style = {\n    backgroundColor: themeParams.bgColor,\n    color: themeParams.textColor,\n    padding: '16px'\n  };\n\n  return (\n    <div style={style}>\n      <h3>Themed Component</h3>\n      <p>This component adapts to Telegram's theme</p>\n    </div>\n  );\n};"
+          },
+          "features": [
+            "Provides hooks for all Telegram components",
+            "Includes SDKProvider component for initialization",
+            "Supports SSR mode for frameworks like Next.js",
+            "Offers HOCs (Higher Order Components) for class components"
+          ]
+        },
+        {
+          "name": "telegram-webapps-types",
+          "type": "TypeScript typings",
+          "description": "TypeScript typings for Telegram Web Apps for Bots",
+          "installation": "npm install telegram-webapps-types",
+          "documentation": "https://github.com/prKassad/telegram-webapps-types",
+          "features": [
+            "Provides autocompletion for JavaScript projects",
+            "Type safety for Telegram Web Apps development",
+            "Easy integration with existing TypeScript projects"
+          ]
+        }
+      ],
+      "react_specific": [
+        {
+          "name": "@telegram-apps/telegram-ui",
+          "type": "UI Component Library",
+          "description": "React components library for Telegram Mini Apps inspired by Telegram interface",
+          "installation": "npm i @telegram-apps/telegram-ui",
+          "documentation": "https://github.com/Telegram-Mini-Apps/TelegramUI",
+          "setup": "import '@telegram-apps/telegram-ui/dist/styles.css';\n\nimport { AppRoot, Placeholder } from '@telegram-apps/telegram-ui';\n\nconst App = () => (\n  <AppRoot>\n    <Placeholder\n      header=\"Title\"\n      description=\"Description\"\n    >\n      <img\n        alt=\"Telegram sticker\"\n        src=\"https://xelene.me/telegram.gif\"\n        style={{ display: 'block', width: '144px', height: '144px' }}\n      />\n    </Placeholder>\n  </AppRoot>\n);",
+          "common_components": {
+            "AppRoot": "<AppRoot> - Root component for Telegram UI",
+            "Placeholder": "<Placeholder> - Placeholder component with header and description",
+            "Button": "<Button> - Telegram-styled button component"
+          },
+          "features": [
+            "Pre-designed UI components inspired by Telegram's interface",
+            "Cross-platform design consistency",
+            "Responsive design support",
+            "Telegram color scheme support",
+            "Server-side Rendering support"
+          ]
+        },
+        {
+          "name": "Telegram-Mini-Apps/reactjs-template",
+          "type": "Project Template",
+          "description": "Application template using React, TypeScript, Vite and @telegram-apps SDK",
+          "documentation": "https://github.com/Telegram-Mini-Apps/reactjs-template",
+          "features": [
+            "Ready-to-use project structure",
+            "Pre-configured development environment",
+            "TON Connect integration example",
+            "GitHub Pages deployment setup",
+            "Mock environment for local development"
+          ]
+        }
+      ]
+    },
+    "core_components": {
+      "documentation": "https://core.telegram.org/bots/webapps#initializing-mini-apps",
+      "api_examples": {
+        "backButton": "import { backButton } from '@telegram-apps/sdk';\n\n// Mount the back button component\nbackButton.mount();\n\n// Handle back button click\nconst off = backButton.onClick(() => {\n  off();\n  window.history.back();\n});",
+        "mainButton": "import { mainButton } from '@telegram-apps/sdk';\n\n// Configure and show main button\nmainButton\n  .setBgColor('#238be6')\n  .setTextColor('#ffffff')\n  .setText('Click Me!')\n  .show()\n  .enable();\n\n// Handle main button click\nmainButton.onClick(() => {\n  mainButton.showProgress();\n  // Do something\n  setTimeout(() => mainButton.hideProgress(), 1000);\n});",
+        "viewport": "import { viewport } from '@telegram-apps/sdk';\n\n// Expand the viewport\nviewport.expand();\n\n// Get viewport dimensions\nconsole.log('Height:', viewport.height);\nconsole.log('Width:', viewport.width);",
+        "themeParams": "import { themeParams } from '@telegram-apps/sdk';\n\n// Access theme colors\nconst bgColor = themeParams.bgColor;\nconst textColor = themeParams.textColor;\nconst buttonColor = themeParams.buttonColor;\n\n// Apply to your components\ndocument.body.style.backgroundColor = bgColor;\ndocument.body.style.color = textColor;"
+      },
+      "main_components": [
+        {
+          "name": "BackButton",
+          "description": "Component for managing the back button in Telegram Mini Apps",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/components/back-button",
+          "methods": ["mount", "unmount", "show", "hide", "onClick"],
+          "events": ["back_button_pressed"]
+        },
+        {
+          "name": "MainButton",
+          "description": "Component for managing the main button at the bottom of Telegram Mini Apps",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/components/main-button",
+          "methods": ["show", "hide", "enable", "disable", "showProgress", "hideProgress", "setParams"],
+          "events": ["main_button_pressed"]
+        },
+        {
+          "name": "Viewport",
+          "description": "Component for managing the viewport of Telegram Mini Apps",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/components/viewport",
+          "methods": ["expand", "request"],
+          "properties": ["height", "width", "stableHeight", "isExpanded"]
+        },
+        {
+          "name": "ThemeParams",
+          "description": "Component for accessing Telegram's theme parameters",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/components/theme-params",
+          "properties": [
+            "bg_color", "text_color", "hint_color", "link_color", 
+            "button_color", "button_text_color", "secondary_bg_color"
+          ]
+        }
+      ],
+      "additional_components": [
+        {
+          "name": "BiometryManager",
+          "description": "Component for biometric authentication",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/components/biometry-manager",
+          "api_example": "import { biometryManager } from '@telegram-apps/sdk';\n\n// Check if biometry is available\nif (biometryManager.isAvailable) {\n  // Request access\n  biometryManager.requestAccess().then(() => {\n    // Authenticate user\n    biometryManager.authenticate('Authenticate to access premium features')\n      .then(() => console.log('Authenticated!'))\n      .catch(err => console.error('Authentication failed:', err));\n  });\n}",
+          "methods": ["init", "requestAccess", "authenticate", "openSettings"],
+          "properties": ["type", "isAvailable", "isAccessRequested", "isAccessGranted"]
+        },
+        {
+          "name": "CloudStorage",
+          "description": "Component for storing data in Telegram's cloud storage",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/components/cloud-storage",
+          "api_example": "import { cloudStorage } from '@telegram-apps/sdk';\n\n// Save user preferences\nawait cloudStorage.setItem('user-theme', 'dark');\n\n// Retrieve user preferences\nconst theme = await cloudStorage.getItem('user-theme');\n\n// Get multiple items\nconst items = await cloudStorage.getItems(['user-theme', 'language']);\n\n// Remove an item\nawait cloudStorage.removeItem('user-theme');",
+          "methods": ["setItem", "getItem", "getItems", "removeItem", "removeItems", "getKeys"]
+        },
+        {
+          "name": "HapticFeedback",
+          "description": "Component for providing haptic feedback",
+          "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/components/haptic-feedback",
+          "api_example": "import { hapticFeedback } from '@telegram-apps/sdk';\n\n// Provide different types of haptic feedback\nhapticFeedback.impactOccurred('medium');\nhapticFeedback.notificationOccurred('success');\nhapticFeedback.selectionChanged();",
+          "methods": ["impactOccurred", "notificationOccurred", "selectionChanged"]
+        }
+      ]
+    }
+  },
+  "deep_linking": {
+    "documentation": "https://core.telegram.org/bots/features#deep-linking",
+    "private_chats": {
+      "format": "https://t.me/<bot_username>?start=<parameter>",
+      "example": "https://t.me/your_bot?start=airplane",
+      "behavior": "When user opens chat via this link, bot receives '/start airplane'"
+    },
+    "groups": {
+      "format": "https://t.me/<bot_username>?startgroup=<parameter>",
+      "example": "https://t.me/your_bot?startgroup=spaceship",
+      "behavior": "Prompts user to select group to add bot to"
+    },
+    "parameter_restrictions": {
+      "allowed_characters": "A-Z, a-z, 0-9, _ and -",
+      "max_length": "64 characters",
+      "encoding": "Recommend using base64url for binary content"
+    }
+  },
+  "mini_app_features": {
+    "documentation": "https://core.telegram.org/bots/webapps#recent-changes",
+    "recent_updates": {
+      "july_2025": [
+        "Added hideKeyboard method to WebApp class"
+      ],
+      "april_2025": [
+        "Added DeviceStorage for persistent local storage",
+        "Added SecureStorage for secure local storage of sensitive data"
+      ],
+      "november_2024": [
+        "Full-screen mode support",
+        "Homescreen shortcuts",
+        "Emoji status integration",
+        "Media sharing and file downloads",
+        "Geolocation access",
+        "Device motion tracking",
+        "Subscription plans and gifts for Telegram Stars",
+        "Loading screen customization",
+        "Hardware-specific optimizations"
+      ]
+    },
+    "ui_customization": {
+      "documentation": "https://core.telegram.org/bots/webapps#color-schemes",
+      "theme_params": [
+        "bg_color", "text_color", "hint_color", "link_color",
+        "button_color", "button_text_color", "secondary_bg_color",
+        "header_bg_color", "accent_text_color", "section_bg_color",
+        "section_header_text_color", "subtitle_text_color", "destructive_text_color",
+        "section_separator_color", "bottom_bar_bg_color"
+      ],
+      "loading_screen": {
+        "customization": "Add own icon and specific colors for light and dark themes",
+        "access": "Configure in @BotFather via /mybots > Select Bot > Bot Settings > Configure Mini App > Enable Mini App"
+      }
+    }
+  },
+  "development_environment": {
+    "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/development",
+    "local_development": {
+      "mock_environment": "Use mockTelegramEnv function to simulate Telegram environment during development",
+      "ssl_requirements": "Use HTTPS for proper testing - Telegram clients block Mini Apps with self-signed certificates",
+      "browser_testing": "Mini Apps can be tested in browsers during development but require valid SSL for mobile clients"
+    },
+    "deployment_options": [
+      "GitHub Pages",
+      "Heroku",
+      "Vercel",
+      "Any CDN or static hosting"
+    ]
+  },
+  "best_practices": {
+    "documentation": "https://core.telegram.org/bots#how-are-bots-different-from-users",
+    "general": [
+      "Support global commands (/start, /help, /settings)",
+      "Use appropriate keyboards for user interaction",
+      "Implement proper error handling",
+      "Follow Telegram's design guidelines for consistent UX",
+      "Use theme parameters for consistent styling",
+      "Handle different screen sizes and orientations"
+    ],
+    "mini_apps": [
+      "Design with mobile-first approach",
+      "Ensure responsive design",
+      "Use native-like interactions and animations",
+      "Implement proper loading states",
+      "Handle offline scenarios gracefully",
+      "Optimize for performance (60fps animations)",
+      "Include accessibility labels for all elements"
+    ],
+    "documentation": "https://core.telegram.org/bots/webapps#designing-mini-apps",
+    "security": [
+      "Store bot tokens securely",
+      "Validate all incoming data",
+      "Sanitize user inputs",
+      "Use HTTPS for all communications",
+      "Implement rate limiting for API endpoints",
+      "Keep SDKs and dependencies updated"
+    ],
+    "documentation": "https://core.telegram.org/bots/api#security"
+  },
+  "api_patterns": {
+    "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk/2-x/usage-tips",
+    "common_patterns": [
+      "Always check if components are available before using them",
+      "Clean up event listeners when components unmount",
+      "Handle asynchronous initialization of components",
+      "Use try-catch blocks when calling SDK methods",
+      "Test both in Telegram environment and browser development mode"
+    ],
+    "error_handling": {
+      "component_unavailable": "Some components like viewport may be undefined during initialization",
+      "async_initialization": "Handle undefined values from hooks that initialize asynchronously",
+      "network_errors": "Implement retry logic for cloud storage and other network-dependent features"
+    }
+  },
+  "project_integration": {
+    "tuneTON_MVP_considerations": {
+      "relevant_features": [
+        "Mini Apps can replace entire websites - perfect for tuneTON web interface",
+        "Seamless authorization - can integrate with existing Telegram accounts",
+        "Payments via Telegram Stars - potential monetization for music NFTs",
+        "Media sharing - users can share music NFTs directly from Mini App",
+        "TON Connect integration - already included in React template"
+      ],
+      "documentation": "https://github.com/Telegram-Mini-Apps/reactjs-template",
+      "implementation_approach": [
+        "Use @telegram-apps/sdk-react for React integration",
+        "Implement SDKProvider at root of application",
+        "Use provided hooks for accessing Telegram components",
+        "Follow Telegram UI design guidelines for consistent experience",
+        "Integrate with existing tuneTON authentication flow",
+        "Consider using Telegram UI components for familiar interface"
+      ]
+    },
+    "documentation": "https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk-react/1-x"
+  },
+    "recommended_libraries": [
+      "@telegram-apps/sdk-react",
+      "@telegram-apps/telegram-ui",
+      "telegram-webapps-types"
+    ]
+  }
+}
