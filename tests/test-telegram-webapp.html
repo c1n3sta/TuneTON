@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telegram WebApp Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <h1>Telegram WebApp Test</h1>
+    <div id="status">Initializing...</div>
+    <div id="data"></div>
+    
+    <script>
+        document.getElementById('status').textContent = 'Telegram WebApp available: ' + !!window.Telegram?.WebApp;
+        
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            
+            document.getElementById('data').innerHTML = `
+                <h2>WebApp Data:</h2>
+                <pre>${JSON.stringify(window.Telegram.WebApp, null, 2)}</pre>
+            `;
+        }
+    </script>
+</body>
+</html>

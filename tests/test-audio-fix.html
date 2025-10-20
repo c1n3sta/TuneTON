@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Engine Test - Fixed</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Audio Engine Test - Fixed for Autoplay Policy</h1>
+    <p>This test demonstrates the fix for the Web Audio API autoplay policy violation.</p>
+    
+    <button id="initButton">Initialize Audio (Click to start)</button>
+    <button id="playButton" disabled>Play Test Sound</button>
+    <p id="status">Status: Waiting for user interaction...</p>
+    
+    <script type="module">
+        // Import the fixed audio engine
+        import { WebAudioEngine } from './src/core/audio/AudioEngine.js';
+        
+        const initButton = document.getElementById('initButton');
+        const playButton = document.getElementById('playButton');
+        const statusElement = document.getElementById('status');
+        
+        let audioEngine = null;
+        
+        // Initialize on user interaction
+        initButton.addEventListener('click', async () => {
+            try {
+                statusElement.textContent = 'Status: Initializing audio engine...';
+                audioEngine = new WebAudioEngine();
+                initButton.disabled = true;
+                playButton.disabled = false;
+                statusElement.textContent = 'Status: Audio engine ready. Click Play to test.';
+            } catch (error) {
+                statusElement.textContent = `Status: Error initializing audio engine: ${error.message}`;
+                console.error('Error initializing audio engine:', error);
+            }
+        });
+        
+        playButton.addEventListener('click', async () => {
+            if (!audioEngine) {
+                statusElement.textContent = 'Status: Audio engine not initialized';
+                return;
+            }
+            
+            try {
+                statusElement.textContent = 'Status: Playing test sound...';
+                
+                // Create a simple test track
+                const testTrack = {
+                    id: 'test',
+                    title: 'Test Sound',
+                    artist: 'Test',
+                    duration: 1,
+                    source: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFd2xqZ2VjXl1bWVhXVlVUU1JQT05MS0pJSEdGRURDQkFAPz49PDs6OTg3NjU0MzIxMC8uLSwrKikoJyYlJCMiISAfHh0cGxoZGBcWFRQTEhEQDw4NDAsKCQgHBgUEAwIBAA=='
+                };
+                
+                // Load and play the track
+                await audioEngine.loadTrack(testTrack);
+                await audioEngine.play();
+                
+                statusElement.textContent = 'Status: Test sound played successfully!';
+                
+                // Stop after 1 second
+                setTimeout(() => {
+                    audioEngine.stop();
+                    statusElement.textContent = 'Status: Test completed. Audio engine is working correctly.';
+                }, 1000);
+            } catch (error) {
+                statusElement.textContent = `Status: Error playing audio: ${error.message}`;
+                console.error('Error playing audio:', error);
+            }
+        });
+        
+        // Test the audio effects manager
+        import { audioEffectsManager } from './src/utils/audioEffects.js';
+        
+        const testEffectsButton = document.createElement('button');
+        testEffectsButton.id = 'testEffectsButton';
+        testEffectsButton.textContent = 'Test Audio Effects';
+        testEffectsButton.disabled = true;
+        document.body.appendChild(testEffectsButton);
+        
+        // Enable effects test after audio engine is initialized
+        initButton.addEventListener('click', () => {
+            testEffectsButton.disabled = false;
+        });
+        
+        testEffectsButton.addEventListener('click', async () => {
+            try {
+                statusElement.textContent = 'Status: Initializing audio effects...';
+                
+                // Initialize audio effects manager
+                const initialized = await audioEffectsManager.initialize();
+                if (initialized) {
+                    statusElement.textContent = 'Status: Audio effects manager initialized successfully!';
+                    
+                    // Apply a simple effect
+                    await audioEffectsManager.applyEffects({
+                        eq: { 1000: 3 } // Boost mid frequencies
+                    });
+                    
+                    statusElement.textContent = 'Status: Audio effects applied successfully!';
+                } else {
+                    statusElement.textContent = 'Status: Failed to initialize audio effects manager';
+                }
+            } catch (error) {
+                statusElement.textContent = `Status: Error with audio effects: ${error.message}`;
+                console.error('Error with audio effects:', error);
+            }
+        });
+    </script>
+</body>
+</html>

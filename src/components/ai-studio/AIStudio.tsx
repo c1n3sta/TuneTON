@@ -1,58 +1,42 @@
-import { useState, useEffect } from "react";
-import { 
-  ChevronDown,
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  Heart,
-  MessageCircle,
-  Share,
-  Download,
-  PlusCircle,
-  Star,
-  Send,
-  MoreHorizontal,
-  Smile,
-  Mic,
-  X,
-  Clock,
-  AudioWaveform,
-  Volume2,
-  VolumeX,
-  RotateCcw,
-  RotateCw,
-  Scissors,
-  Copy,
-  ClipboardPaste,
-  Piano,
-  Settings,
-  Sparkles,
-  Save,
-  Users,
-  Coins,
-  ChevronUp,
-  Sliders,
-  Headphones,
-  Music,
-  Zap,
-  Radio,
-  Waves,
-  Filter,
-  Mic2,
-  Bot,
-  Shuffle,
-  Square,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreVertical,
-  Layers,
-  SplitSquareHorizontal,
-  Repeat,
-  Move
+import {
+    AudioWaveform,
+    Bot,
+    ChevronDown,
+    ChevronUp,
+    ClipboardPaste,
+    Coins,
+    Copy,
+    Filter,
+    Heart,
+    Layers,
+    Mic,
+    Mic2,
+    Move,
+    Music,
+    Pause,
+    Play,
+    Radio,
+    Repeat,
+    RotateCcw,
+    RotateCw,
+    Save,
+    Scissors,
+    Share,
+    Shuffle,
+    SkipBack,
+    SkipForward,
+    Sparkles,
+    SplitSquareHorizontal,
+    Square,
+    Users,
+    Volume2,
+    VolumeX,
+    Waves,
+    Zap
 } from "lucide-react";
-import BottomNavigation from "../home/BottomNavigation";
+import { useEffect, useState } from "react";
 import { audioEffectsManager, DEFAULT_PRESETS } from '../../utils/audioEffects';
+import BottomNavigation from "../home/BottomNavigation";
 
 interface AIStudioProps {
   onBack: () => void;
@@ -139,13 +123,17 @@ export default function AIStudio({ onBack, onNavigate, onOpenCreateNFT }: AIStud
   
   const [selectedPreset, setSelectedPreset] = useState('flat');
   
+  // State for audio effects manager initialization
+  const [isAudioEffectsInitialized, setIsAudioEffectsInitialized] = useState(false);
+  
   // Initialize audio effects manager
   useEffect(() => {
     const initAudioEffects = async () => {
       try {
-        await audioEffectsManager.initialize();
+        // Don't initialize immediately, wait for user interaction
+        console.log('Audio effects manager ready for initialization on user interaction');
       } catch (error) {
-        console.error('Failed to initialize audio effects:', error);
+        console.error('Failed to prepare audio effects:', error);
       }
     };
     
@@ -154,10 +142,29 @@ export default function AIStudio({ onBack, onNavigate, onOpenCreateNFT }: AIStud
   
   // Apply effects when they change
   useEffect(() => {
-    if (audioEffectsManager.isReady()) {
-      audioEffectsManager.applyEffects(audioEffects);
-    }
-  }, [audioEffects]);
+    const applyEffects = async () => {
+      // Initialize audio effects manager on first effect application
+      if (!isAudioEffectsInitialized) {
+        try {
+          await audioEffectsManager.initialize();
+          setIsAudioEffectsInitialized(true);
+        } catch (error) {
+          console.error('Failed to initialize audio effects:', error);
+          return;
+        }
+      }
+      
+      if (audioEffectsManager.isReady()) {
+        try {
+          await audioEffectsManager.applyEffects(audioEffects);
+        } catch (error) {
+          console.error('Failed to apply audio effects:', error);
+        }
+      }
+    };
+    
+    applyEffects();
+  }, [audioEffects, isAudioEffectsInitialized]);
   
   // Handle preset selection
   const handlePresetChange = (presetName: string) => {

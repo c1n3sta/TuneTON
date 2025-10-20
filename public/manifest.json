@@ -1,0 +1,9 @@
+{
+  "name": "TuneTON",
+  "short_name": "TuneTON",
+  "description": "Music streaming and NFT marketplace on TON",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}

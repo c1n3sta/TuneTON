@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { WebAudioEngine } from '../core/audio/AudioEngine';
-import type { AudioTrack, AudioState, AudioEffect, EffectModuleId } from '../types/audio';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from '../api/client';
+import { WebAudioEngine } from '../core/audio/AudioEngine';
+import type { AudioTrack, EffectModuleId } from '../types/audio';
 
 export const useAudioPlayer = () => {
   const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null);
@@ -42,25 +42,26 @@ export const useAudioPlayer = () => {
   const audioEngineRef = useRef<WebAudioEngine | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const previousVolumeRef = useRef(volume);
+  const isInitializedRef = useRef(false);
 
-  // Initialize audio engine on mount
-  useEffect(() => {
-    audioEngineRef.current = new WebAudioEngine();
-    
-    // Set initial volume
-    audioEngineRef.current.setVolume(volume);
-    
-    return () => {
-      // Cleanup on unmount
-      if (audioEngineRef.current) {
-        audioEngineRef.current.destroy();
+  // Initialize audio engine on first user interaction
+  const initializeAudioEngine = useCallback(async () => {
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true;
+      try {
+        audioEngineRef.current = new WebAudioEngine();
+        
+        // Set initial volume
+        audioEngineRef.current.setVolume(volume);
+      } catch (error) {
+        console.error('Failed to initialize audio engine:', error);
+        // Fallback to a mock audio engine if initialization fails
         audioEngineRef.current = null;
       }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, []);
+    }
+    
+    return audioEngineRef.current;
+  }, [volume]);
 
   // Update current time for UI
   const updateTime = useCallback(() => {
@@ -90,251 +91,396 @@ export const useAudioPlayer = () => {
 
   // Load a new track
   const loadTrack = useCallback(async (track: AudioTrack) => {
-    if (!audioEngineRef.current) return;
-    
     try {
-      await audioEngineRef.current.loadTrack(track);
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return false;
+      
+      await audioEngine.loadTrack(track);
       setCurrentTrack(track);
-      setDuration(audioEngineRef.current.getDuration());
+      setDuration(audioEngine.getDuration());
       setCurrentTime(0);
       return true;
     } catch (error) {
       console.error('Error loading track:', error);
       return false;
     }
-  }, []);
+  }, [initializeAudioEngine]);
 
   // Toggle play/pause
   const togglePlayPause = useCallback(async () => {
-    if (!audioEngineRef.current) return;
-    
-    if (isPlaying) {
-      audioEngineRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      try {
-        await audioEngineRef.current.play();
-        setIsPlaying(true);
-        
-        // Track playback if we have a current track
-        if (currentTrack) {
-          try {
-            await apiClient.incrementPlayback(currentTrack.id);
-          } catch (error) {
-            console.error('Failed to track playback:', error);
-          }
-        }
-      } catch (error) {
-        console.error('Error playing audio:', error);
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      if (isPlaying) {
+        audioEngine.pause();
         setIsPlaying(false);
+      } else {
+        try {
+          await audioEngine.play();
+          setIsPlaying(true);
+          
+          // Track playback if we have a current track
+          if (currentTrack) {
+            try {
+              await apiClient.incrementPlayback(currentTrack.id);
+            } catch (error) {
+              console.error('Failed to track playback:', error);
+            }
+          }
+        } catch (error) {
+          console.error('Error playing audio:', error);
+          setIsPlaying(false);
+        }
       }
+    } catch (error) {
+      console.error('Error in togglePlayPause:', error);
     }
-  }, [isPlaying, currentTrack]);
+  }, [isPlaying, currentTrack, initializeAudioEngine]);
 
   // Stop playback
-  const stop = useCallback(() => {
-    if (!audioEngineRef.current) return;
-    audioEngineRef.current.stop();
-    setIsPlaying(false);
-    setCurrentTime(0);
-  }, []);
+  const stop = useCallback(async () => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      audioEngine.stop();
+      setIsPlaying(false);
+      setCurrentTime(0);
+    } catch (error) {
+      console.error('Error in stop:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // Seek to a specific time
-  const seek = useCallback((time: number) => {
-    if (!audioEngineRef.current) return;
-    
-    audioEngineRef.current.seek(time);
-    setCurrentTime(time);
-  }, []);
+  const seek = useCallback(async (time: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      audioEngine.seek(time);
+      setCurrentTime(time);
+    } catch (error) {
+      console.error('Error in seek:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // Handle volume change
-  const handleVolumeChange = useCallback((newVolume: number) => {
-    if (!audioEngineRef.current) return;
-    
-    const volumeValue = Math.max(0, Math.min(1, newVolume));
-    audioEngineRef.current.setVolume(volumeValue);
-    setVolume(volumeValue);
-    
-    // If volume was 0 and is being increased, unmute
-    if (isMuted && volumeValue > 0) {
-      setIsMuted(false);
+  const handleVolumeChange = useCallback(async (newVolume: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      const volumeValue = Math.max(0, Math.min(1, newVolume));
+      audioEngine.setVolume(volumeValue);
+      setVolume(volumeValue);
+      
+      // If volume was 0 and is being increased, unmute
+      if (isMuted && volumeValue > 0) {
+        setIsMuted(false);
+      }
+    } catch (error) {
+      console.error('Error in handleVolumeChange:', error);
     }
-  }, [isMuted]);
+  }, [isMuted, initializeAudioEngine]);
 
   // Toggle mute
-  const toggleMute = useCallback(() => {
-    if (!audioEngineRef.current) return;
-    
-    if (isMuted) {
-      // Unmute by restoring previous volume
-      audioEngineRef.current.setVolume(previousVolumeRef.current);
-      setVolume(previousVolumeRef.current);
-    } else {
-      // Mute by setting volume to 0 and storing current volume
-      previousVolumeRef.current = volume;
-      audioEngineRef.current.setVolume(0);
-      setVolume(0);
+  const toggleMute = useCallback(async () => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      if (isMuted) {
+        // Unmute by restoring previous volume
+        audioEngine.setVolume(previousVolumeRef.current);
+        setVolume(previousVolumeRef.current);
+      } else {
+        // Mute by setting volume to 0 and storing current volume
+        previousVolumeRef.current = volume;
+        audioEngine.setVolume(0);
+        setVolume(0);
+      }
+      
+      setIsMuted(!isMuted);
+    } catch (error) {
+      console.error('Error in toggleMute:', error);
     }
-    
-    setIsMuted(!isMuted);
-  }, [isMuted, volume]);
+  }, [isMuted, volume, initializeAudioEngine]);
 
   // Handle playback rate change
-  const handlePlaybackRateChange = useCallback((rate: number) => {
-    if (!audioEngineRef.current) return;
-    
-    const newRate = Math.max(0.5, Math.min(2, rate));
-    audioEngineRef.current.setPlaybackRate(newRate);
-    setPlaybackRate(newRate);
-  }, []);
+  const handlePlaybackRateChange = useCallback(async (rate: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      const newRate = Math.max(0.5, Math.min(2, rate));
+      audioEngine.setPlaybackRate(newRate);
+      setPlaybackRate(newRate);
+    } catch (error) {
+      console.error('Error in handlePlaybackRateChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // Tempo (time-stretch placeholder: maps to playbackRate until decoupled in Step 3)
-  const handleTempoChange = useCallback((newTempo: number) => {
-    const clamped = Math.max(0.5, Math.min(1.5, newTempo));
-    setTempo(clamped);
-    if (audioEngineRef.current) {
-      audioEngineRef.current.setTempo(clamped);
+  const handleTempoChange = useCallback(async (newTempo: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      const clamped = Math.max(0.5, Math.min(1.5, newTempo));
+      setTempo(clamped);
+      audioEngine.setTempo(clamped);
+    } catch (error) {
+      console.error('Error in handleTempoChange:', error);
     }
-  }, []);
+  }, [initializeAudioEngine]);
 
   // Pitch semitones (placeholder: maps to pitch ratio on source node)
-  const handlePitchSemitonesChange = useCallback((semitones: number) => {
-    const clamped = Math.max(-12, Math.min(12, semitones));
-    setPitchSemitones(clamped);
-    if (audioEngineRef.current) {
-      audioEngineRef.current.setPitchSemitones(clamped);
+  const handlePitchSemitonesChange = useCallback(async (semitones: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      const clamped = Math.max(-12, Math.min(12, semitones));
+      setPitchSemitones(clamped);
+      audioEngine.setPitchSemitones(clamped);
       // Auto-enable subtle lo-fi when pitch shifting
       if (clamped !== 0) {
         setLofiToneState(14000);
         setLofiNoiseState(0.05);
-        audioEngineRef.current.setLofiTone(14000);
-        audioEngineRef.current.setLofiNoiseLevel(0.05);
+        audioEngine.setLofiTone(14000);
+        audioEngine.setLofiNoiseLevel(0.05);
       } else {
         setLofiToneState(20000);
         setLofiNoiseState(0);
-        audioEngineRef.current.setLofiTone(20000);
-        audioEngineRef.current.setLofiNoiseLevel(0);
+        audioEngine.setLofiTone(20000);
+        audioEngine.setLofiNoiseLevel(0);
       }
+    } catch (error) {
+      console.error('Error in handlePitchSemitonesChange:', error);
     }
-  }, []);
+  }, [initializeAudioEngine]);
 
   // Handle EQ changes
-  const handleEQChange = useCallback((band: 'low' | 'mid' | 'high', value: number) => {
-    if (!audioEngineRef.current) return;
-    
-    audioEngineRef.current.setEQ(band, value);
-    setEqSettings(prev => ({
-      ...prev,
-      [band]: value
-    }));
-  }, []);
+  const handleEQChange = useCallback(async (band: 'low' | 'mid' | 'high', value: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      audioEngine.setEQ(band, value);
+      setEqSettings(prev => ({
+        ...prev,
+        [band]: value
+      }));
+    } catch (error) {
+      console.error('Error in handleEQChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // Effect bus controls
-  const setEffectBypass = useCallback((id: EffectModuleId, bypass: boolean) => {
-    audioEngineRef.current?.setEffectBypass(id, bypass);
-  }, []);
+  const setEffectBypass = useCallback(async (id: EffectModuleId, bypass: boolean) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      audioEngine.setEffectBypass(id, bypass);
+    } catch (error) {
+      console.error('Error in setEffectBypass:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const setEffectMix = useCallback((id: EffectModuleId, mix: number) => {
-    audioEngineRef.current?.setEffectMix(id, mix);
-  }, []);
+  const setEffectMix = useCallback(async (id: EffectModuleId, mix: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      audioEngine.setEffectMix(id, mix);
+    } catch (error) {
+      console.error('Error in setEffectMix:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // Lo-fi controls
-  const handleLofiToneChange = useCallback((value: number) => {
-    setLofiToneState(value);
-    audioEngineRef.current?.setLofiTone(value);
-  }, []);
+  const handleLofiToneChange = useCallback(async (value: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setLofiToneState(value);
+      audioEngine.setLofiTone(value);
+    } catch (error) {
+      console.error('Error in handleLofiToneChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const handleLofiNoiseChange = useCallback((value: number) => {
-    setLofiNoiseState(value);
-    audioEngineRef.current?.setLofiNoiseLevel(value);
-  }, []);
+  const handleLofiNoiseChange = useCallback(async (value: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setLofiNoiseState(value);
+      audioEngine.setLofiNoiseLevel(value);
+    } catch (error) {
+      console.error('Error in handleLofiNoiseChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const handleLofiWowChange = useCallback((value: number) => {
-    setLofiWowState(value);
-    audioEngineRef.current?.setLofiWowFlutter(0.5, value * 0.5);
-  }, []);
+  const handleLofiWowChange = useCallback(async (value: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setLofiWowState(value);
+      audioEngine.setLofiWowFlutter(0.5, value * 0.5);
+    } catch (error) {
+      console.error('Error in handleLofiWowChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // 7-band EQ controls
-  const handleEQBandChange = useCallback((band: number, gainDb: number) => {
-    const newBands = [...eqBands];
-    newBands[band] = gainDb;
-    setEqBands(newBands);
-    audioEngineRef.current?.setEQBand(band, gainDb);
-  }, [eqBands]);
+  const handleEQBandChange = useCallback(async (band: number, gainDb: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      const newBands = [...eqBands];
+      newBands[band] = gainDb;
+      setEqBands(newBands);
+      audioEngine.setEQBand(band, gainDb);
+    } catch (error) {
+      console.error('Error in handleEQBandChange:', error);
+    }
+  }, [eqBands, initializeAudioEngine]);
 
-  const handleEQMixChange = useCallback((mix: number) => {
-    setEqMixState(mix);
-    audioEngineRef.current?.setEQMix(mix);
-  }, []);
+  const handleEQMixChange = useCallback(async (mix: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setEqMixState(mix);
+      audioEngine.setEQMix(mix);
+    } catch (error) {
+      console.error('Error in handleEQMixChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const handleEQBypassChange = useCallback((bypass: boolean) => {
-    setEqBypassState(bypass);
-    audioEngineRef.current?.setEQBypass(bypass);
-  }, []);
+  const handleEQBypassChange = useCallback(async (bypass: boolean) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setEqBypassState(bypass);
+      audioEngine.setEQBypass(bypass);
+    } catch (error) {
+      console.error('Error in handleEQBypassChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // Reverb controls
-  const handleReverbMixChange = useCallback((mix: number) => {
-    setReverbMixState(mix);
-    audioEngineRef.current?.setReverbMix(mix);
-  }, []);
+  const handleReverbMixChange = useCallback(async (mix: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setReverbMixState(mix);
+      audioEngine.setReverbMix(mix);
+    } catch (error) {
+      console.error('Error in handleReverbMixChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const handleReverbPreDelayChange = useCallback((delayMs: number) => {
-    setReverbPreDelayState(delayMs);
-    audioEngineRef.current?.setReverbPreDelay(delayMs);
-  }, []);
+  const handleReverbPreDelayChange = useCallback(async (delayMs: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setReverbPreDelayState(delayMs);
+      audioEngine.setReverbPreDelay(delayMs);
+    } catch (error) {
+      console.error('Error in handleReverbPreDelayChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const handleReverbDampingChange = useCallback((cutoffHz: number) => {
-    setReverbDampingState(cutoffHz);
-    audioEngineRef.current?.setReverbDamping(cutoffHz);
-  }, []);
+  const handleReverbDampingChange = useCallback(async (cutoffHz: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setReverbDampingState(cutoffHz);
+      audioEngine.setReverbDamping(cutoffHz);
+    } catch (error) {
+      console.error('Error in handleReverbDampingChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const handleReverbPresetChange = useCallback((preset: 'small' | 'medium' | 'large') => {
-    setReverbPresetState(preset);
-    audioEngineRef.current?.setReverbPreset(preset);
-  }, []);
+  const handleReverbPresetChange = useCallback(async (preset: 'small' | 'medium' | 'large') => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setReverbPresetState(preset);
+      audioEngine.setReverbPreset(preset);
+    } catch (error) {
+      console.error('Error in handleReverbPresetChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
-  const handleReverbBypassChange = useCallback((bypass: boolean) => {
-    setReverbBypassState(bypass);
-    audioEngineRef.current?.setReverbBypass(bypass);
-  }, []);
+  const handleReverbBypassChange = useCallback(async (bypass: boolean) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setReverbBypassState(bypass);
+      audioEngine.setReverbBypass(bypass);
+    } catch (error) {
+      console.error('Error in handleReverbBypassChange:', error);
+    }
+  }, [initializeAudioEngine]);
 
   // Low-pass tone controls
-  const handleLowPassToneChange = useCallback((cutoffHz: number) => {
-    setLowPassToneState(cutoffHz);
-    audioEngineRef.current?.setLowPassTone(cutoffHz);
+  const handleLowPassToneChange = useCallback(async (cutoffHz: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setLowPassToneState(cutoffHz);
+      audioEngine.setLowPassTone(cutoffHz);
+    } catch (error) {
+      console.error('Error in handleLowPassToneChange:', error);
+    }
+  }, [initializeAudioEngine]);
+
+  const handleLowPassResonanceChange = useCallback(async (resonance: number) => {
+    try {
+      const audioEngine = await initializeAudioEngine();
+      if (!audioEngine) return;
+      
+      setLowPassResonanceState(resonance);
+      audioEngine.setLowPassResonance(resonance);
+    } catch (error) {
+      console.error('Error in handleLowPassResonanceChange:', error);
+    }
+  }, [initializeAudioEngine]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioEngineRef.current) {
+        try {
+          audioEngineRef.current.destroy();
+        } catch (error) {
+          console.error('Error destroying audio engine:', error);
+        }
+        audioEngineRef.current = null;
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, []);
 
-  const handleLowPassResonanceChange = useCallback((resonance: number) => {
-    setLowPassResonanceState(resonance);
-    audioEngineRef.current?.setLowPassResonance(resonance);
+  // Get analyser for visualization
+  const getAnalyser = useCallback(() => {
+    if (!audioEngineRef.current) return null;
+    return audioEngineRef.current.getAnalyser();
   }, []);
-
-  // Apply audio effect
-  const applyEffect = useCallback((effect: AudioEffect) => {
-    if (!audioEngineRef.current) return;
-    
-    audioEngineRef.current.applyEffect(effect);
-  }, []);
-
-  // Remove audio effect
-  const removeEffect = useCallback((effectId: string) => {
-    if (!audioEngineRef.current) return;
-    
-    audioEngineRef.current.removeEffect(effectId);
-  }, []);
-
-  // Get current audio state
-  const getAudioState = (): AudioState => ({
-    currentTrack,
-    isPlaying,
-    currentTime,
-    duration,
-    volume,
-    isMuted,
-    playbackRate,
-    pitch: Math.pow(2, pitchSemitones / 12),
-    eqSettings
-  });
 
   return {
     // State
@@ -348,6 +494,9 @@ export const useAudioPlayer = () => {
     tempo,
     pitchSemitones,
     eqSettings,
+    lofiTone,
+    lofiNoise,
+    lofiWow,
     eqBands,
     eqMix,
     eqBypass,
@@ -360,10 +509,7 @@ export const useAudioPlayer = () => {
     lowPassResonance,
     tempoPitchMix,
     lofiMix,
-    lofiTone,
-    lofiNoise,
-    lofiWow,
-    
+
     // Methods
     loadTrack,
     togglePlayPause,
@@ -390,11 +536,6 @@ export const useAudioPlayer = () => {
     handleReverbBypassChange,
     handleLowPassToneChange,
     handleLowPassResonanceChange,
-    applyEffect,
-    removeEffect,
-    getAudioState,
-    getAnalyser: () => audioEngineRef.current?.getAnalyser()
+    getAnalyser
   };
 };
-
-export default useAudioPlayer;

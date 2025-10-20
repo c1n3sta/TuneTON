@@ -537,11 +537,11 @@ export const debugJamendoAPI = async () => {
       if (speedResponse.ok) {
         const speedData = await speedResponse.json();
         console.log('Speed test response data:', speedData);
-        return { basicCall: data, speedCall: speedData };
+        return { basicCall: data, speedCall: speedData } as { basicCall: any; speedCall: any; speedError?: string };
       } else {
         const errorText = await speedResponse.text();
         console.error('Speed test error:', errorText);
-        return { basicCall: data, speedCall: null, speedError: errorText };
+        return { basicCall: data, speedCall: null, speedError: errorText } as { basicCall: any; speedCall: null; speedError: string };
       }
     } else {
       console.error('API Error:', response.status, response.statusText);

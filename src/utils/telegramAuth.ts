@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
+import apiClient from '../api/client';
 
 // Declare Telegram WebApp types
 declare global {
@@ -14,19 +15,43 @@ declare global {
   }
 }
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Fallback values for development
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-})
+// Only create Supabase client if we have the required values
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+
+if (supabaseUrl && supabaseAnonKey && supabaseUrl !== 'https://your-project.supabase.co' && supabaseAnonKey !== 'your-anon-key') {
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  });
+} else {
+  console.warn('Supabase configuration not found. Authentication features will be disabled.');
+  supabaseInstance = null;
+}
+
+export const supabase = supabaseInstance;
+
+// Add logging function
+function logEvent(event: string, details: any = {}) {
+  console.log(`[TelegramAuth] ${event}:`, details);
+}
 
 // Implement proper Telegram data verification according to Telegram documentation
 export async function verifyTelegramData(initData: string, botToken: string): Promise<boolean> {
+  logEvent('verify_telegram_data_start');
+  
+  // If we don't have a Supabase instance, we can't verify Telegram data
+  if (!supabase) {
+    logEvent('supabase_not_configured', { warning: 'Skipping Telegram verification.' });
+    return true; // Allow access in development
+  }
+  
   try {
     const params = new URLSearchParams(initData)
     const hash = params.get('hash')
@@ -34,7 +59,7 @@ export async function verifyTelegramData(initData: string, botToken: string): Pr
     
     // Check if required parameters exist
     if (!hash || !authDate) {
-      console.warn('Missing required parameters in Telegram initData')
+      logEvent('missing_required_parameters', { hash: !!hash, authDate: !!authDate });
       return false
     }
     
@@ -42,7 +67,7 @@ export async function verifyTelegramData(initData: string, botToken: string): Pr
     const authTimestamp = parseInt(authDate)
     const currentTimestamp = Math.floor(Date.now() / 1000)
     if (currentTimestamp - authTimestamp > 3600) { // 1 hour
-      console.warn('Telegram auth data is too old')
+      logEvent('auth_data_too_old', { authTimestamp, currentTimestamp });
       return false
     }
     
@@ -83,23 +108,36 @@ export async function verifyTelegramData(initData: string, botToken: string): Pr
     // Compare hashes
     const isValid = hexSignature === hash
     if (!isValid) {
-      console.warn('Telegram hash verification failed')
-      console.warn('Expected:', hash)
-      console.warn('Actual:', hexSignature)
-      console.warn('Data string:', dataString)
+      logEvent('hash_verification_failed', { 
+        expected: hash, 
+        actual: hexSignature, 
+        dataString: dataString.substring(0, 100) + (dataString.length > 100 ? '...' : '') 
+      });
+    } else {
+      logEvent('hash_verification_success');
     }
     
     return isValid
-  } catch (error) {
-    console.error('Error verifying Telegram data:', error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logEvent('verify_telegram_data_error', { error: errorMessage });
     return false
   }
 }
 
 export async function loginWithTelegram() {
+  logEvent('login_with_telegram_start');
+  
+  // If we don't have a Supabase instance, we can't login
+  if (!supabase) {
+    logEvent('supabase_not_configured', { error: 'Login functionality disabled.' });
+    throw new Error('Authentication is not available in this environment.');
+  }
+  
   try {
     // Check if Telegram WebApp is available
     if (!window.Telegram?.WebApp) {
+      logEvent('telegram_webapp_not_available');
       throw new Error('Telegram WebApp not available. Please open this app from Telegram.')
     }
 
@@ -107,52 +145,56 @@ export async function loginWithTelegram() {
     const initData = window.Telegram.WebApp.initData
     
     if (!initData) {
+      logEvent('init_data_not_available');
       throw new Error('Telegram WebApp initData not available. Please restart the app.')
     }
 
     // Verify Telegram data first
     const BOT_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
     if (!BOT_TOKEN) {
+      logEvent('bot_token_not_configured');
       throw new Error('Telegram bot token not configured')
     }
 
     const isValid = await verifyTelegramData(initData, BOT_TOKEN)
     if (!isValid) {
+      logEvent('telegram_data_invalid');
       throw new Error('Invalid Telegram authentication data. Please try again.')
     }
 
-    // Call our Edge Function to authenticate
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/telegram-auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ initData }),
-    })
+    // Call our API client method to authenticate
+    logEvent('calling_api_client_telegram_auth');
+    const response = await apiClient.telegramAuth(initData)
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `Authentication failed: ${response.status}`)
+    const { access_token, refresh_token, user, error } = response
+
+    if (error) {
+      logEvent('api_response_error', { error });
+      throw new Error(error)
     }
-
-    const { access_token, refresh_token, user, error } = await response.json()
-
-    if (error) throw new Error(error)
+    
     if (!access_token || !refresh_token) {
+      logEvent('missing_tokens_in_response');
       throw new Error('Authentication failed: No access or refresh token in the response')
     }
 
     // Set the session
+    logEvent('setting_session');
     const { error: authError } = await supabase.auth.setSession({
       access_token,
       refresh_token,
     })
 
-    if (authError) throw new Error(`Session setup failed: ${authError.message}`)
+    if (authError) {
+      logEvent('session_setup_failed', { error: authError.message });
+      throw new Error(`Session setup failed: ${authError.message}`)
+    }
 
+    logEvent('login_success', { userId: user?.id });
     return { user, session: { access_token, refresh_token } }
-  } catch (error) {
-    console.error('Error logging in with Telegram:', error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logEvent('login_error', { error: errorMessage });
     
     // Provide user-friendly error messages
     if (error instanceof Error) {
@@ -238,21 +280,10 @@ export async function loginWithTelegramWidget(widgetData: any) {
       throw new Error('Invalid Telegram widget authentication data. Please try again.');
     }
 
-    // Call our Edge Function to authenticate
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/telegram-auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ widgetData }),
-    })
+    // Call our API client method to authenticate
+    const response = await apiClient.telegramAuth(JSON.stringify(widgetData))
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `Authentication failed: ${response.status}`)
-    }
-
-    const { access_token, refresh_token, user, error } = await response.json()
+    const { access_token, refresh_token, user, error } = response
 
     if (error) throw new Error(error)
     if (!access_token || !refresh_token) {
@@ -275,23 +306,51 @@ export async function loginWithTelegramWidget(widgetData: any) {
 }
 
 export async function logout() {
+  logEvent('logout_start');
+  
+  // If we don't have a Supabase instance, we can't logout
+  if (!supabase) {
+    logEvent('supabase_not_configured', { warning: 'Logout functionality disabled.' });
+    return true; // Return success for development
+  }
+  
   try {
     const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    if (error) {
+      logEvent('logout_error', { error: error.message });
+      throw error
+    }
+    
+    logEvent('logout_success');
     return true
-  } catch (error) {
-    console.error('Error logging out:', error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logEvent('logout_exception', { error: errorMessage });
     throw error
   }
 }
 
 export async function getCurrentUser() {
+  logEvent('get_current_user_start');
+  
+  // If we don't have a Supabase instance, return null
+  if (!supabase) {
+    logEvent('supabase_not_configured', { warning: 'Cannot get current user.' });
+    return null;
+  }
+  
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
-    if (error) throw error
+    if (error) {
+      logEvent('get_current_user_error', { error: error.message });
+      throw error
+    }
+    
+    logEvent('get_current_user_success', { userId: user?.id });
     return user
-  } catch (error) {
-    console.error('Error getting current user:', error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logEvent('get_current_user_exception', { error: errorMessage });
     return null
   }
 }

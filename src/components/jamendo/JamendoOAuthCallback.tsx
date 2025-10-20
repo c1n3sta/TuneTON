@@ -1,6 +1,6 @@
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Loader2, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
-import { handleOAuthCallback, logout } from '../../utils/jamendoAuth';
+import { handleOAuthCallback } from '../../utils/jamendoOAuth';
 
 interface JamendoOAuthCallbackProps {
   onSuccess?: () => void;

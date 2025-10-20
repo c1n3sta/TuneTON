@@ -1,10 +1,5 @@
 import React from 'react';
 
-// Assets for node 1-141
-const imgUserAvatar = 'http://localhost:3845/assets/84d6545ac22a8fa7cc695789dc8e2ff29992a5af.png';
-const imgGroup = 'http://localhost:3845/assets/cbc99b61600976f9c6b4a01d507611bfdbd91f7a.svg';
-const imgGroup1 = 'http://localhost:3845/assets/5a754644905f6369a74aeac6073868e615048b51.svg';
-
 export interface OnboardingWelcomeSlide3Props {
   onNext?: () => void;
   userName?: string;
@@ -34,18 +29,14 @@ const OnboardingWelcomeSlide3: React.FC<OnboardingWelcomeSlide3Props> = ({ onNex
       {/* Top brand */}
       <div style={{ width: '100%', paddingTop: 24, display: 'flex', justifyContent: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 48, height: 48 }}>
-            <img src={imgGroup} alt="logo" style={{ width: '100%', height: '100%' }} />
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 600, color: '#c9d1d9' }}>MelodyMix</div>
+          <div style={{ width: 48, height: 48, background: '#58a6ff', borderRadius: 24 }} />
+          <div style={{ fontSize: 28, fontWeight: 600, color: '#c9d1d9' }}>TuneTON</div>
         </div>
       </div>
 
       {/* Middle content */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '24px 0' }}>
-        <div style={{ width: 64, height: 64 }}>
-          <img src={imgGroup1} alt="nft icon" style={{ width: '100%', height: '100%' }} />
-        </div>
+        <div style={{ width: 64, height: 64, background: '#58a6ff', borderRadius: 32 }} />
         <div style={{ fontSize: 20, fontWeight: 600 }}>NFT Marketplace</div>
         <div style={{ color: '#8b949e', fontSize: 14, textAlign: 'center', lineHeight: '1.4', maxWidth: 360 }}>
           Discover, collect, and trade unique music NFTs.
@@ -97,9 +88,7 @@ const OnboardingWelcomeSlide3: React.FC<OnboardingWelcomeSlide3Props> = ({ onNex
               width: 28,
               height: 28,
               borderRadius: 14,
-              backgroundImage: `url('${imgUserAvatar}')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              background: '#238636',
             }}
           />
           <div style={{ fontWeight: 600 }}>Welcome, {name}!</div>

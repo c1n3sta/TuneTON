@@ -1,4 +1,4 @@
-@import '../../styles/theme.css';
+@import '../../services/styles/theme.css';
 
 .bottom-navigation {
   position: fixed;

@@ -38,10 +38,33 @@ EOL
 # Set proper permissions
 chmod -R 755 "$DEPLOY_DIR"
 
-# Deploy to ISPManager
-# Replace with your actual deployment command
-# Example using rsync over SSH
-# rsync -avz --delete "$DEPLOY_DIR/" user@tuneton.space:/path/to/web/root/
-
-echo "Deployment package ready at: $DEPLOY_DIR"
-echo "Please deploy the contents to your ISPManager hosting"
+# Check if FTP credentials are available
+if [ -n "$FTP_HOST" ] && [ -n "$FTP_USER" ] && [ -n "$FTP_PASSWORD" ]; then
+  echo "Deploying via FTP..."
+  
+  # Deploy using lftp if available
+  if command -v lftp &> /dev/null; then
+    lftp -c "
+    set ftp:ssl-force true
+    set ftp:ssl-protect-data true
+    open -u $FTP_USER,$FTP_PASSWORD $FTP_HOST
+    mirror -R $DEPLOY_DIR/ $FTP_REMOTE_DIR --delete --verbose
+    bye
+    "
+    echo "Deployment completed successfully via FTP!"
+  else
+    echo "lftp not available. Please install lftp or deploy manually."
+    echo "Deployment package ready at: $DEPLOY_DIR"
+  fi
+else
+  echo "FTP credentials not configured."
+  echo "Deployment package ready at: $DEPLOY_DIR"
+  echo ""
+  echo "To deploy via FTP, set the following environment variables:"
+  echo "  export FTP_HOST=your_ftp_host"
+  echo "  export FTP_USER=your_ftp_username"
+  echo "  export FTP_PASSWORD=your_ftp_password"
+  echo "  export FTP_REMOTE_DIR=/www/tuneton.space"
+  echo ""
+  echo "Then run this script again."
+fi

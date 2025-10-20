@@ -1,8 +1,5 @@
 import React from 'react';
 
-// Assets from Figma MCP local server for node 1-185
-const imgGift = 'http://localhost:3845/assets/2b38cd1c5a3c479dca93e2816f9e8772d32c7d2e.svg';
-
 export interface OnboardingWelcomeSlide4Props {
   onNext?: () => void; // triggered by "Start your Free Trial"
   onSkip?: () => void; // optional Skip action
@@ -42,7 +39,7 @@ const OnboardingWelcomeSlide4: React.FC<OnboardingWelcomeSlide4Props> = ({ onNex
         <div style={{ marginTop: 80, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
           {/* Gift icon */}
           <div style={{ width: 100, height: 100, background: '#ff4400', borderRadius: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={imgGift} alt="gift" style={{ width: 56, height: 56 }} />
+            <div style={{ width: 56, height: 56, background: '#fff', borderRadius: 28 }} />
           </div>
 
           {/* Headline */}

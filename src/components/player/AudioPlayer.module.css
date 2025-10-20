@@ -202,8 +202,9 @@
 
 .eqSlider {
   width: 100%;
-  -webkit-appearance: slider-vertical;
-  writing-mode: bt-lr;
+  -webkit-appearance: none;
+  writing-mode: vertical-lr;
+  direction: rtl;
   height: 100px;
 }
 

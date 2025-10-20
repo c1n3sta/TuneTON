@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import '../styles/theme.css';
+import React, { useCallback, useEffect, useState } from 'react';
+import '../services/styles/theme.css';
 import './HomeScreen.css';
 
 // Icons
@@ -7,14 +7,7 @@ import { Search } from 'lucide-react';
 
 // Components
 import BottomNavigation from './home/BottomNavigation';
-import NowPlayingBar from './home/NowPlayingBar';
-import RecentlyPlayed from './home/RecentlyPlayed';
-import FeaturedPlaylists from './home/FeaturedPlaylists';
-import ActiveContests from './home/ActiveContests';
 import { SwipeNavigationManager } from './SwipeNavigationManager';
-import PlaylistsPage from './PlaylistsPage';
-import ContestsPage from './contests/ContestsPage';
-import ProfilePage from './ProfilePage';
 
 // Types - using local interfaces instead of importing from audio.ts
 export interface Track {
@@ -245,78 +238,38 @@ const HomeScreen: React.FC = () => {
 
   // Render content based on active tab
   const renderContent = () => {
-    switch (activeTab) {
-      case 'playlists':
-        return <PlaylistsPage />;
-      case 'contests':
-        return <ContestsPage />;
-      case 'profile':
-        return <ProfilePage />;
-      default: // home
-        return (
-          <div className="container mx-auto px-4 py-6">
-            {/* Header */}
-            <header className="mb-8">
-              <h1 className="text-2xl font-bold mb-1">
-                Good Evening, {getTelegramUserName()}
-              </h1>
-              <p className="text-[#8B949E] text-sm">Let's find something great to listen to</p>
-            </header>
-            
-            {/* Search Bar */}
-            <div className="relative mb-6">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-[#8B949E]" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search for tracks, artists, or playlists"
-                className="w-full bg-[#161B22] rounded-lg py-2 pl-10 pr-4 text-sm text-[#E6EDF3] placeholder-[#8B949E] focus:outline-none focus:ring-2 focus:ring-[#58A6FF] focus:border-transparent"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            {/* Recently Played Section */}
-            <section className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Recently Played</h2>
-                <button className="text-sm text-[#58A6FF] hover:underline">See All</button>
-              </div>
-              <RecentlyPlayed 
-                tracks={sampleTracks} 
-                onTrackSelect={handleTrackSelect}
-                isPlaying={isPlaying}
-                currentTrackId={currentTrack?.id}
-              />
-            </section>
-            
-            {/* Featured Playlists Section */}
-            <section className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Featured Playlists</h2>
-                <button className="text-sm text-[#58A6FF] hover:underline">See All</button>
-              </div>
-              <FeaturedPlaylists 
-                playlists={samplePlaylists}
-                onPlaylistSelect={(id) => console.log('Selected playlist:', id)}
-              />
-            </section>
-            
-            {/* Active Contests Section */}
-            <section className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Active Contests</h2>
-                <button className="text-sm text-[#58A6FF] hover:underline">See All</button>
-              </div>
-              <ActiveContests 
-                contests={sampleContests}
-                onContestSelect={(id) => console.log('Selected contest:', id)}
-              />
-            </section>
+    return (
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold mb-1">
+            Good Evening, {getTelegramUserName()}
+          </h1>
+          <p className="text-[#8B949E] text-sm">Let's find something great to listen to</p>
+        </header>
+        
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-[#8B949E]" />
           </div>
-        );
-    }
+          <input
+            type="text"
+            placeholder="Search for tracks, artists, or playlists"
+            className="w-full bg-[#161B22] rounded-lg py-2 pl-10 pr-4 text-sm text-[#E6EDF3] placeholder-[#8B949E] focus:outline-none focus:ring-2 focus:ring-[#58A6FF] focus:border-transparent"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        <div className="bg-[#161B22] rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-4">Home Screen</h2>
+          <p className="text-[#8B949E]">
+            This is a simplified version of the HomeScreen to test if the build works.
+          </p>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -331,17 +284,6 @@ const HomeScreen: React.FC = () => {
       <main className="flex-1 overflow-y-auto pb-24">
         {renderContent()}
       </main>
-      
-      {/* Now Playing Bar */}
-      {currentTrack && activeTab === 'home' && (
-        <NowPlayingBar 
-          track={currentTrack}
-          isPlaying={isPlaying}
-          onPlayPause={togglePlayPause}
-          onNext={handleNextTrack}
-          onPrevious={handlePreviousTrack}
-        />
-      )}
       
       {/* Bottom Navigation */}
       <BottomNavigation 

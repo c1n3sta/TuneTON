@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useTelegramAuth } from '../hooks/useTelegramAuth'
+import { useEffect, useState } from 'react';
+import { useTelegramAuth } from '../hooks/useTelegramAuth';
 
 // Declare Telegram WebApp types
 declare global {
@@ -16,7 +16,9 @@ declare global {
 }
 
 export function TelegramLoginButton() {
-  const { user, loading, error, login, isAuthenticated } = useTelegramAuth()
+  // FIX: Update destructuring to match the actual context structure
+  const { user, isLoading, error, login, isAuthenticated, tg } = useTelegramAuth()
+  const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
     // Initialize Telegram WebApp according to Telegram documentation
@@ -30,7 +32,18 @@ export function TelegramLoginButton() {
     }
   }, [])
 
-  if (loading) {
+  const handleLogin = async () => {
+    try {
+      setLocalError(null);
+      await login();
+    } catch (err) {
+      console.error('Login error:', err);
+      setLocalError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    }
+  };
+
+  // FIX: Use isLoading instead of loading
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
@@ -39,7 +52,7 @@ export function TelegramLoginButton() {
     )
   }
 
-  if (error && !isAuthenticated) {
+  if ((error || localError) && !isAuthenticated) {
     return (
       <div className="flex flex-col items-center space-y-4 p-6 max-w-md">
         <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
@@ -47,10 +60,10 @@ export function TelegramLoginButton() {
         </div>
         <div className="space-y-2 text-center">
           <h2 className="font-medium text-lg">Authentication Error</h2>
-          <p className="text-sm text-muted-foreground">{error}</p>
+          <p className="text-sm text-muted-foreground">{localError || error}</p>
           <div className="pt-4 space-y-2 flex flex-col">
             <button
-              onClick={login}
+              onClick={handleLogin}
               className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
               Try Again
@@ -73,19 +86,20 @@ export function TelegramLoginButton() {
   if (isAuthenticated && user) {
     return (
       <div className="flex items-center space-x-4">
-        {user.user_metadata?.['photo_url'] && (
+        {/* FIX: Access user properties directly instead of user_metadata */}
+        {user.photo_url && (
           <img 
-            src={user.user_metadata['photo_url']} 
+            src={user.photo_url} 
             alt="Profile" 
             className="w-10 h-10 rounded-full"
           />
         )}
         <div>
           <div className="font-medium">
-            {user.user_metadata?.['first_name']} {user.user_metadata?.['last_name']}
+            {user.first_name} {user.last_name}
           </div>
           <div className="text-sm text-gray-500">
-            @{user.user_metadata?.['username'] || 'user'}
+            @{user.username || 'user'}
           </div>
         </div>
       </div>
@@ -94,11 +108,11 @@ export function TelegramLoginButton() {
 
   return (
     <button
-      onClick={login}
-      disabled={loading}
+      onClick={handleLogin}
+      disabled={isLoading}
       className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center space-x-2"
     >
-      {loading ? (
+      {isLoading ? (
         <>
           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           <span>Signing in...</span>

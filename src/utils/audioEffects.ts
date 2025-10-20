@@ -1,8 +1,3 @@
-/**
- * Audio Effects Utilities
- * Provides a high-level interface for audio effects processing using WASM
- */
-
 import { createAudioProcessor } from '../wasm/src/js/audio-processor-manager.js';
 
 // Type definitions
@@ -68,7 +63,21 @@ export class AudioEffectsManager {
         return true;
       }
 
-      // Create audio context
+      // Don't create audio context immediately to comply with autoplay policy
+      // AudioContext will be initialized on first user interaction
+      console.log('Audio effects manager ready for initialization on user interaction');
+      return true;
+    } catch (error) {
+      console.error('Failed to prepare audio effects manager:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Initialize AudioContext on first user interaction
+   */
+  private async getAudioContext(): Promise<AudioContext> {
+    if (!this.audioContext) {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
       // Create audio processor
@@ -79,17 +88,23 @@ export class AudioEffectsManager {
       
       this.isInitialized = true;
       console.log('Audio effects manager initialized successfully');
-      return true;
-    } catch (error) {
-      console.error('Failed to initialize audio effects manager:', error);
-      return false;
     }
+    
+    // Resume context if suspended (needed for autoplay policy)
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+    
+    return this.audioContext;
   }
 
   /**
    * Connect an audio source to the effects processor
    */
-  connectSource(source: AudioNode): void {
+  async connectSource(source: AudioNode): Promise<void> {
+    // Ensure audio context is initialized
+    await this.getAudioContext();
+    
     if (!this.isInitialized || !this.audioProcessor) {
       throw new Error('Audio effects manager not initialized');
     }
@@ -100,7 +115,10 @@ export class AudioEffectsManager {
   /**
    * Connect the effects processor to an output destination
    */
-  connectOutput(destination: AudioNode): void {
+  async connectOutput(destination: AudioNode): Promise<void> {
+    // Ensure audio context is initialized
+    await this.getAudioContext();
+    
     if (!this.isInitialized || !this.audioProcessor) {
       throw new Error('Audio effects manager not initialized');
     }
@@ -111,7 +129,10 @@ export class AudioEffectsManager {
   /**
    * Apply audio effect settings
    */
-  applyEffects(settings: AudioEffectSettings): void {
+  async applyEffects(settings: AudioEffectSettings): Promise<void> {
+    // Ensure audio context is initialized
+    await this.getAudioContext();
+    
     if (!this.isInitialized || !this.audioProcessor) {
       throw new Error('Audio effects manager not initialized');
     }
@@ -145,19 +166,22 @@ export class AudioEffectsManager {
   /**
    * Apply a preset
    */
-  applyPreset(presetName: string): void {
+  async applyPreset(presetName: string): Promise<void> {
     const preset = DEFAULT_PRESETS[presetName];
     if (!preset) {
       throw new Error(`Unknown preset: ${presetName}`);
     }
     
-    this.applyEffects(preset);
+    await this.applyEffects(preset);
   }
 
   /**
    * Reset all effects to default
    */
-  resetEffects(): void {
+  async resetEffects(): Promise<void> {
+    // Ensure audio context is initialized
+    await this.getAudioContext();
+    
     if (!this.isInitialized || !this.audioProcessor) {
       throw new Error('Audio effects manager not initialized');
     }
@@ -168,7 +192,7 @@ export class AudioEffectsManager {
   /**
    * Get the current audio context
    */
-  getAudioContext(): AudioContext | null {
+  getAudioContextSync(): AudioContext | null {
     return this.audioContext;
   }
 

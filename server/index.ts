@@ -1,15 +1,15 @@
-import express from 'express';
+import compression from 'compression';
 import cors from 'cors';
+import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import compression from 'compression';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3001;
+const PORT = Number(process.env.PORT) || 3002;
 
 // Enable compression
 app.use(compression());
@@ -244,12 +244,19 @@ app.get('/api/health', (req, res) => {
 
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Server also accessible at http://127.0.0.1:${PORT}`);
+  console.log(`Listening on all interfaces: ${JSON.stringify(server.address())}`);
   console.log('API endpoints:');
   console.log('  GET  /api/tracks');
   console.log('  POST /api/playbacks/:trackId');
   console.log('  GET  /api/health');
   console.log('  GET  /api/warmup');
+});
+
+// Add error handling for the server
+server.on('error', (error) => {
+  console.error('Server error:', error);
 });
 
 // Graceful shutdown

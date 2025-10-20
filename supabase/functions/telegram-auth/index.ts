@@ -1,10 +1,20 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json'
+};
+
+// Add comprehensive logging function
+function logEvent(event: string, details: any = {}) {
+  console.log(JSON.stringify({
+    event,
+    timestamp: new Date().toISOString(),
+    ...details
+  }));
 }
 
 // Add at the top of the file
@@ -13,32 +23,101 @@ interface RateLimitEntry {
   timestamp: number;
 }
 
-const rateLimitStore = new Map<string, RateLimitEntry>();
+// Add rate limiting function using Supabase database
+async function checkRateLimit(supabase: any, ip: string): Promise<boolean> {
+  try {
+    logEvent('rate_limit_check_start', { ip });
+    
+    const now = new Date();
+    const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
 
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitStore.get(ip);
-  
-  if (!entry) {
-    // First request from this IP
-    rateLimitStore.set(ip, { count: 1, timestamp: now });
+    // Clean up old entries (older than 1 hour)
+    const cleanupResult = await supabase
+      .from('rate_limit')
+      .delete()
+      .lt('last_request', new Date(now.getTime() - 60 * 60 * 1000).toISOString());
+    
+    if (cleanupResult.error) {
+      logEvent('rate_limit_cleanup_error', { error: cleanupResult.error.message });
+    }
+
+    // Check existing entry for this IP
+    const { data: existingEntry, error: selectError } = await supabase
+      .from('rate_limit')
+      .select('request_count, last_request')
+      .eq('ip_address', ip)
+      .single();
+
+    if (selectError && selectError.code !== 'PGRST116') {
+      logEvent('rate_limit_check_error', { error: selectError.message, ip });
+      // If there's a database error, we'll allow the request to proceed
+      return true;
+    }
+
+    if (existingEntry) {
+      // Check if the last request was more than 15 minutes ago
+      const lastRequest = new Date(existingEntry.last_request);
+      if (lastRequest < fifteenMinutesAgo) {
+        // Reset count and update timestamp
+        const { error: updateError } = await supabase
+          .from('rate_limit')
+          .update({ 
+            request_count: 1, 
+            last_request: now.toISOString() 
+          })
+          .eq('ip_address', ip);
+
+        if (updateError) {
+          logEvent('rate_limit_reset_error', { error: updateError.message, ip });
+        } else {
+          logEvent('rate_limit_reset_success', { ip });
+        }
+        return true;
+      }
+
+      // Check if limit exceeded (10 requests per 15 minutes)
+      if (existingEntry.request_count >= 10) {
+        logEvent('rate_limit_exceeded', { ip, count: existingEntry.request_count });
+        return false;
+      }
+
+      // Increment count
+      const { error: updateError } = await supabase
+        .from('rate_limit')
+        .update({ 
+          request_count: existingEntry.request_count + 1, 
+          last_request: now.toISOString() 
+        })
+        .eq('ip_address', ip);
+
+      if (updateError) {
+        logEvent('rate_limit_increment_error', { error: updateError.message, ip });
+      } else {
+        logEvent('rate_limit_increment_success', { ip, new_count: existingEntry.request_count + 1 });
+      }
+      return true;
+    } else {
+      // First request from this IP, create new entry
+      const { error: insertError } = await supabase
+        .from('rate_limit')
+        .insert({ 
+          ip_address: ip, 
+          request_count: 1, 
+          last_request: now.toISOString() 
+        });
+
+      if (insertError) {
+        logEvent('rate_limit_insert_error', { error: insertError.message, ip });
+      } else {
+        logEvent('rate_limit_insert_success', { ip });
+      }
+      return true;
+    }
+  } catch (error: any) {
+    logEvent('rate_limit_exception', { error: error.message, ip });
+    // If there's an error with rate limiting, we'll allow the request to proceed
     return true;
   }
-  
-  // Reset count if more than 15 minutes have passed
-  if (now - entry.timestamp > 15 * 60 * 1000) {
-    rateLimitStore.set(ip, { count: 1, timestamp: now });
-    return true;
-  }
-  
-  // Check if limit exceeded (10 requests per 15 minutes)
-  if (entry.count >= 10) {
-    return false;
-  }
-  
-  // Increment count
-  rateLimitStore.set(ip, { count: entry.count + 1, timestamp: entry.timestamp });
-  return true;
 }
 
 // Verify Telegram WebApp data
@@ -197,8 +276,19 @@ serve(async (req) => {
   // Get client IP for rate limiting
   const clientIP = req.headers.get('x-forwarded-for') || 'unknown';
   
-  // Check rate limit
-  if (!checkRateLimit(clientIP)) {
+  // Initialize Supabase Admin client for rate limiting check
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+
+  // Check rate limit using persistent storage
+  const isRateLimited = await checkRateLimit(supabase, clientIP);
+  if (!isRateLimited) {
     console.warn('Rate limit exceeded for IP:', clientIP);
     return new Response(
       JSON.stringify({ 
@@ -206,8 +296,7 @@ serve(async (req) => {
       }), 
       { 
         headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
+          ...corsHeaders
         },
         status: 429
       }
@@ -268,21 +357,19 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     });
 
-    // Initialize Supabase Admin client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    // Reinitialize Supabase Admin client for user operations
+    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
       }
     })
 
-    // Check if user already exists in auth
-    const { data: existingUser, error: fetchError } = await supabase
+    // Check if user already exists in our users table
+    const { data: existingUser, error: fetchError } = await supabaseClient
       .from('users')
       .select('*')
-      .eq('id', telegramUser.id)
+      .eq('telegram_id', telegramUser.id)
       .single()
 
     let user, session
@@ -291,23 +378,23 @@ serve(async (req) => {
       // Update existing user metadata
       console.log('Updating existing user metadata', { userId: telegramUser.id })
       
-      const { data: updatedUser, error: updateError } = await supabase
-        .auth
-        .admin
-        .updateUserById(existingUser.id, {
-          user_metadata: {
-            telegram_id: telegramUser.id,
-            username: telegramUser.username,
-            first_name: telegramUser.first_name,
-            last_name: telegramUser.last_name,
-            photo_url: telegramUser.photo_url
-          }
+      const { data: updatedUser, error: updateError } = await supabaseClient
+        .from('users')
+        .update({
+          username: telegramUser.username,
+          first_name: telegramUser.first_name,
+          last_name: telegramUser.last_name,
+          photo_url: telegramUser.photo_url,
+          updated_at: new Date().toISOString()
         })
+        .eq('telegram_id', telegramUser.id)
+        .select()
+        .single()
 
       if (updateError) throw updateError
       
-      // Get session for existing user
-      const { data: sessionData, error: sessionError } = await supabase.auth.admin.grantCustomAccessToken(
+      // Get session for existing user using consistent method
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.admin.grantCustomAccessToken(
         existingUser.id
       )
       
@@ -316,62 +403,65 @@ serve(async (req) => {
       user = updatedUser
       session = sessionData
     } else {
-      // Create new user
+      // Create new user with consistent session creation method
       console.log('Creating new user', { userId: telegramUser.id })
       
-      const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
-        email: `${telegramUser.id}@telegram.tuneton.space`,
-        password: `tg-${telegramUser.id}-${crypto.randomUUID()}`,
-        user_metadata: {
+      const { data: newUser, error: createUserError } = await supabaseClient
+        .from('users')
+        .insert({
           telegram_id: telegramUser.id,
           username: telegramUser.username,
           first_name: telegramUser.first_name,
           last_name: telegramUser.last_name,
           photo_url: telegramUser.photo_url
-        }
-      })
+        })
+        .select()
+        .single()
 
-      if (signUpError) {
-        throw signUpError
+      if (createUserError) {
+        throw createUserError
       }
 
-      // Create a session for the new user
-      const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email: `${telegramUser.id}@telegram.tuneton.space`,
-      })
+      // Create a session for the new user using consistent method
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.admin.grantCustomAccessToken(
+        newUser.id
+      )
 
       if (sessionError) throw sessionError
 
       user = newUser
-      session = {
-        access_token: sessionData.properties?.access_token,
-        refresh_token: sessionData.properties?.refresh_token
-      }
+      session = sessionData
     }
 
     // Log successful authentication
     console.log('Telegram authentication completed successfully', {
       userId: user.id,
+      telegramId: telegramUser.id,
       method: authMethod,
       timestamp: new Date().toISOString()
     });
 
-    // Return the session to the client
+    // Return the session to the client with secure cookie headers
     return new Response(
       JSON.stringify({
         access_token: session.access_token,
         refresh_token: session.refresh_token,
         user: {
           id: user.id,
-          email: user.email,
-          user_metadata: user.user_metadata
+          telegram_id: telegramUser.id,
+          username: telegramUser.username,
+          first_name: telegramUser.first_name,
+          last_name: telegramUser.last_name,
+          photo_url: telegramUser.photo_url
         }
       }),
       {
         headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
+          ...corsHeaders,
+          'Set-Cookie': [
+            `access_token=${session.access_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=3600`,
+            `refresh_token=${session.refresh_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`
+          ].join(', ')
         },
         status: 200
       }
@@ -383,6 +473,7 @@ serve(async (req) => {
     // Log authentication failure
     console.error('Telegram authentication failed', {
       error: error.message,
+      ip: clientIP,
       timestamp: new Date().toISOString()
     })
     
@@ -393,8 +484,7 @@ serve(async (req) => {
       }), 
       { 
         headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
+          ...corsHeaders
         },
         status: 400
       }
