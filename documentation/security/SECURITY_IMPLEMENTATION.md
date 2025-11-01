@@ -390,6 +390,14 @@ function checkRateLimit(ip: string): boolean {
 - **Weekly**: Analysis of security metrics
 - **Monthly**: Security dashboard review
 
+## Database Security
+
+### Function Security
+
+#### Search Path Issues
+
+- **Fixed Search Path for increment_counter**: Resolved mutable search path vulnerability in the `increment_counter` function by setting a fixed search path (`public, pg_catalog`) to prevent potential security issues and ensure consistent behavior.
+
 ## Training and Awareness
 
 ### Developer Training

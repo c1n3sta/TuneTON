@@ -1,6 +1,5 @@
-import type { ReactNode } from 'react';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { getCurrentUser, loginWithTelegram, logout } from '../utils/telegramAuth';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { loginWithTelegram, logout, getCurrentUser } from '../utils/telegramAuth';
 
 interface TelegramUser {
   id: number;
@@ -110,8 +109,8 @@ const TelegramAuthContext = createContext<TelegramAuthContextType>({
   isLoading: true,
   error: null,
   isDarkMode: true,
-  login: async () => { },
-  logout: async () => { }
+  login: async () => {},
+  logout: async () => {}
 });
 
 export const useTelegramAuth = () => {
@@ -133,63 +132,42 @@ export default function TelegramAuthProvider({ children }: TelegramAuthProviderP
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    let isCancelled = false;
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    const initializeTelegramWebApp = async (): Promise<void> => {
-      if (isCancelled || hasInitialized) return;
-
+    const initializeTelegramWebApp = async () => {
       try {
-        // Set a timeout to prevent infinite loading
-        timeoutId = setTimeout(() => {
-          if (!isCancelled) {
-            setError('Initialization timeout. Please refresh the page.');
-            setIsLoading(false);
-            setHasInitialized(true);
-          }
-        }, 10000); // 10 second timeout
-
         // Check if we're running in Telegram Web App environment
         if (typeof window !== 'undefined') {
           const telegramWebApp = (window as any).Telegram?.WebApp;
-
+          
           if (telegramWebApp) {
-            if (!isCancelled) {
-              setTg(telegramWebApp);
-            }
-
+            setTg(telegramWebApp);
+            
             // Initialize the web app
             telegramWebApp.ready();
-
+            
             // Set theme
             const isDark = telegramWebApp.colorScheme === 'dark';
-            if (!isCancelled) {
-              setIsDarkMode(isDark);
-            }
-
+            setIsDarkMode(isDark);
+            
             // Apply theme to document
             if (isDark) {
               document.documentElement.classList.add('dark');
             } else {
               document.documentElement.classList.remove('dark');
             }
-
+            
             // Configure the web app appearance
             telegramWebApp.expand();
             telegramWebApp.headerColor = isDark ? '#0d1117' : '#ffffff';
             telegramWebApp.backgroundColor = isDark ? '#0d1117' : '#ffffff';
-
+            
             // Get user data
             if (telegramWebApp.initDataUnsafe?.user) {
               const telegramUser = telegramWebApp.initDataUnsafe.user;
-              if (!isCancelled) {
-                setUser(telegramUser);
-                setIsAuthenticated(true);
-              }
-
+              setUser(telegramUser);
+              setIsAuthenticated(true);
+              
               console.log('Telegram user authenticated:', {
                 id: telegramUser.id,
                 first_name: telegramUser.first_name,
@@ -201,218 +179,88 @@ export default function TelegramAuthProvider({ children }: TelegramAuthProviderP
               // Check if user is already authenticated via Supabase
               const currentUser = await getCurrentUser();
               if (currentUser?.user_metadata) {
-                if (!isCancelled) {
-                  setUser(currentUser.user_metadata as TelegramUser);
-                  setIsAuthenticated(true);
-                }
+                setUser(currentUser.user_metadata as TelegramUser);
+                setIsAuthenticated(true);
               } else {
-                // Try to automatically login if initData is available but no user is authenticated
-                if (telegramWebApp.initData) {
-                  console.log('Attempting automatic login with Telegram initData');
-                  try {
-                    await handleLogin();
-                  } catch (loginError) {
-                    console.error('Automatic login failed:', loginError);
-                    if (!isCancelled) {
-                      setError(loginError instanceof Error ? loginError.message : 'Failed to authenticate');
-                    }
-                  }
-                } else if (!isCancelled) {
-                  setError('No user data available from Telegram');
-                }
+                setError('No user data available from Telegram');
               }
             }
-
+            
             // Listen for theme changes
             telegramWebApp.onEvent?.('themeChanged', () => {
-              if (isCancelled) return;
               const newIsDark = telegramWebApp.colorScheme === 'dark';
               setIsDarkMode(newIsDark);
-
+              
               if (newIsDark) {
                 document.documentElement.classList.add('dark');
               } else {
                 document.documentElement.classList.remove('dark');
               }
             });
-
+            
             // Listen for viewport changes
             telegramWebApp.onEvent?.('viewportChanged', (data: any) => {
               console.log('Viewport changed:', data);
             });
-
+            
             // Configure haptic feedback
             if (telegramWebApp.HapticFeedback) {
               // Provide haptic feedback when app loads
               telegramWebApp.HapticFeedback.impactOccurred('light');
             }
-
+            
           } else {
-            // Development mode - create mock data
-            console.log('Running in development mode - using mock Telegram data');
-
             // Check if user is already authenticated via Supabase
             const currentUser = await getCurrentUser();
             if (currentUser?.user_metadata) {
-              if (!isCancelled) {
-                setUser(currentUser.user_metadata as TelegramUser);
-                setIsAuthenticated(true);
-                setIsLoading(false);
-                setHasInitialized(true);
-              }
-              return;
-            }
-
-            const mockTg = {
-              initData: '',
-              initDataUnsafe: {
-                user: {
-                  id: 12345,
-                  first_name: 'Dev User',
-                  username: 'devuser',
-                  is_premium: false
-                }
-              },
-              version: '7.0',
-              platform: 'web',
-              colorScheme: 'dark' as const,
-              themeParams: {
-                bg_color: '#0d1117',
-                text_color: '#ffffff',
-                button_color: '#0088cc',
-                button_text_color: '#ffffff'
-              },
-              isExpanded: true,
-              viewportHeight: window.innerHeight,
-              viewportStableHeight: window.innerHeight,
-              isClosingConfirmationEnabled: false,
-              headerColor: '#0d1117',
-              backgroundColor: '#0d1117',
-              BackButton: {
-                isVisible: false,
-                show: () => { },
-                hide: () => { },
-                onClick: () => { },
-                offClick: () => { }
-              },
-              MainButton: {
-                text: '',
-                color: '#0088cc',
-                textColor: '#ffffff',
-                isVisible: false,
-                isProgressVisible: false,
-                isActive: false,
-                setText: () => { },
-                onClick: () => { },
-                offClick: () => { },
-                show: () => { },
-                hide: () => { },
-                enable: () => { },
-                disable: () => { },
-                showProgress: () => { },
-                hideProgress: () => { },
-                setParams: () => { }
-              },
-              HapticFeedback: {
-                impactOccurred: () => { },
-                notificationOccurred: () => { },
-                selectionChanged: () => { }
-              },
-              showPopup: () => { },
-              showAlert: () => { },
-              showConfirm: () => { },
-              showScanQrPopup: () => { },
-              closeScanQrPopup: () => { },
-              readTextFromClipboard: () => { },
-              ready: () => { },
-              expand: () => { },
-              close: () => { },
-              sendData: () => { },
-              switchInlineQuery: () => { },
-              openLink: () => { },
-              openTelegramLink: () => { },
-              openInvoice: () => { }
-            } as TelegramWebApp;
-
-            if (!isCancelled) {
-              setTg(mockTg);
-              setUser(mockTg.initDataUnsafe.user!);
+              setUser(currentUser.user_metadata as TelegramUser);
               setIsAuthenticated(true);
-              setIsDarkMode(true);
-              document.documentElement.classList.add('dark');
+            } else {
+              setError('Telegram WebApp is not available');
             }
           }
         }
       } catch (err) {
         console.error('Error initializing Telegram WebApp:', err);
-        if (!isCancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to initialize Telegram WebApp');
-        }
+        setError(err instanceof Error ? err.message : 'Failed to initialize Telegram WebApp');
       } finally {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        if (!isCancelled) {
-          setIsLoading(false);
-          setHasInitialized(true);
-        }
+        setIsLoading(false);
       }
     };
 
     // Initialize immediately if Telegram script is already loaded
     if ((window as any).Telegram?.WebApp) {
       initializeTelegramWebApp();
+      return () => {}; // Return empty cleanup function
     } else {
       // Wait for Telegram script to load
-      let checkCount = 0;
-      const maxChecks = 50; // Max 5 seconds (50 * 100ms)
-
       const checkTelegram = setInterval(() => {
-        checkCount++;
         if ((window as any).Telegram?.WebApp) {
           clearInterval(checkTelegram);
-          initializeTelegramWebApp();
-        } else if (checkCount >= maxChecks) {
-          clearInterval(checkTelegram);
-          // Fallback for development mode
           initializeTelegramWebApp();
         }
       }, 100);
 
-      // Cleanup function
-      return () => {
-        isCancelled = true;
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
+      // Fallback timeout
+      const fallbackTimeout = setTimeout(() => {
         clearInterval(checkTelegram);
+        if (!tg) {
+          setError('Telegram WebApp failed to load');
+        }
+      }, 2000);
+
+      return () => {
+        clearInterval(checkTelegram);
+        clearTimeout(fallbackTimeout);
       };
     }
-
-    // Cleanup function
-    return () => {
-      isCancelled = true;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [hasInitialized]);
+  }, []);
 
   const handleLogin = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      // Add timeout for login process
-      const loginTimeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Login timeout. Please try again.')), 15000)
-      );
-
-      await Promise.race([
-        loginWithTelegram(),
-        loginTimeout
-      ]);
-
+      await loginWithTelegram();
       // After successful login, refresh user data
       const currentUser = await getCurrentUser();
       if (currentUser?.user_metadata) {
@@ -421,17 +269,7 @@ export default function TelegramAuthProvider({ children }: TelegramAuthProviderP
       }
     } catch (err) {
       console.error('Login error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to login';
-      setError(errorMessage);
-
-      // Provide more specific error handling
-      if (errorMessage.includes('Telegram WebApp not available')) {
-        setError('Please open this app from Telegram to continue.');
-      } else if (errorMessage.includes('invalid hash')) {
-        setError('Authentication data is invalid. Please restart the app.');
-      } else if (errorMessage.includes('Rate limit exceeded')) {
-        setError('Too many login attempts. Please try again later.');
-      }
+      setError(err instanceof Error ? err.message : 'Failed to login');
     } finally {
       setIsLoading(false);
     }
@@ -474,8 +312,7 @@ export default function TelegramAuthProvider({ children }: TelegramAuthProviderP
     logout: handleLogout
   };
 
-  // Show loading state while initializing
-  if (isLoading && !hasInitialized) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center space-y-4">
@@ -489,27 +326,19 @@ export default function TelegramAuthProvider({ children }: TelegramAuthProviderP
   if (error && !isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center space-y-4 p-6 max-w-md">
+        <div className="text-center space-y-4 p-6">
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
             <span className="text-2xl">⚠️</span>
           </div>
           <div className="space-y-2">
             <h2 className="font-medium">Connection Error</h2>
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <div className="flex flex-col gap-2 mt-4">
-              <button
-                onClick={handleLogin}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-              >
-                Refresh Page
-              </button>
-            </div>
+            <p className="text-sm text-muted-foreground max-w-sm">{error}</p>
+            <button 
+              onClick={handleLogin}
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         </div>
       </div>
@@ -523,6 +352,5 @@ export default function TelegramAuthProvider({ children }: TelegramAuthProviderP
   );
 }
 
-export { TelegramAuthContext, TelegramAuthProvider };
-export type { TelegramAuthContextType, TelegramUser, TelegramWebApp };
-
+export { TelegramAuthProvider, TelegramAuthContext };
+export type { TelegramUser, TelegramWebApp, TelegramAuthContextType };

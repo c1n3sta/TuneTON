@@ -1,10 +1,52 @@
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
+import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
+
+// Custom plugin to handle Figma asset imports
+const figmaAssetPlugin = () => {
+  return {
+    name: 'figma-asset-resolver',
+    resolveId(source) {
+      if (source.startsWith('figma:asset/')) {
+        // Return a virtual module ID
+        return '\0' + source;
+      }
+      return null;
+    },
+    load(id) {
+      if (id.startsWith('\0figma:asset/')) {
+        // Return a simple placeholder image data URL
+        // This is a 1x1 transparent PNG
+        return `
+          export default "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
+        `;
+      }
+      return null;
+    }
+  };
+};
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    figmaAssetPlugin(),
+    react(),
+    ViteImageOptimizer({
+      png: {
+        quality: 80,
+      },
+      jpeg: {
+        quality: 80,
+      },
+      webp: {
+        quality: 80,
+      },
+      avif: {
+        quality: 50,
+      },
+    })
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

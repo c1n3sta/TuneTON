@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -116,13 +116,18 @@ async function getTracks(supabase: any): Promise<Response> {
 }
 
 serve(async (req) => {
+  console.log('Tracks function called with method:', req.method);
+  console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
     return handleOptions();
   }
   
   // Only allow GET requests
   if (req.method !== 'GET') {
+    console.log('Method not allowed:', req.method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { 
@@ -137,21 +142,30 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: {
-        headers: { 
-          Authorization: req.headers.get('Authorization') || '' 
-        },
-      },
-    });
+    // Only include Authorization header if it exists
+    const authHeader = req.headers.get('Authorization');
+    const clientOptions: any = {
+      global: {}
+    };
+    
+    if (authHeader) {
+      clientOptions.global.headers = { 
+        Authorization: authHeader
+      };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey, clientOptions);
 
     // Route based on the request
     const url = new URL(req.url);
+    console.log('Request URL:', req.url);
+    console.log('Request path:', url.pathname);
+    
     if (url.pathname.endsWith('/tracks')) {
       return await getTracks(supabase);
     } else {
       return new Response(
-        JSON.stringify({ error: 'Endpoint not found' }),
+        JSON.stringify({ error: 'Endpoint not found', path: url.pathname }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 404

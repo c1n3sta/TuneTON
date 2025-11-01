@@ -1,0 +1,5 @@
+open 31.31.197.37 21
+user u3220060 WDl0ZqrhEJ6Q6t75
+binary
+pwd
+quit

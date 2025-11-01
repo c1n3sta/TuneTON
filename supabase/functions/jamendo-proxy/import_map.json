@@ -1,0 +1,11 @@
+{
+  "name": "jamendo-proxy",
+  "version": "1.0.0",
+  "description": "Proxy function for Jamendo API to avoid CORS issues",
+  "functions": {
+    "jamendo-proxy": {
+      "name": "jamendo-proxy",
+      "entrypoint": "index.ts"
+    }
+  }
+}

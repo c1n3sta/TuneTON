@@ -5,6 +5,9 @@ export interface AudioTrack {
   duration: number;
   source: string | ArrayBuffer;
   coverArt?: string;
+  audioUrl?: string;
+  album?: string;
+  cover?: string;
 }
 
 export interface AudioState {

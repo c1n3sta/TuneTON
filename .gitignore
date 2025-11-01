@@ -82,6 +82,7 @@ node_modules/
 .env.development
 .env.test
 .env.production
+.ftp_settings
 
 # Build output
 dist/

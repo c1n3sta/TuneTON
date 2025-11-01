@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, SkipBack } from 'lucide-react';
 import React from 'react';
 import type { Track } from '../api/client';
-import EnhancedAudioPlayer from '../components/player/EnhancedAudioPlayer';
+import UnifiedAudioPlayer from '../components/player/UnifiedAudioPlayer';
 import type { AudioTrack } from '../types/audio';
 
 interface TrackPageProps {
@@ -39,7 +39,7 @@ const TrackPage: React.FC<TrackPageProps> = ({ track, onBack }) => {
 
       {/* Audio Player */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <EnhancedAudioPlayer track={audioTrack} />
+        <UnifiedAudioPlayer track={audioTrack} />
       </div>
     </div>
   );

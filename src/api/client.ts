@@ -1,10 +1,10 @@
 // Base URL for API requests - use Supabase functions URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dthrpvpuzinmevrvqlhv.supabase.co/functions/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // For Telegram authentication, we use the Supabase functions URL
 const TELEGRAM_AUTH_URL = import.meta.env.VITE_API_URL 
   ? `${import.meta.env.VITE_API_URL}/telegram-auth`
-  : 'https://dthrpvpuzinmevrvqlhv.supabase.co/functions/v1/telegram-auth';
+  : `${API_BASE_URL}/telegram-auth`;
 
 // In production, we'll use the real API, not mock data
 const USE_MOCK_DATA = import.meta.env.PROD ? false : (import.meta.env.VITE_USE_MOCK_DATA === 'true');
@@ -41,6 +41,9 @@ class ApiClient {
   private baseUrl: string;
 
   constructor(baseUrl: string = API_BASE_URL) {
+    if (!baseUrl) {
+      throw new Error('VITE_API_BASE_URL environment variable is required');
+    }
     this.baseUrl = baseUrl;
   }
 
@@ -245,7 +248,8 @@ class ApiClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
         },
         body: JSON.stringify({ initData }),
       });

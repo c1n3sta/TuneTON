@@ -2,6 +2,9 @@
 const JAMENDO_CLIENT_ID = '8ed40859';
 const JAMENDO_BASE_URL = 'https://api.jamendo.com/v3.0';
 
+// Supabase proxy URL for bypassing CORS restrictions
+const JAMENDO_PROXY_URL = 'https://dthrpvpuzinmevrvqlhv.supabase.co/functions/v1/jamendo-proxy';
+
 export interface JamendoTrack {
   id: string;
   name: string;
@@ -73,215 +76,47 @@ export interface JamendoSearchParams {
   ccsa?: boolean;
 }
 
-// Mock data for fallback when API fails
-const mockTracks: JamendoTrack[] = [
-  {
-    id: "mock-1",
-    name: "Midnight Jazz",
-    duration: 180,
-    artist_id: "artist-1",
-    artist_name: "Jazz Collective",
-    artist_idstr: "artist-1",
-    album_id: "album-1",
-    album_name: "Evening Sessions",
-    album_image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400",
-    audio: "",
-    audiodownload: "",
-    prourl: "",
-    shorturl: "",
-    shareurl: "",
-    waveform: "",
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400",
-    musicinfo: {
-      vocalinstrumental: "instrumental",
-      lang: "en",
-      gender: "",
-      speed: "medium",
-      acousticelectric: "acoustic",
-      tags: {
-        genres: ["jazz", "ambient"],
-        instruments: ["piano", "saxophone"],
-        vartags: ["chill", "relaxing"]
-      }
-    }
-  },
-  {
-    id: "mock-2",
-    name: "Electric Dreams",
-    duration: 210,
-    artist_id: "artist-2",
-    artist_name: "Synth Masters",
-    artist_idstr: "artist-2",
-    album_id: "album-2",
-    album_name: "Digital Horizons",
-    album_image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400",
-    audio: "",
-    audiodownload: "",
-    prourl: "",
-    shorturl: "",
-    shareurl: "",
-    waveform: "",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400",
-    musicinfo: {
-      vocalinstrumental: "vocal",
-      lang: "en", 
-      gender: "male",
-      speed: "high",
-      acousticelectric: "electric",
-      tags: {
-        genres: ["electronic", "synthwave"],
-        instruments: ["synthesizer", "drums"],
-        vartags: ["energetic", "futuristic"]
-      }
-    }
-  },
-  {
-    id: "mock-3",
-    name: "Ocean Waves",
-    duration: 240,
-    artist_id: "artist-3",
-    artist_name: "Nature Sounds",
-    artist_idstr: "artist-3",
-    album_id: "album-3",
-    album_name: "Natural Ambience",
-    album_image: "https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400",
-    audio: "",
-    audiodownload: "",
-    prourl: "",
-    shorturl: "",
-    shareurl: "",
-    waveform: "",
-    image: "https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400",
-    musicinfo: {
-      vocalinstrumental: "instrumental",
-      lang: "",
-      gender: "",
-      speed: "low",
-      acousticelectric: "acoustic",
-      tags: {
-        genres: ["ambient", "nature"],
-        instruments: ["field-recording"],
-        vartags: ["peaceful", "meditation"]
-      }
-    }
-  },
-  {
-    id: "mock-4",
-    name: "Urban Beats",
-    duration: 195,
-    artist_id: "artist-4",
-    artist_name: "City Rhythms",
-    artist_idstr: "artist-4",
-    album_id: "album-4",
-    album_name: "Street Sounds",
-    album_image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400",
-    audio: "",
-    audiodownload: "",
-    prourl: "",
-    shorturl: "",
-    shareurl: "",
-    waveform: "",
-    image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400",
-    musicinfo: {
-      vocalinstrumental: "vocal",
-      lang: "en",
-      gender: "female",
-      speed: "high",
-      acousticelectric: "electric",
-      tags: {
-        genres: ["hiphop", "urban"],
-        instruments: ["beats", "vocals"],
-        vartags: ["energetic", "urban"]
-      }
-    }
-  }
-];
-
-class JamendoAPI {
+export class JamendoAPI {
   private clientId: string;
   private baseUrl: string;
-  private apiAvailable: boolean = true;
-  private lastFailTime: number = 0;
-  private retryDelay: number = 60000; // 1 minute retry delay
+  private proxyUrl: string;
 
   constructor() {
     this.clientId = JAMENDO_CLIENT_ID;
     this.baseUrl = JAMENDO_BASE_URL;
+    this.proxyUrl = JAMENDO_PROXY_URL;
   }
 
   private async makeRequest<T>(endpoint: string, params: Record<string, any> = {}): Promise<T> {
-    // Check if we should retry the API after some time
-    const now = Date.now();
-    if (!this.apiAvailable && (now - this.lastFailTime) > this.retryDelay) {
-      console.log('Retrying Jamendo API after delay...');
-      this.apiAvailable = true;
-    }
-
-    // If API previously failed and retry delay hasn't passed, return mock data
-    if (!this.apiAvailable) {
-      console.log('Using mock data - Jamendo API unavailable, retry in', Math.round((this.retryDelay - (now - this.lastFailTime)) / 1000), 'seconds');
-      return this.getMockResponse<T>(endpoint);
-    }
-
-    const url = new URL(`${this.baseUrl}/${endpoint}`);
+    // Use Supabase proxy to bypass CORS restrictions
+    const url = new URL(this.proxyUrl);
     
-    // Add client_id to all requests
-    url.searchParams.append('client_id', this.clientId);
-    url.searchParams.append('format', 'json');
+    // Add endpoint and params as query parameters for the proxy
+    url.searchParams.append('endpoint', endpoint);
+    url.searchParams.append('params', JSON.stringify(params));
+
+    console.log('Making Jamendo API request through proxy:', url.toString());
     
-    // Add other parameters
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          url.searchParams.append(key, value.join('+'));
-        } else {
-          url.searchParams.append(key, value.toString());
-        }
-      }
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
     });
-
-    try {
-      console.log('Making Jamendo API request:', url.toString());
-      
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Jamendo API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Jamendo API response:', data);
-      
-      // Check if we got valid data
-      if (!data || !data.results) {
-        throw new Error('Invalid response format from Jamendo API');
-      }
-      
-      return data;
-    } catch (error: unknown) {
-      console.error('Jamendo API request failed:', error);
-      console.error('Failed URL:', url.toString());
-      
-      // Mark API as unavailable and set retry time
-      this.apiAvailable = false;
-      this.lastFailTime = Date.now();
-      console.log('Falling back to mock data, will retry API in', this.retryDelay / 1000, 'seconds');
-      return this.getMockResponse<T>(endpoint);
-    }
-  }
-
-  private getMockResponse<T>(_endpoint: string): T {
-    // Return appropriate mock data based on endpoint
-    const mockResponse = {
-      results: mockTracks
-    };
     
-    return mockResponse as T;
+    if (!response.ok) {
+      throw new Error(`Jamendo API proxy error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Jamendo API proxy response:', data);
+    
+    // Check if we got valid data
+    if (!data || !data.results) {
+      throw new Error('Invalid response format from Jamendo API');
+    }
+    
+    return data;
   }
 
   // Search for tracks
@@ -418,16 +253,6 @@ class JamendoAPI {
       fuzzytags: genres.join(' ')
     });
   }
-
-  // Check if API is available
-  isApiAvailable(): boolean {
-    return this.apiAvailable;
-  }
-
-  // Reset API availability (for retry)
-  resetApiAvailability(): void {
-    this.apiAvailable = true;
-  }
 }
 
 // Export singleton instance
@@ -460,14 +285,7 @@ export const getTuneTONRecommendations = async () => {
     };
   } catch (error) {
     console.error('Failed to get TuneTON recommendations:', error);
-    
-    // Return mock data with proper structure
-    return {
-      popular: mockTracks.slice(0, 10),
-      trending: mockTracks.slice(0, 10),
-      lofi: mockTracks.filter(t => t.musicinfo?.speed === 'low').slice(0, 10),
-      remixable: mockTracks.filter(t => t.musicinfo?.speed === 'high').slice(0, 10)
-    };
+    throw error;
   }
 };
 
@@ -477,10 +295,7 @@ export const searchMusicForRemix = async (query: string) => {
     return results.results;
   } catch (error) {
     console.error('Music search failed:', error);
-    return mockTracks.filter(track => 
-      track.name.toLowerCase().includes(query.toLowerCase()) ||
-      track.artist_name.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, 15);
+    throw error;
   }
 };
 
@@ -490,15 +305,14 @@ export const getGenreBasedRecommendations = async (genres: string[]) => {
     return results.results;
   } catch (error) {
     console.error('Genre recommendations failed:', error);
-    return mockTracks.slice(0, 25);
+    throw error;
   }
 };
 
 // Utility function to test API connectivity
 export const testJamendoAPI = async (): Promise<boolean> => {
   try {
-    console.log('Testing Jamendo API connectivity...');
-    jamendoAPI.resetApiAvailability(); // Force a fresh attempt
+    console.log('Testing Jamendo API connectivity through proxy...');
     const result = await jamendoAPI.getPopularTracks(1);
     console.log('API test result:', result);
     return result.results.length > 0;
@@ -511,11 +325,10 @@ export const testJamendoAPI = async (): Promise<boolean> => {
 // Debug function to manually test API call
 export const debugJamendoAPI = async () => {
   console.log('=== Jamendo API Debug ===');
-  console.log('Client ID:', JAMENDO_CLIENT_ID);
-  console.log('Base URL:', JAMENDO_BASE_URL);
+  console.log('Proxy URL:', JAMENDO_PROXY_URL);
   
-  // Test direct fetch to Jamendo API - simple tracks call
-  const testUrl = `${JAMENDO_BASE_URL}/tracks?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=1`;
+  // Test proxy call - simple tracks call
+  const testUrl = `${JAMENDO_PROXY_URL}?endpoint=tracks&params=${encodeURIComponent(JSON.stringify({limit: 1}))}`;
   console.log('Test URL (basic):', testUrl);
   
   try {
@@ -528,7 +341,7 @@ export const debugJamendoAPI = async () => {
       console.log('Response data (basic):', data);
       
       // Test with speed parameter that was causing issues
-      const speedTestUrl = `${JAMENDO_BASE_URL}/tracks?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=1&speed=high&include=musicinfo`;
+      const speedTestUrl = `${JAMENDO_PROXY_URL}?endpoint=tracks&params=${encodeURIComponent(JSON.stringify({limit: 1, speed: 'high', include: ['musicinfo']}))}`;
       console.log('Test URL (with speed):', speedTestUrl);
       
       const speedResponse = await fetch(speedTestUrl);

@@ -1,0 +1,307 @@
+
+> tuneton@2.0.0 build
+> tsc && vite build
+
+src/components/AIStudio.tsx(131,19): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ waveform: boolean; effects: boolean; automation: boolean; }'.
+  No index signature with a parameter of type 'string' was found on type '{ waveform: boolean; effects: boolean; automation: boolean; }'.
+src/components/ArtistPage.tsx(5,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/ContestsPage.tsx(3,22): error TS2307: Cannot find module '../imports/svg-6lqpkqhh8a' or its corresponding type declarations.
+src/components/CreateNFT.tsx(9,75): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/CreateNFT.tsx(167,41): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/components/CreateNFT.tsx(199,37): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/DetailRankingPage.tsx(4,58): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/DiscoverPage.tsx(23,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/HomePage.tsx(61,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/HomePage.tsx(550,42): error TS2345: Argument of type 'JamendoTrack | { name: string; artist_name: string; image: string; }' is not assignable to parameter of type 'string | JamendoTrack'.
+  Type '{ name: string; artist_name: string; image: string; }' is not assignable to type 'string | JamendoTrack'.
+    Type '{ name: string; artist_name: string; image: string; }' is missing the following properties from type 'JamendoTrack': id, duration, artist_id, artist_idstr, and 9 more.
+src/components/HomePage.tsx(705,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(2,20): error TS2307: Cannot find module 'styled-components' or its corresponding type declarations.
+src/components/HomePageNew.tsx(4,24): error TS2307: Cannot find module './ui/Button' or its corresponding type declarations.
+src/components/HomePageNew.tsx(5,22): error TS2307: Cannot find module './ui/Card' or its corresponding type declarations.
+src/components/HomePageNew.tsx(6,23): error TS2307: Cannot find module '../theme' or its corresponding type declarations.
+src/components/HomePageNew.tsx(56,15): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(62,26): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(67,20): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(71,15): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(79,15): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(85,17): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(105,15): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(110,15): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(142,26): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(162,19): error TS7031: Binding element '$isPlaying' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(182,17): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(192,15): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(243,17): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(252,15): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(297,17): error TS7031: Binding element 'theme' implicitly has an 'any' type.
+src/components/HomePageNew.tsx(401,22): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/HomePageNew_fixed.tsx(1,16): error TS2304: Cannot find name 'HomePageNew'.
+src/components/JamendoDebug.tsx(3,58): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/JamendoDebug.tsx(23,37): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/components/JamendoDebug.tsx(54,37): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/components/JamendoOAuthCallback.tsx(4,58): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/JamendoTest.tsx(3,58): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/LibraryPage.tsx(26,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/LibraryPageReal.tsx(27,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/LibraryPageReal.tsx(87,45): error TS7011: Function expression, which lacks return-type annotation, implicitly has an 'any[]' return type.
+src/components/LibraryPageReal.tsx(91,43): error TS7011: Function expression, which lacks return-type annotation, implicitly has an 'any[]' return type.
+src/components/LibraryPageReal.tsx(333,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/LibraryPageReal.tsx(396,43): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/LibraryPageReal.tsx(449,38): error TS2339: Property 'likedAt' does not exist on type 'JamendoTrack'.
+src/components/LibraryPageReal.tsx(452,70): error TS2339: Property 'likedAt' does not exist on type 'JamendoTrack'.
+src/components/LibraryPageReal.tsx(462,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/LibraryPageReal.tsx(567,35): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/MusicApp.tsx(249,30): error TS2322: Type '{ children: Element; onNavigate: (tab: string, page?: string, data?: NavigationData) => void; }' is not assignable to type 'IntrinsicAttributes & SwipeNavigationProviderProps'.
+  Property 'onNavigate' does not exist on type 'IntrinsicAttributes & SwipeNavigationProviderProps'.
+src/components/MusicApp.tsx(256,13): error TS2322: Type 'JamendoTrack' is not assignable to type 'string'.
+src/components/MusicApp.tsx(325,13): error TS2322: Type '{ onBack: () => void; onNavigate: (tab: string, page?: string, data?: NavigationData) => void; onTrackSelect: (track: string | JamendoTrack) => void; }' is not assignable to type 'IntrinsicAttributes & PlaylistDetailProps'.
+  Property 'onTrackSelect' does not exist on type 'IntrinsicAttributes & PlaylistDetailProps'.
+src/components/MusicApp.tsx(539,13): error TS2322: Type '{ onBack: () => void; onNavigate: (tab: string, page?: string, data?: NavigationData) => void; onTrackSelect: (track: string | JamendoTrack) => void; }' is not assignable to type 'IntrinsicAttributes & RemixDetailProps'.
+  Property 'onTrackSelect' does not exist on type 'IntrinsicAttributes & RemixDetailProps'.
+src/components/MusicApp.tsx(547,13): error TS2322: Type '{ onBack: () => void; onNavigate: (tab: string, page?: string, data?: NavigationData) => void; currentTrack: JamendoTrack; }' is not assignable to type 'IntrinsicAttributes & AIStudioProps'.
+  Property 'currentTrack' does not exist on type 'IntrinsicAttributes & AIStudioProps'.
+src/components/MusicApp.tsx(555,13): error TS2322: Type '{ onBack: () => void; onNavigate: (tab: string, page?: string, data?: NavigationData) => void; onTrackSelect: (track: string | JamendoTrack) => void; }' is not assignable to type 'IntrinsicAttributes & ArtistPageProps'.
+  Property 'onTrackSelect' does not exist on type 'IntrinsicAttributes & ArtistPageProps'.
+src/components/MusicPlayer.tsx(15,71): error TS2307: Cannot find module './player/utils' or its corresponding type declarations.
+src/components/MusicPlayer.tsx(16,53): error TS2307: Cannot find module './player/constants' or its corresponding type declarations.
+src/components/MusicPlayer.tsx(17,23): error TS2307: Cannot find module './player/QueueView' or its corresponding type declarations.
+src/components/MusicPlayer.tsx(19,26): error TS2307: Cannot find module './player/EffectsPanel' or its corresponding type declarations.
+src/components/MusicPlayer.tsx(215,18): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/MusicPlayer.tsx(352,48): error TS7006: Parameter 'height' implicitly has an 'any' type.
+src/components/MusicPlayer.tsx(352,56): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/MusicPlayer.tsx(391,17): error TS2322: Type '{ playerIsPlaying: boolean; hasError: boolean; isShuffled: boolean; repeatMode: number; isLiked: boolean; isDisliked: boolean; showEqualizer: boolean; showMixMode: boolean; mixModeActive: boolean; ... 18 more ...; formatTime: any; }' is not assignable to type 'IntrinsicAttributes & PlayerControlsProps'.
+  Property 'playerIsPlaying' does not exist on type 'IntrinsicAttributes & PlayerControlsProps'.
+src/components/MusicPlayer.tsx(420,66): error TS2554: Expected 1 arguments, but got 2.
+src/components/MusicPlayer.tsx(421,67): error TS2554: Expected 1 arguments, but got 2.
+src/components/MyNFTs.tsx(72,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/MyNFTs.tsx(79,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/MyNFTs.tsx(88,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/MyNFTs.tsx(97,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/MyNFTs.tsx(195,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/MyNFTs.tsx(203,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/MyNFTs.tsx(212,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/MyNFTs.tsx(221,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/NFTAuction.tsx(6,75): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/NFTAuction.tsx(48,65): error TS2339: Property 'endTime' does not exist on type 'never'.
+src/components/NFTAuction.tsx(59,35): error TS2339: Property 'id' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'id' does not exist on type '{ auctionId: string; title: string; image: string; bidAmount: number; bidTime: Date; status: "winning" | "outbid" | "won" | "lost"; endTime: Date; }'.
+src/components/NFTAuction.tsx(59,46): error TS2339: Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; }'.
+src/components/NFTAuction.tsx(61,35): error TS2339: Property 'id' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'id' does not exist on type '{ auctionId: string; title: string; image: string; bidAmount: number; bidTime: Date; status: "winning" | "outbid" | "won" | "lost"; endTime: Date; }'.
+src/components/NFTAuction.tsx(61,46): error TS2339: Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; }'.
+src/components/NFTAuction.tsx(63,35): error TS2339: Property 'id' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'id' does not exist on type '{ auctionId: string; title: string; image: string; bidAmount: number; bidTime: Date; status: "winning" | "outbid" | "won" | "lost"; endTime: Date; }'.
+src/components/NFTAuction.tsx(63,46): error TS2339: Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; }'.
+src/components/NFTAuction.tsx(66,33): error TS2339: Property 'id' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'id' does not exist on type '{ auctionId: string; title: string; image: string; bidAmount: number; bidTime: Date; status: "winning" | "outbid" | "won" | "lost"; endTime: Date; }'.
+src/components/NFTAuction.tsx(66,44): error TS2339: Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; } | { auctionId: string; ... 5 more ...; endTime: Date; }'.
+  Property 'auctionId' does not exist on type '{ id: string; title: string; image: string; currentBid: number; startingBid: number; endTime: Date; bidCount: number; highestBidder: string; category: string; artist: string; }'.
+src/components/NFTAuction.tsx(137,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/NFTCard.tsx(175,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/NFTCard.tsx(186,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/NFTCard.tsx(241,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/NFTCard.tsx(250,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/NFTCard.tsx(309,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/NFTCard.tsx(320,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/OnboardingPage.tsx(27,3): error TS2305: Module '"lucide-react"' has no exported member 'Waveform'.
+src/components/OnboardingPage.tsx(31,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/player/AudioPlayer.tsx(20,5): error TS2339: Property 'isPlaying' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(21,5): error TS2339: Property 'currentTime' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(22,5): error TS2339: Property 'duration' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(23,5): error TS2339: Property 'volume' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(24,5): error TS2339: Property 'isMuted' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(25,5): error TS2339: Property 'playbackRate' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(26,5): error TS2339: Property 'tempo' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(27,5): error TS2339: Property 'pitchSemitones' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(28,5): error TS2339: Property 'eqBands' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(29,5): error TS2339: Property 'eqMix' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(30,5): error TS2339: Property 'eqBypass' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(31,5): error TS2339: Property 'reverbMix' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(32,5): error TS2339: Property 'reverbPreDelay' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(33,5): error TS2339: Property 'reverbDamping' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(34,5): error TS2339: Property 'reverbPreset' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(35,5): error TS2339: Property 'reverbBypass' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(36,5): error TS2339: Property 'lowPassTone' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(37,5): error TS2339: Property 'lowPassResonance' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(38,5): error TS2339: Property 'lofiTone' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(39,5): error TS2339: Property 'lofiNoise' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(40,5): error TS2339: Property 'lofiWow' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(41,5): error TS2339: Property 'loadTrack' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(42,5): error TS2339: Property 'togglePlayPause' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(43,5): error TS2339: Property 'seek' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(44,5): error TS2339: Property 'setVolume' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(45,5): error TS2339: Property 'toggleMute' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(46,5): error TS2339: Property 'setPlaybackRate' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(47,5): error TS2339: Property 'setTempo' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(48,5): error TS2339: Property 'setPitchSemitones' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(50,5): error TS2339: Property 'setEffectBypass' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(51,5): error TS2339: Property 'setEffectMix' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(52,5): error TS2339: Property 'handleLofiToneChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(53,5): error TS2339: Property 'handleLofiNoiseChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(54,5): error TS2339: Property 'handleLofiWowChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(55,5): error TS2339: Property 'handleEQBandChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(56,5): error TS2339: Property 'handleEQMixChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(57,5): error TS2339: Property 'handleEQBypassChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(58,5): error TS2339: Property 'handleReverbMixChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(59,5): error TS2339: Property 'handleReverbPreDelayChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(60,5): error TS2339: Property 'handleReverbDampingChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(61,5): error TS2339: Property 'handleReverbPresetChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(62,5): error TS2339: Property 'handleReverbBypassChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(63,5): error TS2339: Property 'handleLowPassToneChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(64,5): error TS2339: Property 'handleLowPassResonanceChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(65,5): error TS2339: Property 'getAnalyser' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/AudioPlayer.tsx(66,7): error TS2554: Expected 1 arguments, but got 0.
+src/components/player/EnhancedAudioPlayer.tsx(23,5): error TS2339: Property 'isPlaying' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(24,5): error TS2339: Property 'currentTime' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(25,5): error TS2339: Property 'duration' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(26,5): error TS2339: Property 'volume' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(27,5): error TS2339: Property 'isMuted' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(28,5): error TS2339: Property 'playbackRate' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(29,5): error TS2339: Property 'tempo' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(30,5): error TS2339: Property 'pitchSemitones' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(31,5): error TS2339: Property 'eqBands' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(32,5): error TS2339: Property 'eqMix' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(33,5): error TS2339: Property 'eqBypass' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(34,5): error TS2339: Property 'reverbMix' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(35,5): error TS2339: Property 'reverbPreDelay' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(36,5): error TS2339: Property 'reverbDamping' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(37,5): error TS2339: Property 'reverbPreset' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(38,5): error TS2339: Property 'reverbBypass' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(39,5): error TS2339: Property 'lowPassTone' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(40,5): error TS2339: Property 'lowPassResonance' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(41,5): error TS2339: Property 'lofiTone' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(42,5): error TS2339: Property 'lofiNoise' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(43,5): error TS2339: Property 'lofiWow' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(44,5): error TS2339: Property 'loadTrack' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(45,5): error TS2339: Property 'togglePlayPause' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(46,5): error TS2339: Property 'seek' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(47,5): error TS2339: Property 'setVolume' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(48,5): error TS2339: Property 'toggleMute' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(49,5): error TS2339: Property 'setPlaybackRate' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(50,5): error TS2339: Property 'setTempo' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(51,5): error TS2339: Property 'setPitchSemitones' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(52,5): error TS2339: Property 'setEffectBypass' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(53,5): error TS2339: Property 'setEffectMix' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(54,5): error TS2339: Property 'handleLofiToneChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(55,5): error TS2339: Property 'handleLofiNoiseChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(56,5): error TS2339: Property 'handleLofiWowChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(57,5): error TS2339: Property 'handleEQBandChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(58,5): error TS2339: Property 'handleEQMixChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(59,5): error TS2339: Property 'handleEQBypassChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(60,5): error TS2339: Property 'handleReverbMixChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(61,5): error TS2339: Property 'handleReverbPreDelayChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(62,5): error TS2339: Property 'handleReverbDampingChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(63,5): error TS2339: Property 'handleReverbPresetChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(64,5): error TS2339: Property 'handleReverbBypassChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(65,5): error TS2339: Property 'handleLowPassToneChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(66,5): error TS2339: Property 'handleLowPassResonanceChange' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(67,5): error TS2339: Property 'getAnalyser' does not exist on type '{ audioRef: MutableRefObject<HTMLAudioElement>; seekTo: (time: number) => void; }'.
+src/components/player/EnhancedAudioPlayer.tsx(68,7): error TS2554: Expected 1 arguments, but got 0.
+src/components/player/EnhancedAudioPlayer.tsx(234,48): error TS7006: Parameter 'band' implicitly has an 'any' type.
+src/components/PlaylistDetailReal.tsx(20,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/PlaylistDetailReal.tsx(306,32): error TS2339: Property 'addedAt' does not exist on type 'JamendoTrack'.
+src/components/PlaylistDetailReal.tsx(308,58): error TS2339: Property 'addedAt' does not exist on type 'JamendoTrack'.
+src/components/PlaylistDetailReal.tsx(320,37): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/PublicProfile.tsx(702,13): error TS2322: Type '{ tabs: ({ id: string; label: string; icon: Element; badge: string; } | { id: string; label: string; icon: Element; })[]; activeTab: string; onTabChange: Dispatch<SetStateAction<string>>; variant: "default"; size: "sm"; enableSwipe: boolean; swipeThreshold: number; }' is not assignable to type 'IntrinsicAttributes & StylishTabsProps'.
+  Property 'swipeThreshold' does not exist on type 'IntrinsicAttributes & StylishTabsProps'.
+src/components/RankingPage.tsx(5,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/RemixDetail.tsx(296,13): error TS7030: Not all code paths return a value.
+src/components/SearchPage.tsx(24,35): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/SettingsPage.tsx(4,58): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/SwipeIndicator.tsx(22,13): error TS7030: Not all code paths return a value.
+src/components/TelegramAuthProvider.tsx(136,13): error TS7030: Not all code paths return a value.
+src/components/ui/accordion.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-accordion@1.2.3' or its corresponding type declarations.
+src/components/ui/accordion.tsx(5,33): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/alert-dialog.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-alert-dialog@1.1.6' or its corresponding type declarations.
+src/components/ui/alert-dialog.tsx(7,32): error TS2307: Cannot find module './button' or its corresponding type declarations.
+src/components/ui/alert.tsx(2,40): error TS2307: Cannot find module 'class-variance-authority@0.7.1' or its corresponding type declarations.
+src/components/ui/aspect-ratio.tsx(3,39): error TS2307: Cannot find module '@radix-ui/react-aspect-ratio@1.1.2' or its corresponding type declarations.
+src/components/ui/avatar.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-avatar@1.1.3' or its corresponding type declarations.
+src/components/ui/badge.tsx(2,22): error TS2307: Cannot find module '@radix-ui/react-slot@1.1.2' or its corresponding type declarations.
+src/components/ui/badge.tsx(3,40): error TS2307: Cannot find module 'class-variance-authority@0.7.1' or its corresponding type declarations.
+src/components/ui/breadcrumb.tsx(2,22): error TS2307: Cannot find module '@radix-ui/react-slot@1.1.2' or its corresponding type declarations.
+src/components/ui/breadcrumb.tsx(3,46): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/button-component.tsx(2,22): error TS2307: Cannot find module '@radix-ui/react-slot@1.1.2' or its corresponding type declarations.
+src/components/ui/button-component.tsx(3,40): error TS2307: Cannot find module 'class-variance-authority@0.7.1' or its corresponding type declarations.
+src/components/ui/calendar.tsx(4,43): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/calendar.tsx(5,27): error TS2307: Cannot find module 'react-day-picker@8.10.1' or its corresponding type declarations.
+src/components/ui/calendar.tsx(8,32): error TS2307: Cannot find module './button' or its corresponding type declarations.
+src/components/ui/calendar.tsx(63,22): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(66,23): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/carousel.tsx(6,8): error TS2307: Cannot find module 'embla-carousel-react@8.6.0' or its corresponding type declarations.
+src/components/ui/carousel.tsx(7,39): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/carousel.tsx(10,24): error TS2307: Cannot find module './button' or its corresponding type declarations.
+src/components/ui/carousel.tsx(97,15): error TS7030: Not all code paths return a value.
+src/components/ui/chart.tsx(4,36): error TS2307: Cannot find module 'recharts@2.15.2' or its corresponding type declarations.
+src/components/ui/chart.tsx(182,23): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/ui/chart.tsx(182,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ui/chart.tsx(278,21): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/ui/checkbox.tsx(4,36): error TS2307: Cannot find module '@radix-ui/react-checkbox@1.1.4' or its corresponding type declarations.
+src/components/ui/checkbox.tsx(5,27): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/collapsible.tsx(3,39): error TS2307: Cannot find module '@radix-ui/react-collapsible@1.1.3' or its corresponding type declarations.
+src/components/ui/command.tsx(4,45): error TS2307: Cannot find module 'cmdk@1.1.1' or its corresponding type declarations.
+src/components/ui/command.tsx(5,28): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/context-menu.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-context-menu@2.2.6' or its corresponding type declarations.
+src/components/ui/context-menu.tsx(5,57): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/dialog.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-dialog@1.1.6' or its corresponding type declarations.
+src/components/ui/dialog.tsx(5,23): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/drawer.tsx(4,43): error TS2307: Cannot find module 'vaul@1.1.2' or its corresponding type declarations.
+src/components/ui/dropdown-menu.tsx(4,40): error TS2307: Cannot find module '@radix-ui/react-dropdown-menu@2.1.6' or its corresponding type declarations.
+src/components/ui/dropdown-menu.tsx(5,57): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/form.tsx(4,33): error TS2307: Cannot find module '@radix-ui/react-label@2.1.2' or its corresponding type declarations.
+src/components/ui/form.tsx(5,22): error TS2307: Cannot find module '@radix-ui/react-slot@1.1.2' or its corresponding type declarations.
+src/components/ui/form.tsx(14,8): error TS2307: Cannot find module 'react-hook-form@7.55.0' or its corresponding type declarations.
+src/components/ui/hover-card.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-hover-card@1.1.6' or its corresponding type declarations.
+src/components/ui/input-otp.tsx(4,43): error TS2307: Cannot find module 'input-otp@1.4.2' or its corresponding type declarations.
+src/components/ui/input-otp.tsx(5,27): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/input-otp.tsx(47,61): error TS2339: Property 'slots' does not exist on type 'unknown'.
+src/components/ui/label.tsx(4,33): error TS2307: Cannot find module '@radix-ui/react-label@2.1.2' or its corresponding type declarations.
+src/components/ui/menubar.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-menubar@1.1.6' or its corresponding type declarations.
+src/components/ui/menubar.tsx(5,57): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/navigation-menu.tsx(2,42): error TS2307: Cannot find module '@radix-ui/react-navigation-menu@1.2.5' or its corresponding type declarations.
+src/components/ui/navigation-menu.tsx(3,21): error TS2307: Cannot find module 'class-variance-authority@0.7.1' or its corresponding type declarations.
+src/components/ui/navigation-menu.tsx(4,33): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/pagination.tsx(6,8): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/pagination.tsx(9,40): error TS2307: Cannot find module './button' or its corresponding type declarations.
+src/components/ui/popover.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-popover@1.1.6' or its corresponding type declarations.
+src/components/ui/progress.tsx(4,36): error TS2307: Cannot find module '@radix-ui/react-progress@1.1.2' or its corresponding type declarations.
+src/components/ui/radio-group.tsx(4,38): error TS2307: Cannot find module '@radix-ui/react-radio-group@1.2.3' or its corresponding type declarations.
+src/components/ui/radio-group.tsx(5,28): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/resizable.tsx(4,34): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/resizable.tsx(5,37): error TS2307: Cannot find module 'react-resizable-panels@2.1.7' or its corresponding type declarations.
+src/components/ui/scroll-area.tsx(4,38): error TS2307: Cannot find module '@radix-ui/react-scroll-area@1.2.3' or its corresponding type declarations.
+src/components/ui/select.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-select@2.1.6' or its corresponding type declarations.
+src/components/ui/select.tsx(9,8): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/separator.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-separator@1.1.2' or its corresponding type declarations.
+src/components/ui/sheet.tsx(4,33): error TS2307: Cannot find module '@radix-ui/react-dialog@1.1.6' or its corresponding type declarations.
+src/components/ui/sheet.tsx(5,23): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/sidebar.tsx(4,22): error TS2307: Cannot find module '@radix-ui/react-slot@1.1.2' or its corresponding type declarations.
+src/components/ui/sidebar.tsx(5,35): error TS2307: Cannot find module 'class-variance-authority@0.7.1' or its corresponding type declarations.
+src/components/ui/sidebar.tsx(6,31): error TS2307: Cannot find module 'lucide-react@0.487.0' or its corresponding type declarations.
+src/components/ui/sidebar.tsx(10,24): error TS2307: Cannot find module './button' or its corresponding type declarations.
+src/components/ui/sidebar.tsx(270,17): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/components/ui/sonner.tsx(3,26): error TS2307: Cannot find module 'next-themes@0.4.6' or its corresponding type declarations.
+src/components/ui/sonner.tsx(4,49): error TS2307: Cannot find module 'sonner@2.0.3' or its corresponding type declarations.
+src/components/ui/switch.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-switch@1.1.3' or its corresponding type declarations.
+src/components/ui/tabs.tsx(4,32): error TS2307: Cannot find module '@radix-ui/react-tabs@1.1.3' or its corresponding type declarations.
+src/components/ui/toggle-group.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-toggle-group@1.1.2' or its corresponding type declarations.
+src/components/ui/toggle-group.tsx(5,35): error TS2307: Cannot find module 'class-variance-authority@0.7.1' or its corresponding type declarations.
+src/components/ui/toggle.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-toggle@1.1.2' or its corresponding type declarations.
+src/components/ui/toggle.tsx(5,40): error TS2307: Cannot find module 'class-variance-authority@0.7.1' or its corresponding type declarations.
+src/components/ui/tooltip.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-tooltip@1.1.8' or its corresponding type declarations.
+src/components/useMobileSwipeGestures.tsx(171,19): error TS7030: Not all code paths return a value.
+src/hooks/useAudioPlayer.ts(32,36): error TS7030: Not all code paths return a value.
+src/hooks/useTelegramAuth.ts(1,58): error TS2724: '"../components/TelegramAuthProvider"' has no exported member named 'TelegramAuthContextType'. Did you mean 'TelegramAuthContext'?
+src/hooks/useTelegramAuth.ts(6,17): error TS2339: Property 'Telegram' does not exist on type 'Window & typeof globalThis'.
+src/hooks/useTelegramAuth.ts(7,17): error TS2339: Property 'Telegram' does not exist on type 'Window & typeof globalThis'.
+src/main.tsx(5,24): error TS2307: Cannot find module './components/AppWrapper' or its corresponding type declarations.
+src/pages/Search.tsx(6,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+src/pages/Track.tsx(1,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+src/utils/jamendo-api.ts(544,35): error TS7018: Object literal's property 'speedCall' implicitly has an 'any' type.
+src/utils/jamendo-api.ts(554,27): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/utils/tuneton-api.ts(330,7): error TS2322: Type '{ likedAt: string; isLiked: boolean; track: JamendoTrack; userId: string; }[]' is not assignable to type 'JamendoTrack[]'.
+  Type '{ likedAt: string; isLiked: boolean; track: JamendoTrack; userId: string; }' is missing the following properties from type 'JamendoTrack': id, name, duration, artist_id, and 12 more.

@@ -1,37 +1,40 @@
-import { useEffect, useState } from 'react';
-import { loginWithTelegramWidget } from '../utils/telegramAuth';
+import { useEffect, useState } from 'react'
+import { loginWithTelegramWidget } from '../utils/telegramAuth'
 
 declare global {
   interface Window {
-    onTelegramAuth?: (user: any) => void;
+    TelegramLoginWidget: {
+      dataOnAuth: (user: any) => void;
+    };
   }
 }
 
 export function TelegramLoginWidget() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     // Initialize Telegram Login Widget callback
-    window.onTelegramAuth = async (user) => {
-      try {
-        setLoading(true);
-        setError(null);
-        await loginWithTelegramWidget(user);
-      } catch (err: any) {
-        setError(err.message || 'Authentication failed');
-      } finally {
-        setLoading(false);
+    window.TelegramLoginWidget = {
+      dataOnAuth: async (user) => {
+        try {
+          setLoading(true)
+          setError(null)
+          await loginWithTelegramWidget(user)
+        } catch (err: any) {
+          console.error('Telegram widget login error:', err)
+          setError(err.message || 'Authentication failed')
+        } finally {
+          setLoading(false)
+        }
       }
-    };
+    }
 
     // Cleanup
     return () => {
-      if (window.onTelegramAuth) {
-        window.onTelegramAuth = undefined;
-      }
-    };
-  }, []);
+      delete window.TelegramLoginWidget
+    }
+  }, [])
 
   return (
     <div className="flex flex-col items-center space-y-4">
@@ -44,9 +47,9 @@ export function TelegramLoginWidget() {
       <script
         async
         src="https://telegram.org/js/telegram-widget.js?22"
-        data-telegram-login="TuneTON_bot"
+        data-telegram-login="YourBotUsername"
         data-size="large"
-        data-onauth="onTelegramAuth(user)"
+        data-onauth="TelegramLoginWidget.dataOnAuth(user)"
         data-request-access="write"
       ></script>
       
@@ -57,7 +60,7 @@ export function TelegramLoginWidget() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default TelegramLoginWidget;
+export default TelegramLoginWidget

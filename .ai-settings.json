@@ -1,0 +1,35 @@
+{
+  "schemaAwareness": {
+    "enabled": true,
+    "schemas": ["public"],
+    "defaultSchema": "public"
+  },
+  "functionAnalysis": {
+    "checkSearchPath": true,
+    "checkSecurityDefiner": true,
+    "checkPermissions": true
+  },
+  "securityChecks": {
+    "mutableSearchPath": {
+      "enabled": true,
+      "severity": "high",
+      "autoFix": false
+    }
+  },
+  "database": {
+    "connection": {
+      "host": "localhost",
+      "port": 5432,
+      "database": "tuneton",
+      "user": "postgres"
+    }
+  },
+  "linting": {
+    "enabled": true,
+    "rules": {
+      "mutable-search-path": "error",
+      "unqualified-identifiers": "warn",
+      "missing-security-definer": "warn"
+    }
+  }
+}

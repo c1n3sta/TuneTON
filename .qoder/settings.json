@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "ask": [
+      "Read(!C:\\Users\\user\\tuneTON_3.0/**)",
+      "Edit(!C:\\Users\\user\\tuneTON_3.0/**)"
+    ],
+    "allow": [
+      "Read(C:\\Users\\user\\tuneTON_3.0/**)",
+      "Edit(C:\\Users\\user\\tuneTON_3.0/**)"
+    ]
+  },
+  "memoryImport": {},
+  "monitoring": {}
+}

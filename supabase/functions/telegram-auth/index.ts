@@ -1,137 +1,30 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Allow-Headers': 'authorization, content-type, apikey',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Content-Type': 'application/json'
 };
 
-// Add comprehensive logging function
-function logEvent(event: string, details: any = {}) {
-  console.log(JSON.stringify({
-    event,
-    timestamp: new Date().toISOString(),
-    ...details
-  }));
-}
-
-// Add at the top of the file
-interface RateLimitEntry {
-  count: number;
-  timestamp: number;
-}
-
-// Add rate limiting function using Supabase database
-async function checkRateLimit(supabase: any, ip: string): Promise<boolean> {
-  try {
-    logEvent('rate_limit_check_start', { ip });
-    
-    const now = new Date();
-    const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-
-    // Clean up old entries (older than 1 hour)
-    const cleanupResult = await supabase
-      .from('rate_limit')
-      .delete()
-      .lt('last_request', new Date(now.getTime() - 60 * 60 * 1000).toISOString());
-    
-    if (cleanupResult.error) {
-      logEvent('rate_limit_cleanup_error', { error: cleanupResult.error.message });
-    }
-
-    // Check existing entry for this IP
-    const { data: existingEntry, error: selectError } = await supabase
-      .from('rate_limit')
-      .select('request_count, last_request')
-      .eq('ip_address', ip)
-      .single();
-
-    if (selectError && selectError.code !== 'PGRST116') {
-      logEvent('rate_limit_check_error', { error: selectError.message, ip });
-      // If there's a database error, we'll allow the request to proceed
-      return true;
-    }
-
-    if (existingEntry) {
-      // Check if the last request was more than 15 minutes ago
-      const lastRequest = new Date(existingEntry.last_request);
-      if (lastRequest < fifteenMinutesAgo) {
-        // Reset count and update timestamp
-        const { error: updateError } = await supabase
-          .from('rate_limit')
-          .update({ 
-            request_count: 1, 
-            last_request: now.toISOString() 
-          })
-          .eq('ip_address', ip);
-
-        if (updateError) {
-          logEvent('rate_limit_reset_error', { error: updateError.message, ip });
-        } else {
-          logEvent('rate_limit_reset_success', { ip });
-        }
-        return true;
-      }
-
-      // Check if limit exceeded (10 requests per 15 minutes)
-      if (existingEntry.request_count >= 10) {
-        logEvent('rate_limit_exceeded', { ip, count: existingEntry.request_count });
-        return false;
-      }
-
-      // Increment count
-      const { error: updateError } = await supabase
-        .from('rate_limit')
-        .update({ 
-          request_count: existingEntry.request_count + 1, 
-          last_request: now.toISOString() 
-        })
-        .eq('ip_address', ip);
-
-      if (updateError) {
-        logEvent('rate_limit_increment_error', { error: updateError.message, ip });
-      } else {
-        logEvent('rate_limit_increment_success', { ip, new_count: existingEntry.request_count + 1 });
-      }
-      return true;
-    } else {
-      // First request from this IP, create new entry
-      const { error: insertError } = await supabase
-        .from('rate_limit')
-        .insert({ 
-          ip_address: ip, 
-          request_count: 1, 
-          last_request: now.toISOString() 
-        });
-
-      if (insertError) {
-        logEvent('rate_limit_insert_error', { error: insertError.message, ip });
-      } else {
-        logEvent('rate_limit_insert_success', { ip });
-      }
-      return true;
-    }
-  } catch (error: any) {
-    logEvent('rate_limit_exception', { error: error.message, ip });
-    // If there's an error with rate limiting, we'll allow the request to proceed
-    return true;
-  }
-}
-
 // Verify Telegram WebApp data
 async function verifyTelegramData(initData: string): Promise<boolean> {
   const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
+  console.log('DEBUG: BOT_TOKEN present:', !!BOT_TOKEN);
   if (!BOT_TOKEN) {
     console.error('TELEGRAM_BOT_TOKEN not configured');
     return false;
   }
 
   try {
+    console.log('DEBUG: Received initData:', initData);
     const params = new URLSearchParams(initData);
     const hash = params.get('hash');
     const authDate = params.get('auth_date');
+    
+    console.log('DEBUG: Hash:', hash);
+    console.log('DEBUG: AuthDate:', authDate);
     
     // Check if required parameters exist
     if (!hash || !authDate) {
@@ -151,35 +44,43 @@ async function verifyTelegramData(initData: string): Promise<boolean> {
     params.delete('hash');
     const sortedParams = Array.from(params.entries()).sort(([a], [b]) => a.localeCompare(b));
     
+    console.log('DEBUG: Sorted params:', sortedParams);
+    
     // Create data string according to Telegram documentation
     const dataString = sortedParams.map(([key, value]) => `${key}=${value}`).join('\n');
     
-    // Create secret key using HMAC-SHA256 with key "WebAppData" and bot token
+    console.log('DEBUG: Data string:', dataString);
+    
+    // Create secret key using HMAC-SHA256 with "WebAppData" as key and bot token as message
     const encoder = new TextEncoder();
-    const keyData = encoder.encode('WebAppData');
-    const secretKey = await crypto.subtle.importKey(
+    const webAppDataKey = await crypto.subtle.importKey(
       'raw',
-      keyData,
+      encoder.encode('WebAppData'),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
     );
-    const secret = await crypto.subtle.sign('HMAC', secretKey, encoder.encode(BOT_TOKEN));
+    const secret = await crypto.subtle.sign('HMAC', webAppDataKey, encoder.encode(BOT_TOKEN));
     
     // Create HMAC-SHA256 hash of data string using the secret
-    const key = await crypto.subtle.importKey(
+    // Convert the secret ArrayBuffer to a CryptoKey
+    const secretKey = await crypto.subtle.importKey(
       'raw',
       secret,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
     );
-    const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(dataString));
+    const signature = await crypto.subtle.sign('HMAC', secretKey, encoder.encode(dataString));
     
     // Convert signature to hex string
     const hexSignature = Array.from(new Uint8Array(signature))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
+    
+    console.log('DEBUG: Calculated hash:', hexSignature);
+    console.log('DEBUG: Expected hash:', hash);
+    console.log('DEBUG: Hashes match:', hexSignature === hash);
     
     // Compare hashes
     const isValid = hexSignature === hash;
@@ -197,73 +98,128 @@ async function verifyTelegramData(initData: string): Promise<boolean> {
   }
 }
 
-// Add new function to verify Telegram Login Widget data
-async function verifyTelegramWidgetData(widgetData: any): Promise<boolean> {
-  const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
-  if (!BOT_TOKEN) {
-    console.error('TELEGRAM_BOT_TOKEN not configured');
-    return false;
-  }
-
-  try {
-    const { hash, ...data } = widgetData;
-    
-    // Check if required parameters exist
-    if (!hash) {
-      console.warn('Missing hash in Telegram widget data');
-      return false;
-    }
-    
-    // Check if auth_date is recent (within 1 hour)
-    const authTimestamp = parseInt(data.auth_date);
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    if (currentTimestamp - authTimestamp > 3600) { // 1 hour
-      console.warn('Telegram widget auth data is too old');
-      return false;
-    }
-    
-    // Create data string according to Telegram documentation
-    // Sort keys alphabetically
-    const keys = Object.keys(data).sort();
-    const dataString = keys.map(key => `${key}=${data[key]}`).join('\n');
-    
-    // Create HMAC-SHA256 hash using bot token directly (no "WebAppData" key)
-    const encoder = new TextEncoder();
-    const secretKey = await crypto.subtle.importKey(
-      'raw',
-      encoder.encode(BOT_TOKEN),
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign']
-    );
-    const signature = await crypto.subtle.sign('HMAC', secretKey, encoder.encode(dataString));
-    
-    // Convert signature to hex string
-    const hexSignature = Array.from(new Uint8Array(signature))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-    
-    // Compare hashes
-    const isValid = hexSignature === hash;
-    if (!isValid) {
-      console.warn('Telegram widget hash verification failed');
-      console.warn('Expected:', hash);
-      console.warn('Actual:', hexSignature);
-      console.warn('Data string:', dataString);
-    }
-    
-    return isValid;
-  } catch (error) {
-    console.error('Error verifying Telegram widget data:', error);
-    return false;
-  }
-}
-
 // Extract user data from initData
 function parseInitData(initData: string): any {
   const params = new URLSearchParams(initData)
   const userParam = params.get('user')
-  return userParam ? JSON.parse(decodeURIComponent(userParam)) : null
+  if (!userParam) return null
+  
+  try {
+    // The user parameter is a URL-encoded JSON string
+    // We need to decode it and then parse as JSON
+    return JSON.parse(decodeURIComponent(userParam))
+  } catch (error) {
+    console.error('Error parsing user data:', error)
+    return null
+  }
+}
+
+// Create or update user in database
+async function syncUserWithDatabase(supabase: any, telegramUser: any) {
+  try {
+    console.log('DEBUG: Syncing user with database:', telegramUser);
+    
+    const { data, error } = await supabase
+      .from('users')
+      .upsert({
+        telegram_id: telegramUser.id,
+        username: telegramUser.username,
+        first_name: telegramUser.first_name,
+        last_name: telegramUser.last_name,
+        photo_url: telegramUser.photo_url,
+        is_premium: telegramUser.is_premium || false,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'telegram_id'
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error syncing user with database:', error);
+      return null;
+    }
+    
+    console.log('DEBUG: User synced successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error in syncUserWithDatabase:', error);
+    return null;
+  }
+}
+
+// Check and update rate limits
+async function checkRateLimit(supabase: any, ipAddress: string): Promise<boolean> {
+  try {
+    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
+    
+    // Try to update existing record or insert new one
+    const { data, error } = await supabase
+      .from('rate_limit')
+      .upsert({
+        ip_address: ipAddress,
+        request_count: 1,
+        last_request: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'ip_address'
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error upserting rate limit record:', error);
+      // If we can't track rate limiting, allow the request to proceed
+      return true;
+    }
+    
+    // Check if this is a new record (first request) or an existing one
+    if (data.last_request > oneMinuteAgo) {
+      // Recent request, check count
+      if (data.request_count >= 5) { // Limit to 5 requests per minute
+        console.warn('Rate limit exceeded for IP:', ipAddress);
+        return false;
+      }
+      
+      // Increment count for existing record
+      const { error: updateError } = await supabase
+        .from('rate_limit')
+        .update({
+          request_count: data.request_count + 1,
+          last_request: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('ip_address', ipAddress);
+      
+      if (updateError) {
+        console.error('Error updating rate limit count:', updateError);
+        // If we can't update, allow the request to proceed
+        return true;
+      }
+    } else {
+      // Old record, reset count
+      const { error: updateError } = await supabase
+        .from('rate_limit')
+        .update({
+          request_count: 1,
+          last_request: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('ip_address', ipAddress);
+      
+      if (updateError) {
+        console.error('Error resetting rate limit count:', updateError);
+        // If we can't update, allow the request to proceed
+        return true;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in checkRateLimit:', error);
+    // If we can't check rate limiting, allow the request to proceed
+    return true;
+  }
 }
 
 // Update the main handler to support both methods
@@ -273,45 +229,40 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  // Get client IP for rate limiting
-  const clientIP = req.headers.get('x-forwarded-for') || 'unknown';
-  
-  // Initialize Supabase Admin client for rate limiting check
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-  const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-
-  // Check rate limit using persistent storage
-  const isRateLimited = await checkRateLimit(supabase, clientIP);
-  if (!isRateLimited) {
-    console.warn('Rate limit exceeded for IP:', clientIP);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Rate limit exceeded. Please try again later.'
-      }), 
-      { 
-        headers: { 
-          ...corsHeaders
-        },
-        status: 429
-      }
-    );
-  }
-
-  // Log authentication attempt
-  console.log('Telegram authentication attempt started', {
-    ip: clientIP,
-    timestamp: new Date().toISOString()
-  });
-
   try {
+    // Get client IP for rate limiting
+    const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    console.log('DEBUG: Client IP:', clientIP);
+    
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    
+    console.log('DEBUG: Supabase URL:', supabaseUrl ? 'PRESENT' : 'MISSING');
+    console.log('DEBUG: Service Key:', supabaseServiceKey ? 'PRESENT' : 'MISSING');
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Check rate limit
+    const rateLimitOk = await checkRateLimit(supabase, clientIP);
+    if (!rateLimitOk) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.'
+        }), 
+        { 
+          headers: corsHeaders,
+          status: 429
+        }
+      );
+    }
+    
     // Get data from request (either initData for WebApp or widgetData for Login Widget)
     const { initData, widgetData } = await req.json()
+    
+    // Debug: Check if BOT_TOKEN is available
+    const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
+    console.log('DEBUG: BOT_TOKEN from main handler:', BOT_TOKEN ? 'PRESENT' : 'MISSING');
     
     let telegramUser;
     let authMethod;
@@ -334,135 +285,100 @@ serve(async (req) => {
     } else if (widgetData) {
       // Telegram Login Widget authentication
       authMethod = 'widget';
-      
-      // Verify Telegram Login Widget data
-      const isValid = await verifyTelegramWidgetData(widgetData)
-      if (!isValid) {
-        throw new Error('Invalid Telegram widget data')
-      }
-      
-      // Use widget data directly
-      telegramUser = widgetData;
-      if (!telegramUser?.id) {
-        throw new Error('Invalid user data from widget')
-      }
+      throw new Error('Telegram Login Widget not implemented yet')
     } else {
       throw new Error('Missing authentication data')
     }
-
-    // Log successful validation
-    console.log('Telegram data validated successfully', {
-      userId: telegramUser.id,
-      method: authMethod,
-      timestamp: new Date().toISOString()
-    });
-
-    // Reinitialize Supabase Admin client for user operations
-    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-
-    // Check if user already exists in our users table
-    const { data: existingUser, error: fetchError } = await supabaseClient
-      .from('users')
-      .select('*')
-      .eq('telegram_id', telegramUser.id)
-      .single()
-
-    let user, session
     
-    if (existingUser) {
-      // Update existing user metadata
-      console.log('Updating existing user metadata', { userId: telegramUser.id })
-      
-      const { data: updatedUser, error: updateError } = await supabaseClient
-        .from('users')
-        .update({
+    // Sync user with database
+    const dbUser = await syncUserWithDatabase(supabase, telegramUser);
+    if (!dbUser) {
+      console.warn('Failed to sync user with database');
+    }
+    
+    // Create a fake email for the user based on their Telegram ID
+    const fakeEmail = `telegram_${telegramUser.id}@tuneton.app`;
+    const userPassword = crypto.randomUUID(); // Generate a random password
+    
+    // Check if user already exists
+    const { data: existingUser, error: fetchError } = await supabase.auth.admin.getUserByEmail(fakeEmail);
+    
+    let authData;
+    if (fetchError || !existingUser) {
+      // Create user if they don't exist
+      const { data, error: createError } = await supabase.auth.admin.createUser({
+        email: fakeEmail,
+        password: userPassword,
+        email_confirm: true, // Skip email confirmation
+        user_metadata: {
+          telegram_id: telegramUser.id,
           username: telegramUser.username,
           first_name: telegramUser.first_name,
           last_name: telegramUser.last_name,
           photo_url: telegramUser.photo_url,
-          updated_at: new Date().toISOString()
-        })
-        .eq('telegram_id', telegramUser.id)
-        .select()
-        .single()
-
-      if (updateError) throw updateError
+          is_premium: telegramUser.is_premium,
+          auth_method: authMethod
+        }
+      });
       
-      // Get session for existing user using consistent method
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.admin.grantCustomAccessToken(
-        existingUser.id
-      )
+      if (createError) {
+        console.error('Error creating user in auth:', createError);
+        throw new Error('Failed to create user authentication');
+      }
       
-      if (sessionError) throw sessionError
-      
-      user = updatedUser
-      session = sessionData
+      authData = data;
     } else {
-      // Create new user with consistent session creation method
-      console.log('Creating new user', { userId: telegramUser.id })
-      
-      const { data: newUser, error: createUserError } = await supabaseClient
-        .from('users')
-        .insert({
+      // User exists, update their metadata
+      const { data, error: updateError } = await supabase.auth.admin.updateUserById(existingUser.user.id, {
+        user_metadata: {
           telegram_id: telegramUser.id,
           username: telegramUser.username,
           first_name: telegramUser.first_name,
           last_name: telegramUser.last_name,
-          photo_url: telegramUser.photo_url
-        })
-        .select()
-        .single()
-
-      if (createUserError) {
-        throw createUserError
+          photo_url: telegramUser.photo_url,
+          is_premium: telegramUser.is_premium,
+          auth_method: authMethod
+        }
+      });
+      
+      if (updateError) {
+        console.error('Error updating user in auth:', updateError);
+        throw new Error('Failed to update user authentication');
       }
-
-      // Create a session for the new user using consistent method
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.admin.grantCustomAccessToken(
-        newUser.id
-      )
-
-      if (sessionError) throw sessionError
-
-      user = newUser
-      session = sessionData
+      
+      authData = data;
+      
+      // Update password
+      await supabase.auth.admin.updateUserById(existingUser.user.id, {
+        password: userPassword
+      });
     }
-
-    // Log successful authentication
-    console.log('Telegram authentication completed successfully', {
-      userId: user.id,
-      telegramId: telegramUser.id,
-      method: authMethod,
-      timestamp: new Date().toISOString()
+    
+    console.log('DEBUG: Auth user handled:', authData.user);
+    
+    // Sign in the user to create a session and get tokens
+    const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
+      email: fakeEmail,
+      password: userPassword
     });
-
-    // Return the session to the client with secure cookie headers
+    
+    if (sessionError) {
+      console.error('Error signing in user:', sessionError);
+      throw new Error('Failed to sign in user');
+    }
+    
+    console.log('DEBUG: Session created:', sessionData);
+    
+    // Return success response with tokens
     return new Response(
       JSON.stringify({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-        user: {
-          id: user.id,
-          telegram_id: telegramUser.id,
-          username: telegramUser.username,
-          first_name: telegramUser.first_name,
-          last_name: telegramUser.last_name,
-          photo_url: telegramUser.photo_url
-        }
+        message: 'Authentication successful',
+        user: telegramUser,
+        access_token: sessionData.session.access_token,
+        refresh_token: sessionData.session.refresh_token
       }),
       {
-        headers: { 
-          ...corsHeaders,
-          'Set-Cookie': [
-            `access_token=${session.access_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=3600`,
-            `refresh_token=${session.refresh_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`
-          ].join(', ')
-        },
+        headers: corsHeaders,
         status: 200
       }
     )
@@ -470,22 +386,13 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in telegram-auth:', error)
     
-    // Log authentication failure
-    console.error('Telegram authentication failed', {
-      error: error.message,
-      ip: clientIP,
-      timestamp: new Date().toISOString()
-    })
-    
     return new Response(
       JSON.stringify({ 
         error: error.message,
         details: error.toString()
       }), 
       { 
-        headers: { 
-          ...corsHeaders
-        },
+        headers: corsHeaders,
         status: 400
       }
     )
