@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telegram Audio Test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div style="padding: 20px; font-family: Arial, sans-serif;">
+        <h1>Telegram Audio Test</h1>
+        <p>This test will check if audio can play in your Telegram Web App.</p>
+        
+        <button id="testButton" style="padding: 10px 20px; font-size: 16px; background: #0088cc; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Test Audio Playback
+        </button>
+        
+        <div id="status" style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+            Click the button above to test audio playback
+        </div>
+        
+        <div id="results" style="margin-top: 20px; padding: 10px; background: #e0e0e0; border-radius: 5px; display: none;">
+            <h3>Test Results:</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testButton').addEventListener('click', function() {
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+            const resultContent = document.getElementById('resultContent');
+            
+            status.innerHTML = 'Testing audio playback...';
+            results.style.display = 'none';
+            
+            // Create audio element
+            const audio = new Audio();
+            
+            // Test with a known working audio file
+            audio.src = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav';
+            
+            // Add event listeners
+            audio.addEventListener('loadstart', () => {
+                console.log('Load start');
+            });
+            
+            audio.addEventListener('loadeddata', () => {
+                console.log('Loaded data');
+            });
+            
+            audio.addEventListener('canplay', () => {
+                console.log('Can play');
+            });
+            
+            audio.addEventListener('play', () => {
+                console.log('Playing');
+                status.innerHTML = 'Audio is playing!';
+            });
+            
+            audio.addEventListener('error', (e) => {
+                console.log('Audio error:', e);
+                console.log('Error details:', {
+                    code: audio.error?.code,
+                    message: audio.error?.message,
+                    networkState: audio.networkState,
+                    readyState: audio.readyState
+                });
+                
+                status.innerHTML = 'Audio test failed - check console for details';
+                
+                // Show results
+                resultContent.innerHTML = `
+                    <p><strong>Error:</strong> ${audio.error?.message || 'Unknown error'}</p>
+                    <p><strong>Network State:</strong> ${audio.networkState}</p>
+                    <p><strong>Ready State:</strong> ${audio.readyState}</p>
+                `;
+                results.style.display = 'block';
+                
+                // Show alert in Telegram if available
+                if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+                    try {
+                        window.Telegram.WebApp.showAlert(`Audio test failed: ${audio.error?.message || 'Unknown error'}`);
+                    } catch (e) {
+                        console.log('Failed to show Telegram alert:', e);
+                    }
+                }
+            });
+            
+            // Try to load
+            audio.load();
+            console.log('Audio load called');
+            
+            // Try to play after a delay
+            setTimeout(() => {
+                console.log('Attempting to play...');
+                audio.play()
+                    .then(() => {
+                        console.log('Play successful');
+                        status.innerHTML = 'Audio played successfully!';
+                        
+                        // Show results
+                        resultContent.innerHTML = '<p style="color: green;"><strong>Success!</strong> Audio playback works in this Telegram Web App.</p>';
+                        results.style.display = 'block';
+                    })
+                    .catch((error) => {
+                        console.log('Play failed:', error);
+                        status.innerHTML = 'Audio play failed - check console for details';
+                        
+                        // Show results
+                        resultContent.innerHTML = `
+                            <p><strong>Play Error:</strong> ${error.message || 'Unknown error'}</p>
+                        `;
+                        results.style.display = 'block';
+                        
+                        // Show alert in Telegram if available
+                        if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+                            try {
+                                window.Telegram.WebApp.showAlert(`Audio test failed: ${error.message || 'Unknown error'}`);
+                            } catch (e) {
+                                console.log('Failed to show Telegram alert:', e);
+                            }
+                        }
+                    });
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

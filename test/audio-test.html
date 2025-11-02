@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Audio Playback Test</h1>
+    
+    <audio id="testAudio" controls>
+        Your browser does not support the audio element.
+    </audio>
+    
+    <br><br>
+    
+    <button onclick="playAudio()">Play Audio</button>
+    <button onclick="pauseAudio()">Pause Audio</button>
+    <button onclick="loadAudio()">Load Audio</button>
+    
+    <br><br>
+    
+    <div id="status"></div>
+    <div id="error"></div>
+    
+    <script>
+        const audio = document.getElementById('testAudio');
+        const statusDiv = document.getElementById('status');
+        const errorDiv = document.getElementById('error');
+        
+        // Test URL from our previous tests
+        const testUrl = "https://prod-1.storage.jamendo.com/?trackid=168&format=mp31&from=b%2BP0gECK96cgqEZh9n0thA%3D%3D%7CcpQr0rcu2Ug%2FXze4BRAzGQ%3D%3D";
+        
+        audio.src = testUrl;
+        
+        audio.addEventListener('loadstart', () => {
+            statusDiv.innerHTML += '<p>Load start</p>';
+        });
+        
+        audio.addEventListener('loadedmetadata', () => {
+            statusDiv.innerHTML += '<p>Loaded metadata</p>';
+        });
+        
+        audio.addEventListener('canplay', () => {
+            statusDiv.innerHTML += '<p>Can play</p>';
+        });
+        
+        audio.addEventListener('play', () => {
+            statusDiv.innerHTML += '<p>Play event</p>';
+        });
+        
+        audio.addEventListener('playing', () => {
+            statusDiv.innerHTML += '<p>Playing</p>';
+        });
+        
+        audio.addEventListener('pause', () => {
+            statusDiv.innerHTML += '<p>Pause</p>';
+        });
+        
+        audio.addEventListener('ended', () => {
+            statusDiv.innerHTML += '<p>Ended</p>';
+        });
+        
+        audio.addEventListener('error', (e) => {
+            statusDiv.innerHTML += '<p>Error event</p>';
+            errorDiv.innerHTML = '<p style="color: red;">Error: ' + audio.error.code + ' - ' + audio.error.message + '</p>';
+            console.log('Audio error:', audio.error);
+        });
+        
+        function playAudio() {
+            statusDiv.innerHTML = '<p>Attempting to play...</p>';
+            errorDiv.innerHTML = '';
+            
+            audio.play().then(() => {
+                statusDiv.innerHTML += '<p>Play promise resolved</p>';
+            }).catch((error) => {
+                statusDiv.innerHTML += '<p style="color: red;">Play promise rejected: ' + error.message + '</p>';
+                console.log('Play error:', error);
+            });
+        }
+        
+        function pauseAudio() {
+            audio.pause();
+        }
+        
+        function loadAudio() {
+            statusDiv.innerHTML = '<p>Loading audio...</p>';
+            errorDiv.innerHTML = '';
+            audio.load();
+        }
+    </script>
+</body>
+</html>
