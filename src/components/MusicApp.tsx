@@ -132,68 +132,55 @@ export default function MusicApp() {
     if (typeof track !== 'string' && 'source' in track && (track as UniversalTrack).source) {
       const universalTrack = track as UniversalTrack;
       
-      // If it's a SoundCloud track, we need to get the actual stream URL
-      if (universalTrack.source === 'soundcloud') {
-        try {
-          const streamUrl = await musicServiceManager.getStreamUrl(universalTrack.id);
-          
-          // Create a Jamendo-like track object for compatibility
-          const jamendoTrack: JamendoTrack = {
-            id: universalTrack.originalId.toString(),
-            name: universalTrack.title,
-            artist_name: universalTrack.artist,
-            duration: universalTrack.duration,
-            artist_id: '',
-            artist_idstr: '',
-            album_id: '',
-            album_name: universalTrack.genre || 'SoundCloud Track',
-            album_image: universalTrack.coverArt || '',
-            audio: streamUrl,
-            audiodownload: streamUrl,
-            prourl: universalTrack.permalink || '',
-            shorturl: universalTrack.permalink || '',
-            shareurl: universalTrack.permalink || '',
-            waveform: '',
-            image: universalTrack.coverArt || '',
-            musicinfo: {
-              vocalinstrumental: 'vocal',
-              lang: 'en',
-              gender: '',
-              speed: 'medium',
-              acousticelectric: 'electric'
-            }
-          };
-          
-          setCurrentTrack(jamendoTrack);
-          setCurrentTrackName(universalTrack.title);
-          return;
-        } catch (error) {
-          console.error('Failed to get SoundCloud stream URL:', error);
-        }
+      // Only handle Jamendo tracks now (SoundCloud support removed)
+      if (universalTrack.source === 'jamendo') {
+        // For Jamendo tracks, convert to JamendoTrack format
+        const jamendoTrack: JamendoTrack = {
+          id: universalTrack.originalId.toString(),
+          name: universalTrack.title,
+          artist_name: universalTrack.artist,
+          duration: universalTrack.duration,
+          artist_id: '',
+          artist_idstr: '',
+          album_id: '',
+          album_name: universalTrack.genre || 'Track',
+          album_image: universalTrack.coverArt || '',
+          audio: universalTrack.audioUrl || '',
+          audiodownload: universalTrack.audioUrl || '',
+          prourl: universalTrack.permalink || '',
+          shorturl: universalTrack.permalink || '',
+          shareurl: universalTrack.permalink || '',
+          waveform: '',
+          image: universalTrack.coverArt || ''
+        };
+        
+        setCurrentTrack(jamendoTrack);
+        setCurrentTrackName(universalTrack.title);
+        return;
       }
       
-      // For Jamendo tracks or fallback, convert to JamendoTrack format
-      const jamendoTrack: JamendoTrack = {
-        id: universalTrack.originalId.toString(),
-        name: universalTrack.title,
-        artist_name: universalTrack.artist,
-        duration: universalTrack.duration,
+      // Handle unknown source by creating a placeholder track
+      const placeholderTrack: JamendoTrack = {
+        id: 'unknown',
+        name: 'Track Unavailable',
+        artist_name: 'Unknown Artist',
+        duration: 0,
         artist_id: '',
         artist_idstr: '',
         album_id: '',
-        album_name: universalTrack.genre || 'Track',
-        album_image: universalTrack.coverArt || '',
-        audio: universalTrack.audioUrl || '',
-        audiodownload: universalTrack.audioUrl || '',
-        prourl: universalTrack.permalink || '',
-        shorturl: universalTrack.permalink || '',
-        shareurl: universalTrack.permalink || '',
+        album_name: 'Unknown Album',
+        album_image: '',
+        audio: '',
+        audiodownload: '',
+        prourl: '',
+        shorturl: '',
+        shareurl: '',
         waveform: '',
-        image: universalTrack.coverArt || ''
+        image: ''
       };
       
-      setCurrentTrack(jamendoTrack);
-      setCurrentTrackName(universalTrack.title);
+      setCurrentTrack(placeholderTrack);
+      setCurrentTrackName('Track Unavailable');
       return;
     }
     
@@ -527,7 +514,7 @@ export default function MusicApp() {
                 title: "AI-Generated Melody Pack",
                 image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400", 
                 bidAmount: 180,
-                bidTime: new Date(Date.now() - 30 * 60 * 1000),
+                bidTime: new Date(Date.now() - 30 * 60 * 60 * 1000),
                 status: "winning" as const,
                 endTime: new Date(Date.now() + 6 * 60 * 60 * 1000)
               }

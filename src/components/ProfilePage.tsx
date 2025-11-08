@@ -54,6 +54,8 @@ interface UserStats {
   tracks_played: number;
   favorites: number;
   contests: number;
+  followers: number;
+  following: number;
 }
 
 interface UserLevel {
@@ -73,10 +75,47 @@ const ProfilePage: React.FC = () => {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [userLevel, setUserLevel] = useState<UserLevel | null>(null);
   const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const { user: telegramUser } = useTelegramAuth();
+
+  // Handle follow/unfollow
+  const handleFollowUnfollow = async () => {
+    if (!telegramUser?.id || !userData?.id) return;
+    
+    try {
+      if (isFollowing) {
+        // Unfollow
+        const { error } = await supabase
+          .from('subscriptions')
+          .delete()
+          .eq('user_id', telegramUser.id)
+          .eq('target_user_id', userData.id);
+          
+        if (!error) {
+          setIsFollowing(false);
+          setUserStats(prev => prev ? { ...prev, followers: Math.max(0, (prev.followers || 0) - 1) } : null);
+        }
+      } else {
+        // Follow
+        const { error } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: telegramUser.id,
+            target_user_id: userData.id
+          });
+          
+        if (!error) {
+          setIsFollowing(true);
+          setUserStats(prev => prev ? { ...prev, followers: (prev.followers || 0) + 1 } : null);
+        }
+      }
+    } catch (err) {
+      console.error('Error following/unfollowing user:', err);
+    }
+  };
 
   // Fetch user data from Supabase
   useEffect(() => {
@@ -109,11 +148,39 @@ const ProfilePage: React.FC = () => {
           .select('*', { count: 'exact' })
           .eq('user_id', userData.id);
 
+        // Get followers count
+        const { count: followersCount } = await supabase
+          .from('subscriptions')
+          .select('*', { count: 'exact' })
+          .eq('target_user_id', userData.id);
+
+        // Get following count
+        const { count: followingCount } = await supabase
+          .from('subscriptions')
+          .select('*', { count: 'exact' })
+          .eq('user_id', userData.id);
+
+        // Check if current user is following this user
+        let isUserFollowing = false;
+        if (telegramUser?.id && telegramUser.id !== userData.telegram_id) {
+          const { data: followingData } = await supabase
+            .from('subscriptions')
+            .select('id')
+            .eq('user_id', telegramUser.id)
+            .eq('target_user_id', userData.id)
+            .single();
+          
+          isUserFollowing = !!followingData;
+          setIsFollowing(isUserFollowing);
+        }
+
         setUserStats({
           playlists: playlistsCount || 0,
           tracks_played: 0, // This would need to be implemented
           favorites: likedTracksCount || 0,
-          contests: 0 // This would need to be implemented
+          contests: 0, // This would need to be implemented
+          followers: followersCount || 0,
+          following: followingCount || 0
         });
 
         // Get user level
@@ -167,7 +234,9 @@ const ProfilePage: React.FC = () => {
     { label: 'Playlists', value: userStats?.playlists || 0 },
     { label: 'Tracks Played', value: userStats?.tracks_played || 0 },
     { label: 'Favorites', value: userStats?.favorites || 0 },
-    { label: 'Contests', value: userStats?.contests || 0 }
+    { label: 'Contests', value: userStats?.contests || 0 },
+    { label: 'Followers', value: userStats?.followers || 0 },
+    { label: 'Following', value: userStats?.following || 0 }
   ];
 
   // Recent activity (this would need to be fetched from the database)
@@ -264,9 +333,18 @@ const ProfilePage: React.FC = () => {
             <p className="text-sm text-[#8B949E]">{username}</p>
             <p className="text-xs text-[#8B949E]">{joinDate}</p>
           </div>
-          <button className="p-2 rounded-full hover:bg-[#21262D]">
-            <Edit3 className="w-5 h-5" />
-          </button>
+          {telegramUser?.id.toString() !== userData?.telegram_id.toString() ? (
+            <button 
+              onClick={handleFollowUnfollow}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${isFollowing ? 'bg-[#238636] hover:bg-[#2ea043]' : 'bg-[#1f6feb] hover:bg-[#388bfd]'}`}
+            >
+              {isFollowing ? 'Following' : 'Follow'}
+            </button>
+          ) : (
+            <button className="p-2 rounded-full hover:bg-[#21262D]">
+              <Edit3 className="w-5 h-5" />
+            </button>
+          )}
         </div>
         
         {/* User Stats */}

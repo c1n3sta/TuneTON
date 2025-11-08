@@ -1,5 +1,5 @@
-import { projectId, publicAnonKey } from './supabase/info';
 import { JamendoTrack } from '../utils/jamendo-api';
+import { projectId, publicAnonKey } from './supabase/info';
 
 interface APIResponse<T = any> {
   success: boolean;
@@ -147,6 +147,24 @@ class TuneTonAPI {
     // This would toggle like status for a track
     console.log('Toggling track like', track, isLiked);
     return true;
+  }
+
+  // Subscription (follow) management
+  async followUser(targetUserId: string): Promise<APIResponse> {
+    return this.request('/subscriptions', {
+      method: 'POST',
+      body: JSON.stringify({ target_user_id: targetUserId })
+    });
+  }
+
+  async unfollowUser(targetUserId: string): Promise<APIResponse> {
+    return this.request(`/subscriptions/${targetUserId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getSubscriptions(): Promise<APIResponse> {
+    return this.request('/subscriptions');
   }
 
   // Test KV store

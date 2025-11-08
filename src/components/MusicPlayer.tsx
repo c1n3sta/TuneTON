@@ -1,38 +1,32 @@
-import { useState, useEffect } from "react";
-import { 
-  ChevronDown,
-  List,
-  Loader2,
+import {
   AlertCircle,
-  WifiOff,
-  Music,
+  BarChart3,
+  ChevronDown,
   FileText,
   Heart,
-  Share2,
-  MoreHorizontal,
+  List,
+  Loader2,
+  Music,
+  Pause,
+  Play,
+  Repeat,
+  Repeat1,
+  Shuffle,
   SkipBack,
   SkipForward,
   Volume2,
   VolumeX,
-  Play,
-  Pause,
-  Shuffle,
-  Repeat,
-  Repeat1,
-  BarChart3,
-  Zap,
-  Radio
+  Zap
 } from "lucide-react";
-import BottomNavigation from "./BottomNavigation";
-import { Badge } from "./ui/badge";
-import { jamendoAPI, JamendoTrack, getTuneTONRecommendations } from "../utils/jamendo-api";
+import { useEffect, useState } from "react";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
-import { checkMixModeActive, formatTime, isValidAudioUrl } from "./player/utils";
-import { convertJamendoToTrack } from "./player/utils";
-import type { AudioTrack } from '../types/audio';
+import { getTuneTONRecommendations, JamendoTrack } from "../utils/jamendo-api";
+import BottomNavigation from "./BottomNavigation";
 import { DEFAULT_EQ_VALUES, WAVEFORM_HEIGHTS } from "./player/constants";
-import QueueView from "./player/QueueView";
 import EffectsPanel from "./player/EffectsPanel";
+import QueueView from "./player/QueueView";
+import { convertJamendoToTrack, formatTime, isValidAudioUrl } from "./player/utils";
+import { Badge } from "./ui/badge";
 
 // Define the EQ bands type to ensure consistency
 type EqBands = typeof DEFAULT_EQ_VALUES;
@@ -45,12 +39,12 @@ interface MusicPlayerProps {
   onPlayPause?: () => void;
 }
 
-export default function MusicPlayer({ 
-  onBack, 
-  onNavigate, 
-  currentTrack, 
-  isPlaying: initialIsPlaying = true, 
-  onPlayPause 
+export default function MusicPlayer({
+  onBack,
+  onNavigate,
+  currentTrack,
+  isPlaying: initialIsPlaying = true,
+  onPlayPause
 }: MusicPlayerProps) {
   // Audio and playback state
   const [playerIsPlaying, setPlayerIsPlaying] = useState(initialIsPlaying);
@@ -69,12 +63,12 @@ export default function MusicPlayer({
   const [showEqualizer, setShowEqualizer] = useState(false);
   const [showMixMode, setShowMixMode] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
-  
+
   // Jamendo integration
   const [currentJamendoTrack, setCurrentJamendoTrack] = useState<JamendoTrack | null>(null);
   const [queueTracks, setQueueTracks] = useState<JamendoTrack[]>([]);
 
-  
+
   // Audio Effects States
   const [pitch, setPitch] = useState(0);
   const [mixModeActive, setMixModeActive] = useState(false);
@@ -85,7 +79,7 @@ export default function MusicPlayer({
   const [tapeWow, setTapeWow] = useState(0);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
+
   // Audio player hook
   const {
     isPlaying,
@@ -142,7 +136,7 @@ export default function MusicPlayer({
       setCurrentJamendoTrack(nextTrack);
       setQueueTracks(prev => prev.slice(1));
       seek(0);
-      
+
       if (currentJamendoTrack) {
         setQueueTracks(prev => [...prev, currentJamendoTrack]);
       }
@@ -160,12 +154,28 @@ export default function MusicPlayer({
     }
   };
 
-  const trackName = typeof currentTrack === 'object' && currentTrack ? currentTrack.name : (typeof currentTrack === 'string' ? currentTrack : 'Unknown Track');
-  const track = convertJamendoToTrack(currentJamendoTrack, trackName, currentTime, isLiked, isDisliked);
+  // Handle missing track data gracefully
+  const safeTrack = typeof currentTrack === 'object' && currentTrack ? currentTrack : {
+    id: 'unknown',
+    name: typeof currentTrack === 'string' ? currentTrack : 'Unknown Track',
+    artist_name: 'Unknown Artist',
+    duration: 0,
+    image: '',
+    audio: '',
+    audiodownload: ''
+  } as JamendoTrack; // Type assertion to satisfy the convertJamendoToTrack function
+
+  const track = convertJamendoToTrack(
+    currentJamendoTrack || safeTrack,
+    typeof currentTrack === 'string' ? currentTrack : 'Unknown Track',
+    0, // currentTime is managed by player, not track object
+    isLiked,
+    isDisliked
+  );
 
   // Update the player state when the track changes
   useEffect(() => {
-    if (track) {
+    if (track && track.id !== 'unknown') {
       loadTrack(track);
     }
   }, [track, loadTrack]);
@@ -187,36 +197,13 @@ export default function MusicPlayer({
     }
   }, [playerIsPlaying, isPlaying, togglePlayPause]);
 
-  // Handle errors
+  // Handle errors gracefully
   useEffect(() => {
     if (hasError) {
-      setErrorMessage('Unable to play audio');
+      setErrorMessage('Unable to play audio. Please try another track.');
       console.error('Audio playback error');
-      
-      // Additional debugging info
-      if (track && 'audioUrl' in track && track.audioUrl) {
-        console.log('Attempting to play URL:', track.audioUrl);
-        // Check if URL is accessible
-        fetch(track.audioUrl as string, { method: 'HEAD' })
-          .then(response => {
-            console.log(`Audio URL status: ${response.status} ${response.statusText}`);
-            if (!response.ok) {
-              console.error(`Audio URL returned status ${response.status}: ${response.statusText}`);
-            }
-          })
-          .catch(err => {
-            console.error('Failed to fetch audio URL:', err);
-          });
-      } else {
-        console.log('No audio URL provided for track');
-      }
-      
-      // Log the track object for debugging
-      console.log('Current track object:', track);
-    } else {
-      setErrorMessage(null);
     }
-  }, [hasError, track]);
+  }, [hasError]);
 
   // Load Jamendo tracks
   useEffect(() => {
@@ -224,7 +211,7 @@ export default function MusicPlayer({
       try {
         setIsLoading(true);
         console.log('🎵 MusicPlayer: Starting to load Jamendo tracks...');
-        
+
         // If currentTrack is already a JamendoTrack object, use it directly
         if (currentTrack && typeof currentTrack === 'object' && 'id' in currentTrack && currentTrack.id) {
           // Validate that it has required fields
@@ -233,7 +220,7 @@ export default function MusicPlayer({
             setCurrentJamendoTrack(validTrack);
             console.log('🎵 Using passed JamendoTrack:', validTrack.name, 'by', validTrack.artist_name);
           }
-          
+
           // Still load recommendations for queue
           const recommendations = await getTuneTONRecommendations();
           const allTracks = [
@@ -242,26 +229,26 @@ export default function MusicPlayer({
             ...recommendations.lofi,
             ...recommendations.remixable
           ].filter(track => track.id !== currentTrack.id); // Exclude current track from queue
-          
+
           setQueueTracks(allTracks.slice(0, 5));
-          
+
           setIsLoading(false);
           return;
         }
-        
+
         const recommendations = await getTuneTONRecommendations();
         console.log('🎵 Got recommendations:', recommendations);
-        
+
         const allTracks = [
           ...recommendations.popular,
           ...recommendations.trending,
           ...recommendations.lofi,
           ...recommendations.remixable
         ];
-        
+
         console.log('🎵 Total tracks loaded:', allTracks.length);
         setQueueTracks(allTracks.slice(1, 6));
-        
+
         // Find track by name if currentTrack is a string
         const trackName = typeof currentTrack === 'string' ? currentTrack : '';
         let trackToPlay = allTracks.find(track => track.name === trackName) || allTracks[0];
@@ -269,7 +256,7 @@ export default function MusicPlayer({
           setCurrentJamendoTrack(trackToPlay);
           console.log('🎵 Selected track to play:', trackToPlay.name, 'by', trackToPlay.artist_name);
         }
-        
+
 
       } catch (error) {
         console.error('🎵 Error loading Jamendo tracks:', error);
@@ -284,22 +271,23 @@ export default function MusicPlayer({
 
   // Check mix mode active
   useEffect(() => {
-    setMixModeActive(checkMixModeActive(lofiIntensity, backgroundNoise, vinylCrackle, tapeWow, 0, tempo, pitch));
+    const isActive = lofiIntensity > 0 || backgroundNoise !== 'none' || vinylCrackle > 0 || tapeWow > 0 || tempo !== 100 || pitch !== 0;
+    setMixModeActive(isActive);
   }, [lofiIntensity, backgroundNoise, vinylCrackle, tapeWow, tempo, pitch]);
 
   // Control handlers
   const togglePlay = () => {
     console.log('Toggle play called, track:', track);
-    
-    if ((!track.audioUrl || track.audioUrl === '') && !hasError) {
+
+    if ((!track || !track.audioUrl || track.audioUrl === '') && !hasError) {
       setHasError(true);
       setErrorMessage('No audio source available');
       console.error('No audio source available for track:', track);
       return;
     }
-    
+
     // Validate audio URL before playing
-    if (track.audioUrl) {
+    if (track && track.audioUrl) {
       if (!isValidAudioUrl(track.audioUrl)) {
         setHasError(true);
         setErrorMessage('Invalid audio URL format');
@@ -307,11 +295,11 @@ export default function MusicPlayer({
         return;
       }
     }
-    
+
     const newPlayState = !playerIsPlaying;
     setPlayerIsPlaying(newPlayState);
     onPlayPause?.();
-    
+
     if (hasError) {
       setHasError(false);
       setErrorMessage(null);
@@ -336,7 +324,7 @@ export default function MusicPlayer({
     handleEQBandChange(5, defaultArray[5]);
     handleEQBandChange(6, defaultArray[6]);
   };
-  
+
   const resetMixMode = () => {
     setLofiIntensity(0);
     setBackgroundNoise('none');
@@ -436,10 +424,10 @@ export default function MusicPlayer({
   // Show queue view
   if (showQueue) {
     return (
-      <QueueView 
+      <QueueView
         track={track}
         queueTracks={queueTracks}
-onClose={() => setShowQueue(false)}
+        onClose={() => setShowQueue(false)}
         onNavigate={onNavigate}
       />
     );
@@ -454,7 +442,7 @@ onClose={() => setShowQueue(false)}
         <div className="w-full max-w-md bg-card rounded-2xl min-h-screen relative overflow-hidden border border-border">
           {/* Header */}
           <div className="flex items-center justify-between p-6 pb-4 border-b border-border">
-            <button 
+            <button
               onClick={onBack}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
             >
@@ -464,7 +452,7 @@ onClose={() => setShowQueue(false)}
               <h2 className="font-medium">Now Playing</h2>
 
             </div>
-            <button 
+            <button
               onClick={() => setShowQueue(!showQueue)}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
             >
@@ -493,7 +481,7 @@ onClose={() => setShowQueue(false)}
                       Tap anywhere on the screen to enable audio playback
                     </p>
                   )} */}
-                  <button 
+                  <button
                     onClick={() => {
                       setHasError(false);
                       setErrorMessage(null);
@@ -510,7 +498,7 @@ onClose={() => setShowQueue(false)}
             {!isLoading && (
               <div className="flex justify-center pt-4">
                 <div className="relative">
-                  <div 
+                  <div
                     className="w-80 h-80 rounded-2xl bg-cover bg-center shadow-2xl border border-border"
                     style={{ backgroundImage: `url('${track.cover}')` }}
                   >
@@ -541,13 +529,13 @@ onClose={() => setShowQueue(false)}
                     )}
 
                     {/* Jamendo Badge */}
-                    {currentJamendoTrack && !usingMockData && (
+                    {currentJamendoTrack && (
                       <div className="absolute bottom-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                         Jamendo
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Animated audio visualizer */}
                   {playerIsPlaying && !hasError && (
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/30 via-transparent to-transparent flex items-end justify-center pb-8">
@@ -556,7 +544,7 @@ onClose={() => setShowQueue(false)}
                           <div
                             key={i}
                             className="bg-primary opacity-80 rounded-sm w-[2px] animate-pulse"
-                            style={{ 
+                            style={{
                               height: `${height}px`,
                               animationDelay: `${i * 0.08}s`,
                               animationDuration: '1.2s'
@@ -591,11 +579,11 @@ onClose={() => setShowQueue(false)}
             {/* Progress Bar */}
             {!isLoading && (
               <div className="space-y-2">
-                <div 
+                <div
                   className="h-1.5 bg-secondary rounded-full cursor-pointer relative"
                   onClick={handleSeek}
                 >
-                  <div 
+                  <div
                     className="h-full bg-primary rounded-full relative"
                     style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
                   >
@@ -612,23 +600,23 @@ onClose={() => setShowQueue(false)}
             {/* Main Controls */}
             {!isLoading && (
               <div className="flex items-center justify-center gap-6">
-                <button 
+                <button
                   onClick={toggleShuffle}
                   className={`p-2 rounded-full ${isShuffled ? 'text-primary' : 'text-muted-foreground'}`}
                   aria-label="Shuffle"
                 >
                   <Shuffle className="w-5 h-5" />
                 </button>
-                
-                <button 
+
+                <button
                   onClick={handlePrevious}
                   className="p-2 rounded-full text-muted-foreground hover:text-foreground"
                   aria-label="Previous track"
                 >
                   <SkipBack className="w-6 h-6" />
                 </button>
-                
-                <button 
+
+                <button
                   onClick={togglePlay}
                   className="p-4 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                   aria-label={playerIsPlaying ? 'Pause' : 'Play'}
@@ -639,16 +627,16 @@ onClose={() => setShowQueue(false)}
                     <Play className="w-6 h-6 pl-0.5" />
                   )}
                 </button>
-                
-                <button 
+
+                <button
                   onClick={handleNext}
                   className="p-2 rounded-full text-muted-foreground hover:text-foreground"
                   aria-label="Next track"
                 >
                   <SkipForward className="w-6 h-6" />
                 </button>
-                
-                <button 
+
+                <button
                   onClick={toggleRepeat}
                   className={`p-2 rounded-full ${repeatMode > 0 ? 'text-primary' : 'text-muted-foreground'}`}
                   aria-label="Repeat"
@@ -665,32 +653,32 @@ onClose={() => setShowQueue(false)}
             {/* Additional Controls */}
             {!isLoading && (
               <div className="flex items-center justify-between">
-                <button 
+                <button
                   onClick={toggleLike}
                   className={`p-2 rounded-full ${isLiked ? 'text-destructive' : 'text-muted-foreground'}`}
                   aria-label="Like"
                 >
                   <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
                 </button>
-                
+
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={() => setShowLyrics(!showLyrics)}
                     className={`p-2 rounded-full ${showLyrics ? 'text-primary' : 'text-muted-foreground'}`}
                     aria-label="Lyrics"
                   >
                     <FileText className="w-5 h-5" />
                   </button>
-                  
-                  <button 
+
+                  <button
                     onClick={() => setShowEqualizer(!showEqualizer)}
                     className={`p-2 rounded-full ${showEqualizer ? 'text-primary' : 'text-muted-foreground'}`}
                     aria-label="Equalizer"
                   >
                     <BarChart3 className="w-5 h-5" />
                   </button>
-                  
-                  <button 
+
+                  <button
                     onClick={() => setShowMixMode(!showMixMode)}
                     className={`p-2 rounded-full ${showMixMode ? 'text-primary' : 'text-muted-foreground'}`}
                     aria-label="Mix Mode"
@@ -698,9 +686,9 @@ onClose={() => setShowQueue(false)}
                     <Zap className="w-5 h-5" />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={handleToggleMute}
                     className="p-2 rounded-full text-muted-foreground"
                     aria-label={isMuted ? 'Unmute' : 'Mute'}
@@ -711,8 +699,8 @@ onClose={() => setShowQueue(false)}
                       <Volume2 className="w-5 h-5" />
                     )}
                   </button>
-                  
-                  <div 
+
+                  <div
                     className="w-32 h-3 bg-gray-700 rounded-full relative cursor-pointer border-2 border-gray-600 shadow-md"
                     onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
@@ -742,7 +730,7 @@ onClose={() => setShowQueue(false)}
                       document.addEventListener('mouseup', handleMouseUp);
                     }}
                   >
-                    <div 
+                    <div
                       className="h-full bg-blue-500 rounded-full shadow-inner"
                       style={{ width: `${playerVolumeState}%` }}
                     ></div>

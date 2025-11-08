@@ -1,5 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { AudioTrack } from '../types/audio';
+
+// Add import for URL validation utility
+import { isValidAudioUrl } from '../components/player/utils';
 
 interface UseAudioPlayerReturn {
   // Playback state
@@ -171,6 +174,12 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
   const loadTrack = (track: AudioTrack) => {
     const audio = audioRef.current;
     if (!audio) return;
+    
+    // Validate audio URL before loading
+    if (track.audioUrl && !isValidAudioUrl(track.audioUrl)) {
+      console.error('Invalid audio URL provided to loadTrack:', track.audioUrl);
+      return;
+    }
     
     setCurrentTrack(track);
     audio.src = typeof track.source === 'string' ? track.source : '';

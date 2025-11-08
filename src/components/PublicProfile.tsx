@@ -1,26 +1,23 @@
-import { ArrowLeft, MoreVertical, Play, Heart, Users, Music, List, Award, TrendingUp, Trophy } from "lucide-react";
-import svgPaths from "../imports/svg-ty8h9m23bx";
+import imgRemixThumbnail2 from "figma:asset/32f8c11f6ddbee1a59d210d5725d72775f8b4e07.png";
 import imgUserAvatar from "figma:asset/84d6545ac22a8fa7cc695789dc8e2ff29992a5af.png";
 import imgRemixThumbnail from "figma:asset/9131a8d559e61759624112848c7efd789a821304.png";
 import imgRemixThumbnail1 from "figma:asset/9b70de60c9c6fca835689966d784c1342e0cae63.png";
-import imgRemixThumbnail2 from "figma:asset/32f8c11f6ddbee1a59d210d5725d72775f8b4e07.png";
+import { ArrowLeft, Award, Heart, List, MoreVertical, Music, Play, TrendingUp, Trophy, Users } from "lucide-react";
 // Import playlist covers from existing assets
-import imgPlaylistCover from "figma:asset/e4df5775c88dbb71f1c09a72f65ba80adc015b71.png";
-import imgPlaylistCover1 from "figma:asset/059d630bf1b73c65663230f6fe3660d07bc060b8.png";
-import imgPlaylistCover2 from "figma:asset/20bb8fe31b212ec3236e8224dd3efe441043be2f.png";
-import imgPlaylistCover3 from "figma:asset/a1ad22f09bf6f15ef5bc637a1785d31b1ca3884a.png";
 import imgPlaylistCover4 from "figma:asset/08ea158ebabf976cca7bb1f8ec91d0c456a2f915.png";
+import imgPlaylistCover from "figma:asset/e4df5775c88dbb71f1c09a72f65ba80adc015b71.png";
 // Import NFT and track covers for galleries
-import imgAlbumArt from "figma:asset/b13483f5f235f1c26e9cbdbfb40edb8ca3b9c11c.png";
 import imgTrackCover from "figma:asset/5c0570c22db9da4233071e8dc020249fbd9aeece.png";
-import imgTrackCover1 from "figma:asset/ee4dceec67617340be718a9b700bd99946447425.png";
 import imgFeaturedRemixCover from "figma:asset/92af5e42f7a6be5cc4a3570d7557d9b846376457.png";
+import imgAlbumArt from "figma:asset/b13483f5f235f1c26e9cbdbfb40edb8ca3b9c11c.png";
 import imgRemixCover from "figma:asset/b4d5d93e0e03aef0e9252522600b2fe91d9305c2.png";
+import imgTrackCover1 from "figma:asset/ee4dceec67617340be718a9b700bd99946447425.png";
+import { useEffect, useState } from "react";
+import { supabase } from '../utils/telegramAuth';
 import BottomNavigation from "./BottomNavigation";
 import StylishTabs from "./StylishTabs";
 import SwipeableTabContent from "./SwipeableTabContent";
 import { useSwipeConfig } from "./useMobileDetection";
-import { useState } from "react";
 
 interface PublicProfileProps {
   onBack: () => void;
@@ -29,58 +26,162 @@ interface PublicProfileProps {
   userId?: string;
 }
 
+interface UserData {
+  id: string;
+  telegram_id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  photo_url: string;
+  is_premium: boolean;
+  bio: string;
+  is_verified: boolean;
+  is_artist: boolean;
+  created_at: string;
+}
+
+interface UserStats {
+  playlists: number;
+  tracks_played: number;
+  favorites: number;
+  contests: number;
+  followers: number;
+  following: number;
+}
+
 export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail, userId }: PublicProfileProps) {
   const [activeTab, setActiveTab] = useState("remixes");
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(5200);
-  const [followingCount, setFollowingCount] = useState(1834);
-  
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [publicPlaylists, setPublicPlaylists] = useState<any[]>([]);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
   // Get optimal swipe configuration for current device
   const { isMobile, isTouch, swipeConfig } = useSwipeConfig();
 
-  // Mock data for the content
-  const publicPlaylists = [
-    {
-      id: "1",
-      name: "Electronic Essentials",
-      trackCount: 45,
-      cover: imgPlaylistCover,
-      plays: "2.3M",
-      likes: 542,
-      followers: 1205,
-      description: "My favorite electronic tracks curated over the years"
-    },
-    {
-      id: "2", 
-      name: "Chill Remix Sessions",
-      trackCount: 28,
-      cover: imgPlaylistCover1,
-      plays: "1.8M",
-      likes: 423,
-      followers: 890,
-      description: "Perfect for late night studio sessions"
-    },
-    {
-      id: "3",
-      name: "Club Bangers 2024", 
-      trackCount: 32,
-      cover: imgPlaylistCover2,
-      plays: "3.1M",
-      likes: 756,
-      followers: 1456,
-      description: "The hottest tracks that get the crowd moving"
-    },
-    {
-      id: "4",
-      name: "Remix Inspirations",
-      trackCount: 19,
-      cover: imgPlaylistCover3,
-      plays: "980K",
-      likes: 234,
-      followers: 567,
-      description: "Tracks that inspire my remix work"
-    }
-  ];
+  // Fetch user data from Supabase
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userId) return;
+
+      try {
+        setLoading(true);
+
+        // Fetch user data
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (userError) throw userError;
+
+        if (userData) {
+          setUserData(userData);
+
+          // Fetch user stats
+          const stats = await fetchUserStats(userId);
+          setUserStats(stats);
+          setFollowersCount(stats.followers);
+          setFollowingCount(stats.following);
+
+          // Fetch user playlists
+          const playlists = await fetchUserPlaylists(userId);
+          setPublicPlaylists(playlists);
+
+          // Check if current user is following this user
+          // This would need the current user's ID from context/auth
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setError('Failed to load user profile');
+        setLoading(false);
+      }
+    };
+
+    const fetchUserStats = async (userId: string) => {
+      try {
+        // Get playlist count
+        const { count: playlistsCount } = await supabase
+          .from('playlists')
+          .select('*', { count: 'exact' })
+          .eq('user_id', userId);
+
+        // Get liked tracks count
+        const { count: likedTracksCount } = await supabase
+          .from('liked_tracks')
+          .select('*', { count: 'exact' })
+          .eq('user_id', userId);
+
+        // Get followers count
+        const { count: followersCount } = await supabase
+          .from('subscriptions')
+          .select('*', { count: 'exact' })
+          .eq('target_user_id', userId);
+
+        // Get following count
+        const { count: followingCount } = await supabase
+          .from('subscriptions')
+          .select('*', { count: 'exact' })
+          .eq('user_id', userId);
+
+        return {
+          playlists: playlistsCount || 0,
+          tracks_played: 0, // This would need to be implemented
+          favorites: likedTracksCount || 0,
+          contests: 0, // This would need to be implemented
+          followers: followersCount || 0,
+          following: followingCount || 0
+        };
+      } catch (err) {
+        console.error('Error fetching user stats:', err);
+        return {
+          playlists: 0,
+          tracks_played: 0,
+          favorites: 0,
+          contests: 0,
+          followers: 0,
+          following: 0
+        };
+      }
+    };
+
+    const fetchUserPlaylists = async (userId: string) => {
+      try {
+        const { data: playlists, error } = await supabase
+          .from('playlists')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('is_public', true)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Transform playlists data to match the expected format
+        return playlists.map(playlist => ({
+          id: playlist.id,
+          name: playlist.name,
+          trackCount: playlist.track_count || 0,
+          cover: imgPlaylistCover, // This would need to be replaced with actual cover
+          plays: "0", // This would need to be implemented
+          likes: 0, // This would need to be implemented
+          followers: 0, // This would need to be implemented
+          description: playlist.description || ''
+        }));
+      } catch (err) {
+        console.error('Error fetching user playlists:', err);
+        return [];
+      }
+    };
+
+    fetchUserData();
+  }, [userId]);
 
   const userNFTs = [
     {
@@ -156,7 +257,7 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
       isAnimated: true
     },
     {
-      id: "badge-2", 
+      id: "badge-2",
       name: "Contest Champion",
       description: "Won 3 remix competitions",
       icon: "🏆",
@@ -196,7 +297,7 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
       name: "Streamer",
       description: "1M+ plays on remixes",
       icon: "📻",
-      rarity: "Epic", 
+      rarity: "Epic",
       earnedDate: "October 2023",
       isAnimated: true
     },
@@ -295,9 +396,9 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
   const handleFollow = () => {
     setIsFollowing(!isFollowing);
     if (isFollowing) {
-      setFollowersCount(prev => prev - 1);
+      setFollowersCount((prev: number) => prev - 1);
     } else {
-      setFollowersCount(prev => prev + 1);
+      setFollowersCount((prev: number) => prev + 1);
     }
   };
 
@@ -322,9 +423,9 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
     <div className="space-y-3">
       {/* Remix 1 */}
       <div className="flex items-center gap-3 py-2">
-        <div 
+        <div
           className="w-16 h-16 rounded-lg bg-center bg-cover"
-          style={{ 
+          style={{
             backgroundImage: `url('${imgRemixThumbnail}')`,
             backgroundSize: '150% 100%',
             backgroundPosition: '50% 0%'
@@ -344,9 +445,9 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
 
       {/* Remix 2 */}
       <div className="flex items-center gap-3 py-2">
-        <div 
+        <div
           className="w-16 h-16 rounded-lg bg-center bg-cover"
-          style={{ 
+          style={{
             backgroundImage: `url('${imgRemixThumbnail1}')`,
             backgroundSize: '100% 133.33%',
             backgroundPosition: '0% 50%'
@@ -366,9 +467,9 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
 
       {/* Remix 3 */}
       <div className="flex items-center gap-3 py-2">
-        <div 
+        <div
           className="w-16 h-16 rounded-lg bg-center bg-cover"
-          style={{ 
+          style={{
             backgroundImage: `url('${imgRemixThumbnail2}')`,
             backgroundSize: '128.42% 100%',
             backgroundPosition: '50% 0%'
@@ -391,13 +492,13 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
   const renderPlaylists = () => (
     <div className="space-y-4">
       {publicPlaylists.map((playlist) => (
-        <button 
-          key={playlist.id} 
+        <button
+          key={playlist.id}
           onClick={() => onOpenPlaylistDetail?.(playlist)}
           className="w-full bg-[#21262d] rounded-lg p-3 hover:bg-[#30363d] transition-colors"
         >
           <div className="flex items-center gap-3 mb-2">
-            <div 
+            <div
               className="w-16 h-16 rounded-lg bg-center bg-cover"
               style={{ backgroundImage: `url('${playlist.cover}')` }}
             />
@@ -417,7 +518,7 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
               <Play className="w-4 h-4" />
             </div>
           </div>
-          
+
           {playlist.description && (
             <p className="text-[#8b949e] text-xs mt-2 ml-[76px] mr-[52px] text-left">
               {playlist.description}
@@ -433,7 +534,7 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
       <div className="grid grid-cols-2 gap-3">
         {userNFTs.map((nft) => (
           <div key={nft.id} className="bg-[#21262d] rounded-lg p-3 hover:bg-[#30363d] transition-colors">
-            <div 
+            <div
               className="w-full h-24 rounded-lg bg-center bg-cover mb-2"
               style={{ backgroundImage: `url('${nft.image}')` }}
             />
@@ -442,12 +543,11 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
               <p className="text-[#8b949e] text-xs">{nft.category}</p>
               <div className="flex items-center justify-between">
                 <span className="text-[#ff22fb] text-xs font-semibold">{nft.price} TON</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  nft.rarity === 'Legendary' ? 'bg-[#d29922] text-black' :
-                  nft.rarity === 'Epic' ? 'bg-[#8b5cf6] text-white' :
-                  nft.rarity === 'Rare' ? 'bg-[#06b6d4] text-white' :
-                  'bg-[#6b7280] text-white'
-                }`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${nft.rarity === 'Legendary' ? 'bg-[#d29922] text-black' :
+                    nft.rarity === 'Epic' ? 'bg-[#8b5cf6] text-white' :
+                      nft.rarity === 'Rare' ? 'bg-[#06b6d4] text-white' :
+                        'bg-[#6b7280] text-white'
+                  }`}>
                   {nft.rarity}
                 </span>
               </div>
@@ -468,9 +568,8 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         {userBadges.map((badge) => (
-          <div key={badge.id} className={`bg-[#21262d] rounded-lg p-3 hover:bg-[#30363d] transition-all relative overflow-hidden ${
-            badge.isAnimated ? 'hover:scale-105' : ''
-          }`}>
+          <div key={badge.id} className={`bg-[#21262d] rounded-lg p-3 hover:bg-[#30363d] transition-all relative overflow-hidden ${badge.isAnimated ? 'hover:scale-105' : ''
+            }`}>
             {badge.isAnimated && (
               <div className="absolute inset-0 bg-gradient-to-r from-[#ff22fb]/10 to-[#ff4400]/10 animate-pulse" />
             )}
@@ -479,12 +578,11 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
                 <span className={`text-2xl ${badge.isAnimated ? 'animate-bounce' : ''}`}>
                   {badge.icon}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                  badge.rarity === 'Legendary' ? 'bg-[#d29922] text-black' :
-                  badge.rarity === 'Epic' ? 'bg-[#8b5cf6] text-white' :
-                  badge.rarity === 'Rare' ? 'bg-[#06b6d4] text-white' :
-                  'bg-[#6b7280] text-white'
-                }`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${badge.rarity === 'Legendary' ? 'bg-[#d29922] text-black' :
+                    badge.rarity === 'Epic' ? 'bg-[#8b5cf6] text-white' :
+                      badge.rarity === 'Rare' ? 'bg-[#06b6d4] text-white' :
+                        'bg-[#6b7280] text-white'
+                  }`}>
                   {badge.rarity}
                 </span>
               </div>
@@ -537,13 +635,12 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
           <div key={index} className="bg-[#21262d] rounded-lg p-3 hover:bg-[#30363d] transition-colors">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
-                  category.rank <= 10 
-                    ? 'bg-[#d29922] text-black' 
-                    : category.rank <= 50 
-                    ? 'bg-[#8b5cf6] text-white' 
-                    : 'bg-[#484f58] text-white'
-                }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${category.rank <= 10
+                    ? 'bg-[#d29922] text-black'
+                    : category.rank <= 50
+                      ? 'bg-[#8b5cf6] text-white'
+                      : 'bg-[#484f58] text-white'
+                  }`}>
                   #{category.rank}
                 </div>
                 <div>
@@ -553,10 +650,9 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
               </div>
               <div className="text-right">
                 <div className="text-[#c9d1d9] text-sm font-semibold">{formatCount(category.points)} pts</div>
-                <div className={`flex items-center justify-end gap-1 text-xs ${
-                  category.trend === 'up' ? 'text-[#ff4400]' : 
-                  category.trend === 'down' ? 'text-red-400' : 'text-[#8b949e]'
-                }`}>
+                <div className={`flex items-center justify-end gap-1 text-xs ${category.trend === 'up' ? 'text-[#ff4400]' :
+                    category.trend === 'down' ? 'text-red-400' : 'text-[#8b949e]'
+                  }`}>
                   {category.trend === 'up' && '↗'}
                   {category.trend === 'down' && '↘'}
                   {category.trend === 'stable' && '→'}
@@ -595,11 +691,11 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
           <button onClick={handleBack} className="p-1">
             <ArrowLeft className="w-6 h-6 text-[#c9d1d9]" />
           </button>
-          
+
           <div className="text-center">
-            <h1 className="text-[#c9d1d9] text-lg font-semibold">DJ BeatMaster</h1>
+            <h1 className="text-[#c9d1d9] text-lg font-semibold">{userData?.username || 'User'}</h1>
           </div>
-          
+
           <button className="p-1">
             <MoreVertical className="w-6 h-6 text-[#c9d1d9]" />
           </button>
@@ -608,13 +704,13 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
         {/* Profile Info */}
         <div className="px-6 py-6">
           <div className="flex items-center gap-4 mb-4">
-            <div 
+            <div
               className="w-20 h-20 rounded-full bg-center bg-cover border-2 border-[#ff22fb]"
-              style={{ backgroundImage: `url('${imgUserAvatar}')` }}
+              style={{ backgroundImage: `url('${userData?.photo_url || imgUserAvatar}')` }}
             />
             <div className="flex-1">
-              <h2 className="text-[#c9d1d9] text-xl font-semibold">DJ BeatMaster</h2>
-              <p className="text-[#8b949e] text-sm">@djbeatmaster</p>
+              <h2 className="text-[#c9d1d9] text-xl font-semibold">{userData?.first_name || ''} {userData?.last_name || ''}</h2>
+              <p className="text-[#8b949e] text-sm">@{userData?.username || 'username'}</p>
               <div className="flex items-center gap-1 mt-1">
                 <span className="text-[#ff22fb] text-sm font-semibold">#{userRankings.globalRank} Global</span>
               </div>
@@ -623,8 +719,7 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
 
           {/* Bio */}
           <p className="text-[#c9d1d9] text-sm mb-4">
-            Electronic music producer & remix artist. Specializing in progressive house and techno beats. 
-            Creating soundscapes that move the soul 🎵✨
+            {userData?.bio || 'No bio available'}
           </p>
 
           {/* Stats */}
@@ -638,23 +733,22 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
               <div className="text-[#8b949e] text-xs">Following</div>
             </div>
             <div className="text-center">
-              <div className="text-[#c9d1d9] text-lg font-semibold">15</div>
-              <div className="text-[#8b949e] text-xs">Remixes</div>
+              <div className="text-[#c9d1d9] text-lg font-semibold">{publicPlaylists.length}</div>
+              <div className="text-[#8b949e] text-xs">Playlists</div>
             </div>
             <div className="text-center">
-              <div className="text-[#c9d1d9] text-lg font-semibold">2.5M</div>
+              <div className="text-[#c9d1d9] text-lg font-semibold">{userStats?.tracks_played || 0}</div>
               <div className="text-[#8b949e] text-xs">Plays</div>
             </div>
           </div>
 
           {/* Follow Button */}
-          <button 
+          <button
             onClick={handleFollow}
-            className={`w-full py-2.5 rounded-lg font-semibold transition-all duration-300 ${
-              isFollowing
+            className={`w-full py-2.5 rounded-lg font-semibold transition-all duration-300 ${isFollowing
                 ? "bg-[#21262d] border border-[#ff22fb] text-[#ff22fb] hover:bg-[#ff22fb]/10"
                 : "bg-gradient-to-r from-[#ff22fb] to-[#ff4400] text-white hover:shadow-lg hover:shadow-[#ff22fb]/25"
-            }`}
+              }`}
           >
             {isFollowing ? "Following" : "Follow"}
           </button>
@@ -664,33 +758,33 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
         <div className="px-6 mb-6">
           <StylishTabs
             tabs={[
-              { 
-                id: "remixes", 
-                label: "Remixes", 
+              {
+                id: "remixes",
+                label: "Remixes",
                 icon: <Music className="w-4 h-4" />,
-                badge: "15"
+                badge: (publicPlaylists.length || 0).toString()
               },
-              { 
-                id: "playlists", 
-                label: "Playlists", 
+              {
+                id: "playlists",
+                label: "Playlists",
                 icon: <List className="w-4 h-4" />,
                 badge: publicPlaylists.length.toString()
               },
-              { 
-                id: "nfts", 
-                label: "NFTs", 
+              {
+                id: "nfts",
+                label: "NFTs",
                 icon: <Award className="w-4 h-4" />,
                 badge: userNFTs.length.toString()
               },
-              { 
-                id: "badges", 
-                label: "Badges", 
+              {
+                id: "badges",
+                label: "Badges",
                 icon: <Trophy className="w-4 h-4" />,
                 badge: userBadges.length.toString()
               },
-              { 
-                id: "rankings", 
-                label: "Rankings", 
+              {
+                id: "rankings",
+                label: "Rankings",
                 icon: <TrendingUp className="w-4 h-4" />
               }
             ]}
@@ -719,7 +813,7 @@ export default function PublicProfile({ onBack, onNavigate, onOpenPlaylistDetail
         </div>
       </div>
 
-      <BottomNavigation 
+      <BottomNavigation
         activeTab="Profile"
         onNavigate={handleNavigation}
       />

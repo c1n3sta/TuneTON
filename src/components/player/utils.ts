@@ -1,83 +1,83 @@
-import { JamendoTrack } from "../../utils/jamendo-api";
-import type { AudioTrack } from "../../types/audio";
+// Utility functions for the player component
+import type { AudioTrack } from '../../types/audio';
 
-export const formatTime = (seconds: number): string => {
-  if (isNaN(seconds) || seconds < 0) return "0:00";
+// Convert Jamendo track to AudioTrack
+export function convertJamendoToTrack(
+  track: JamendoTrack | null, 
+  fallbackName: string = 'Unknown Track',
+  currentTime: number = 0,
+  isLiked: boolean = false,
+  isDisliked: boolean = false
+): AudioTrack | null {
+  if (!track) return null;
+  
+  // Handle missing data gracefully
+  const trackName = track.name || fallbackName;
+  const artistName = track.artist_name || 'Unknown Artist';
+  const duration = track.duration || 0;
+  const coverArt = track.image || track.album_image || '';
+  // Prioritize audio over audiodownload for streaming URLs and validate
+  const audioUrl = validateAndSelectAudioUrl(track.audio, track.audiodownload);
+  
+  return {
+    id: track.id || 'unknown',
+    title: trackName,
+    artist: artistName,
+    duration,
+    source: audioUrl,
+    coverArt,
+    audioUrl,
+    album: track.album_name || 'Unknown Album',
+    cover: coverArt
+    // Note: currentTime is not part of AudioTrack interface, it's managed by the player
+  };
+}
+
+// Validate and select the best audio URL
+function validateAndSelectAudioUrl(audio?: string, audiodownload?: string): string {
+  // Prefer audio URL (streaming) over audiodownload (direct download)
+  const primaryUrl = audio || audiodownload || '';
+  const fallbackUrl = audiodownload || audio || '';
+  
+  // Validate primary URL first
+  if (primaryUrl && isValidAudioUrl(primaryUrl)) {
+    return primaryUrl;
+  }
+  
+  // Try fallback URL
+  if (fallbackUrl && isValidAudioUrl(fallbackUrl)) {
+    return fallbackUrl;
+  }
+  
+  // Return whatever we have if no valid URL found (may be empty)
+  return primaryUrl;
+}
+
+// Check if audio URL is valid
+export function isValidAudioUrl(url: string): boolean {
+  if (!url) return false;
+  
+  // For Jamendo URLs, we need to be more flexible
+  // Jamendo streaming URLs often don't have file extensions
+  if (url.includes('jamendo.com')) {
+    return url.startsWith('http') && url.includes('?');
+  }
+  
+  // For other URLs, check for common audio extensions
+  return url.startsWith('http') && (url.includes('.mp3') || url.includes('.wav') || url.includes('.ogg'));
+}
+
+// Format time in seconds to MM:SS format
+export function formatTime(seconds: number): string {
+  if (isNaN(seconds) || seconds < 0) return '0:00';
+  
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
 
-/**
- * Validate if a URL is a valid HTTP/HTTPS URL
- */
-export const isValidAudioUrl = (url: string): boolean => {
-  try {
-    const parsedUrl = new URL(url);
-    // Check if it's a valid HTTP/HTTPS URL
-    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
-  } catch (e) {
-    return false;
-  }
-};
-
-export const convertJamendoToTrack = (
-  jamendoTrack: JamendoTrack | null, 
-  currentTrack: string, 
-  currentTime: number,
-  isLiked: boolean,
-  isDisliked: boolean
-): AudioTrack => {
-  if (!jamendoTrack) {
-    console.log('Using fallback track');
-    return {
-      id: "fallback",
-      title: currentTrack,
-      artist: "TuneTON Artist",
-      duration: 203, // 3:23 in seconds
-      source: "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA", // Silent audio
-    };
-  }
-
-  console.log('Converting Jamendo track:', {
-    id: jamendoTrack.id,
-    name: jamendoTrack.name,
-    audio: jamendoTrack.audio,
-    audiodownload: jamendoTrack.audiodownload,
-    duration: jamendoTrack.duration
-  });
-
-  // Try using the audio URL first, fallback to audiodownload if audio is not available
-  const audioSource = jamendoTrack.audio || jamendoTrack.audiodownload;
-  
-  console.log('Selected audio source:', audioSource);
-  
-  // Validate that we have a valid audio source
-  if (!audioSource) {
-    console.error('No valid audio source found for track:', jamendoTrack);
-  }
-
-  return {
-    id: jamendoTrack.id,
-    title: jamendoTrack.name,
-    artist: jamendoTrack.artist_name,
-    duration: jamendoTrack.duration,
-    source: audioSource || '',
-    cover: jamendoTrack.image,
-    album: jamendoTrack.album_name,
-    audioUrl: audioSource || '',
-  };
-};
-
-export const checkMixModeActive = (
-  lofiIntensity: number,
-  backgroundNoise: string,
-  vinylCrackle: number,
-  tapeWow: number,
-  radioCutoff: number,
-  tempo: number,
-  pitch: number
-): boolean => {
-  return lofiIntensity > 0 || backgroundNoise !== 'none' || vinylCrackle > 0 || 
-         tapeWow > 0 || radioCutoff > 0 || tempo !== 100 || pitch !== 0;
-};
+// Check if mix mode is active
+export function checkMixModeActive(): boolean {
+  // Mix mode implementation
+  return false;
+}

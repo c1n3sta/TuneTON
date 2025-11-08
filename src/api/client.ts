@@ -113,10 +113,10 @@ class ApiClient {
       console.log('Current URL:', window.location.href);
       console.groupEnd();
       
-      // In production, fall back to mock data
+      // In production, throw error instead of using mock data
       if (import.meta.env.PROD) {
-        console.warn('Falling back to mock data in production');
-        return this.getMockTracks();
+        console.error('No tracks available in production - cannot use mock data');
+        throw new Error('Failed to fetch real tracks from server in production');
       }
       
       // Only use mock data in development if explicitly enabled

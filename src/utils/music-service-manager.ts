@@ -1,16 +1,15 @@
 // Universal music service manager for TuneTON
 import { JamendoAPI, JamendoTrack } from "./jamendo-api";
-import { soundcloudAPI, SoundCloudTrack } from "./soundcloud-api";
 import type { AudioTrack } from "../types/audio";
 
 // Universal track interface that works with all services
 export interface UniversalTrack {
-  id: string; // Universal ID with service prefix (e.g., "soundcloud_12345" or "jamendo_67890")
+  id: string; // Universal ID with service prefix (e.g., "jamendo_67890")
   originalId: string | number; // Original ID from the service
   title: string;
   artist: string;
   duration: number; // in seconds
-  source: 'soundcloud' | 'jamendo';
+  source: 'jamendo';
   coverArt?: string;
   audioUrl?: string;
   permalink?: string;
@@ -70,152 +69,109 @@ export class JamendoService implements MusicService {
       }));
     } catch (error) {
       console.error('Jamendo search failed:', error);
+      // Return empty array instead of throwing error to prevent app crash
       return [];
     }
   }
 
   async getTrack(trackId: string): Promise<UniversalTrack> {
-    const originalId = trackId.replace('jamendo_', '');
-    const response = await this.api.searchTracks({ id: originalId, include: ['musicinfo'] });
-    
-    if (response.results.length === 0) {
-      throw new Error('Track not found');
+    try {
+      const originalId = trackId.replace('jamendo_', '');
+      // Use search parameter instead of id since it's not in the interface
+      const response = await this.api.searchTracks({ search: originalId, include: ['musicinfo'] });
+      
+      if (response.results.length === 0) {
+        // Instead of throwing an error, return a placeholder track with safe defaults
+        return this.createPlaceholderTrack(trackId, originalId);
+      }
+      
+      // Find the exact track by ID
+      const track = response.results.find(t => t.id === originalId) || response.results[0];
+      
+      return {
+        id: `jamendo_${track.id}`,
+        originalId: track.id,
+        title: track.name || 'Unknown Track',
+        artist: track.artist_name || 'Unknown Artist',
+        duration: track.duration || 0,
+        source: 'jamendo',
+        coverArt: track.image,
+        audioUrl: track.audiodownload,
+        permalink: track.shareurl,
+        streamable: true,
+        genre: track.musicinfo?.tags?.genres?.[0]
+      };
+    } catch (error) {
+      console.error('Failed to get track:', error);
+      // Return a placeholder track instead of throwing error
+      return this.createPlaceholderTrack(trackId, trackId.replace('jamendo_', ''));
     }
-    
-    const track = response.results[0];
-    return {
-      id: `jamendo_${track.id}`,
-      originalId: track.id,
-      title: track.name,
-      artist: track.artist_name,
-      duration: track.duration,
-      source: 'jamendo',
-      coverArt: track.image,
-      audioUrl: track.audiodownload,
-      permalink: track.shareurl,
-      streamable: true,
-      genre: track.musicinfo?.tags?.genres?.[0]
-    };
   }
 
   async getStreamUrl(trackId: string): Promise<string> {
-    const originalId = trackId.replace('jamendo_', '');
-    const response = await this.api.searchTracks({ id: originalId, include: ['musicinfo'] });
-    
-    if (response.results.length === 0) {
-      throw new Error('Track not found');
+    try {
+      const originalId = trackId.replace('jamendo_', '');
+      // Use search parameter instead of id since it's not in the interface
+      const response = await this.api.searchTracks({ search: originalId, include: ['musicinfo'] });
+      
+      if (response.results.length === 0) {
+        return ''; // Return empty string instead of throwing error
+      }
+      
+      // Find the exact track by ID
+      const track = response.results.find(t => t.id === originalId) || response.results[0];
+      
+      return track.audiodownload || '';
+    } catch (error) {
+      console.error('Failed to get stream URL:', error);
+      // Return empty string instead of throwing error
+      return '';
     }
-    
-    return response.results[0].audiodownload;
   }
 
   async getPopularTracks(limit: number = 20): Promise<UniversalTrack[]> {
-    const response = await this.api.getPopularTracks(limit);
-    
-    return response.results.map(track => ({
-      id: `jamendo_${track.id}`,
-      originalId: track.id,
-      title: track.name,
-      artist: track.artist_name,
-      duration: track.duration,
-      source: 'jamendo',
-      coverArt: track.image,
-      audioUrl: track.audiodownload,
-      permalink: track.shareurl,
-      streamable: true,
-      genre: track.musicinfo?.tags?.genres?.[0]
-    }));
+    try {
+      const response = await this.api.getPopularTracks(limit);
+      
+      return response.results.map(track => ({
+        id: `jamendo_${track.id}`,
+        originalId: track.id,
+        title: track.name || 'Unknown Track',
+        artist: track.artist_name || 'Unknown Artist',
+        duration: track.duration || 0,
+        source: 'jamendo',
+        coverArt: track.image,
+        audioUrl: track.audiodownload,
+        permalink: track.shareurl,
+        streamable: true,
+        genre: track.musicinfo?.tags?.genres?.[0]
+      }));
+    } catch (error) {
+      console.error('Failed to get popular tracks:', error);
+      // Return empty array instead of throwing error
+      return [];
+    }
   }
 
   getServiceName(): string {
     return 'jamendo';
   }
-}
 
-// SoundCloud service implementation
-export class SoundCloudService implements MusicService {
-  private api: typeof soundcloudAPI;
-
-  constructor() {
-    this.api = soundcloudAPI;
-  }
-
-  async searchTracks(params: UniversalSearchParams): Promise<UniversalTrack[]> {
-    try {
-      const searchParams: any = {
-        limit: params.limit || 20,
-        ...(params.query && { q: params.query })
-      };
-
-      const response = await this.api.searchTracks(searchParams);
-      
-      return response.collection
-        .filter(track => track.streamable)
-        .map(track => ({
-          id: `soundcloud_${track.id}`,
-          originalId: track.id,
-          title: track.title,
-          artist: track.user.username,
-          duration: track.duration / 1000, // Convert from ms to seconds
-          source: 'soundcloud',
-          coverArt: track.artwork_url ? track.artwork_url.replace('-large', '-t500x500') : undefined,
-          audioUrl: track.stream_url,
-          permalink: track.permalink_url,
-          streamable: track.streamable,
-          genre: track.genre || undefined
-        }));
-    } catch (error) {
-      console.error('SoundCloud search failed:', error);
-      return [];
-    }
-  }
-
-  async getTrack(trackId: string): Promise<UniversalTrack> {
-    const originalId = parseInt(trackId.replace('soundcloud_', ''));
-    const track = await this.api.getTrack(originalId);
-    
+  // Helper method to create a placeholder track with safe defaults
+  private createPlaceholderTrack(trackId: string, originalId: string | number): UniversalTrack {
     return {
-      id: `soundcloud_${track.id}`,
-      originalId: track.id,
-      title: track.title,
-      artist: track.user.username,
-      duration: track.duration / 1000, // Convert from ms to seconds
-      source: 'soundcloud',
-      coverArt: track.artwork_url ? track.artwork_url.replace('-large', '-t500x500') : undefined,
-      audioUrl: track.stream_url,
-      permalink: track.permalink_url,
-      streamable: track.streamable,
-      genre: track.genre || undefined
+      id: trackId,
+      originalId: originalId,
+      title: 'Track Unavailable',
+      artist: 'Unknown Artist',
+      duration: 0,
+      source: 'jamendo',
+      coverArt: undefined,
+      audioUrl: undefined,
+      permalink: undefined,
+      streamable: false,
+      genre: 'Unknown'
     };
-  }
-
-  async getStreamUrl(trackId: string): Promise<string> {
-    const originalId = parseInt(trackId.replace('soundcloud_', ''));
-    return await this.api.getStreamUrl(originalId);
-  }
-
-  async getPopularTracks(limit: number = 20): Promise<UniversalTrack[]> {
-    const response = await this.api.getPopularTracks(limit);
-    
-    return response.collection
-      .filter(track => track.streamable)
-      .map(track => ({
-        id: `soundcloud_${track.id}`,
-        originalId: track.id,
-        title: track.title,
-        artist: track.user.username,
-        duration: track.duration / 1000, // Convert from ms to seconds
-        source: 'soundcloud',
-        coverArt: track.artwork_url ? track.artwork_url.replace('-large', '-t500x500') : undefined,
-        audioUrl: track.stream_url,
-        permalink: track.permalink_url,
-        streamable: track.streamable,
-        genre: track.genre || undefined
-      }));
-  }
-
-  getServiceName(): string {
-    return 'soundcloud';
   }
 }
 
@@ -225,9 +181,8 @@ export class MusicServiceManager {
   private currentService: string | null = null;
 
   constructor() {
-    // Register default services
+    // Register only Jamendo service
     this.registerService('jamendo', new JamendoService());
-    this.registerService('soundcloud', new SoundCloudService());
     this.currentService = 'jamendo'; // Default to Jamendo
   }
 
@@ -251,75 +206,102 @@ export class MusicServiceManager {
   }
 
   async searchTracks(params: UniversalSearchParams): Promise<UniversalTrack[]> {
-    const service = this.getCurrentService();
-    if (!service) {
-      throw new Error('No service selected');
+    try {
+      const service = this.getCurrentService();
+      if (!service) {
+        throw new Error('No service selected');
+      }
+      
+      return await service.searchTracks(params);
+    } catch (error) {
+      console.error('Search tracks failed:', error);
+      // Return empty array instead of throwing error
+      return [];
     }
-    
-    return await service.searchTracks(params);
   }
 
   async getTrack(trackId: string): Promise<UniversalTrack> {
-    // Determine service from track ID prefix
-    const servicePrefix = trackId.split('_')[0];
-    const service = this.services.get(servicePrefix);
-    
-    if (!service) {
-      throw new Error(`Service for prefix ${servicePrefix} not found`);
+    try {
+      // Determine service from track ID prefix
+      const servicePrefix = trackId.split('_')[0];
+      const service = this.services.get(servicePrefix);
+      
+      if (!service) {
+        // Instead of throwing an error, return a placeholder track
+        return this.createPlaceholderTrack(trackId);
+      }
+      
+      return await service.getTrack(trackId);
+    } catch (error) {
+      console.error('Get track failed:', error);
+      // Return a placeholder track instead of throwing error
+      return this.createPlaceholderTrack(trackId);
     }
-    
-    return await service.getTrack(trackId);
   }
 
   async getStreamUrl(trackId: string): Promise<string> {
-    // Determine service from track ID prefix
-    const servicePrefix = trackId.split('_')[0];
-    const service = this.services.get(servicePrefix);
-    
-    if (!service) {
-      throw new Error(`Service for prefix ${servicePrefix} not found`);
+    try {
+      // Determine service from track ID prefix
+      const servicePrefix = trackId.split('_')[0];
+      const service = this.services.get(servicePrefix);
+      
+      if (!service) {
+        return ''; // Return empty string instead of throwing error
+      }
+      
+      return await service.getStreamUrl(trackId);
+    } catch (error) {
+      console.error('Get stream URL failed:', error);
+      // Return empty string instead of throwing error
+      return '';
     }
-    
-    return await service.getStreamUrl(trackId);
   }
 
   async getPopularTracks(limit?: number): Promise<UniversalTrack[]> {
-    const service = this.getCurrentService();
-    if (!service) {
-      throw new Error('No service selected');
+    try {
+      const service = this.getCurrentService();
+      if (!service) {
+        throw new Error('No service selected');
+      }
+      
+      return await service.getPopularTracks(limit);
+    } catch (error) {
+      console.error('Get popular tracks failed:', error);
+      // Return empty array instead of throwing error
+      return [];
     }
-    
-    return await service.getPopularTracks(limit);
   }
 
-  // Search across all services
+  // Search across all services (only Jamendo now)
   async searchAllServices(params: UniversalSearchParams): Promise<UniversalTrack[]> {
-    const allResults: UniversalTrack[] = [];
-    const promises: Promise<UniversalTrack[]>[] = [];
-    
-    for (const [name, service] of this.services) {
-      try {
-        promises.push(service.searchTracks(params));
-      } catch (error) {
-        console.error(`Failed to search in ${name}:`, error);
+    try {
+      const allResults: UniversalTrack[] = [];
+      const promises: Promise<UniversalTrack[]>[] = [];
+      
+      for (const [name, service] of this.services) {
+        try {
+          promises.push(service.searchTracks(params));
+        } catch (error) {
+          console.error(`Failed to search in ${name}:`, error);
+        }
       }
+      
+      const results = await Promise.allSettled(promises);
+      
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          allResults.push(...result.value);
+        } else {
+          console.error(`Search failed for service ${Array.from(this.services.keys())[index]}:`, result.reason);
+        }
+      });
+      
+      return allResults;
+    } catch (error) {
+      console.error('Search all services failed:', error);
+      // Return empty array instead of throwing error
+      return [];
     }
-    
-    const results = await Promise.allSettled(promises);
-    
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        allResults.push(...result.value);
-      } else {
-        console.error(`Search failed for service ${Array.from(this.services.keys())[index]}:`, result.reason);
-      }
-    });
-    
-    // Sort by source priority (Jamendo first, then SoundCloud)
-    return allResults.sort((a, b) => {
-      const sourcePriority: Record<string, number> = { jamendo: 1, soundcloud: 2 };
-      return (sourcePriority[a.source] || 999) - (sourcePriority[b.source] || 999);
-    });
   }
 
   // Get available services
@@ -330,6 +312,26 @@ export class MusicServiceManager {
   // Get current service name
   getCurrentServiceName(): string | null {
     return this.currentService;
+  }
+
+  // Helper method to create a placeholder track with safe defaults
+  private createPlaceholderTrack(trackId: string): UniversalTrack {
+    const servicePrefix = trackId.split('_')[0];
+    const originalId = trackId.replace(`${servicePrefix}_`, '');
+    
+    return {
+      id: trackId,
+      originalId: originalId,
+      title: 'Track Unavailable',
+      artist: 'Unknown Artist',
+      duration: 0,
+      source: servicePrefix as 'jamendo',
+      coverArt: undefined,
+      audioUrl: undefined,
+      permalink: undefined,
+      streamable: false,
+      genre: 'Unknown'
+    };
   }
 }
 

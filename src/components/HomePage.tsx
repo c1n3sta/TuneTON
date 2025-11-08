@@ -1,87 +1,59 @@
-import { useState, useEffect } from "react";
-import { 
-  Play, 
-  Pause, 
-  Heart, 
-  Plus, 
-  Search, 
+import {
+  ArrowRight,
+  AudioWaveform,
   Bell,
-  User,
-  Music,
-  TrendingUp,
-  Clock,
-  Shuffle,
-  Repeat,
-  MoreHorizontal,
+  Bookmark,
+  Bot,
   ChevronRight,
-  Star,
-  Zap,
-  Trophy,
-  Coins,
-  Headphones,
-  Radio,
-  Volume2,
-  Layers,
-  Share2,
-  Gift,
+  Compass,
   Crown,
   Flame,
-  Sparkles,
-  Users,
-  Mic,
-  AudioWaveform,
-  Timer,
-  Target,
-  Award,
-  Palette,
-  Bot,
-  MessageCircle,
-  Send,
-  UserPlus,
-  Bookmark,
-  ThumbsUp,
-  ThumbsDown,
-  Reply,
-  Forward,
-  Eye,
-  Calendar,
-  MapPin,
-  Coins as TONCoin,
-  ShoppingBag,
+  Gem,
+  Heart,
   Library,
-  Compass,
+  Loader2,
+  MessageCircle,
+  Music,
+  Pause,
+  Play,
+  Plus,
+  Search,
+  Send,
+  Share2,
+  ShoppingBag,
+  Sparkles,
+  Star,
+  Timer,
+  Coins as TONCoin,
+  TrendingUp,
+  Trophy,
+  User,
+  Users,
   Wand2,
   Waves,
-  Gem,
-  ArrowRight,
-  Bolt,
-  Loader2
+  Zap
 } from "lucide-react";
-import { Button } from "./ui/button-component";
-import { Card, CardContent } from "./ui/card";
+import { useEffect, useState } from "react";
+import { getTuneTONRecommendations, JamendoTrack } from "../utils/jamendo-api";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Progress } from "./ui/progress";
+import { Button } from "./ui/button-component";
+import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { jamendoAPI, JamendoTrack, getTuneTONRecommendations } from "../utils/jamendo-api";
 
 // Import images
-import imgAlbumArt from "figma:asset/b13483f5f235f1c26e9cbdbfb40edb8ca3b9c11c.png";
-import imgPlaylistCover from "figma:asset/e4df5775c88dbb71f1c09a72f65ba80adc015b71.png";
+import imgRemixerAvatar from "figma:asset/02641910bdc93d1d98cf6da313c9fe42f75a5679.png";
 import imgPlaylistCover1 from "figma:asset/059d630bf1b73c65663230f6fe3660d07bc060b8.png";
 import imgPlaylistCover2 from "figma:asset/20bb8fe31b212ec3236e8224dd3efe441043be2f.png";
-import imgPlaylistCover3 from "figma:asset/a1ad22f09bf6f15ef5bc637a1785d31b1ca3884a.png";
-import imgPlaylistCover4 from "figma:asset/08ea158ebabf976cca7bb1f8ec91d0c456a2f915.png";
-import imgTrackCover from "figma:asset/5c0570c22db9da4233071e8dc020249fbd9aeece.png";
-import imgTrackCover1 from "figma:asset/ee4dceec67617340be718a9b700bd99946447425.png";
-import imgFeaturedRemixCover from "figma:asset/92af5e42f7a6be5cc4a3570d7557d9b846376457.png";
-import imgRemixCover from "figma:asset/b4d5d93e0e03aef0e9252522600b2fe91d9305c2.png";
-import imgRemixerAvatar from "figma:asset/02641910bdc93d1d98cf6da313c9fe42f75a5679.png";
 import imgRemixCover1 from "figma:asset/2445cdb838670e8ea661ef232b16e90503fdec0b.png";
 import imgRemixerAvatar1 from "figma:asset/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png";
-import imgRemixCover2 from "figma:asset/f6899fe4451eb26d22ac13df75a794b76f152b36.png";
+import imgFeaturedRemixCover from "figma:asset/92af5e42f7a6be5cc4a3570d7557d9b846376457.png";
 import imgRemixerAvatar2 from "figma:asset/942f88b3ac884230b9cb4196019616c8ea6fb6a0.png";
+import imgAlbumArt from "figma:asset/b13483f5f235f1c26e9cbdbfb40edb8ca3b9c11c.png";
+import imgRemixCover from "figma:asset/b4d5d93e0e03aef0e9252522600b2fe91d9305c2.png";
+import imgPlaylistCover from "figma:asset/e4df5775c88dbb71f1c09a72f65ba80adc015b71.png";
+import imgRemixCover2 from "figma:asset/f6899fe4451eb26d22ac13df75a794b76f152b36.png";
 
 interface User {
   id: number;
@@ -99,12 +71,12 @@ interface HomePageProps {
   user?: User | null;
 }
 
-export default function HomePage({ 
-  onNavigate, 
-  onTrackSelect, 
-  currentTrack = "Starlight Serenade", 
+export default function HomePage({
+  onNavigate,
+  onTrackSelect,
+  currentTrack = "Starlight Serenade",
   isPlaying = false,
-  user 
+  user
 }: HomePageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [userStars, setUserStars] = useState(247);
@@ -113,6 +85,84 @@ export default function HomePage({
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [activeCommentSection, setActiveCommentSection] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
+  const [socialPosts, setSocialPosts] = useState<any[]>([
+    {
+      id: "post-1",
+      user: "MixMaster_Alex",
+      avatar: imgRemixerAvatar,
+      type: "remix",
+      content: "Just dropped a sick lo-fi version of 'Starlight Serenade'! 🎵✨",
+      track: "Starlight Serenade (Lo-Fi Mix)",
+      trackCover: imgAlbumArt,
+      likes: 247,
+      comments: 18,
+      shares: 34,
+      timestamp: "2h ago",
+      isLiked: false
+    },
+    {
+      id: "post-2",
+      user: "ChillVibes_99",
+      avatar: imgRemixerAvatar1,
+      type: "achievement",
+      content: "Reached 1000 plays on my ambient remix! Thank you all! 🙏",
+      likes: 156,
+      comments: 23,
+      shares: 12,
+      timestamp: "5h ago",
+      isLiked: false
+    }
+  ]);
+
+  // Social interaction handlers
+  const handleLikePost = (postId: string) => {
+    setSocialPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, likes: post.isLiked ? post.likes - 1 : post.likes + 1, isLiked: !post.isLiked }
+          : post
+      )
+    );
+  };
+
+  const handleAddComment = (postId: string, commentText: string) => {
+    if (!commentText.trim()) return;
+    
+    setSocialPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, comments: post.comments + 1 }
+          : post
+      )
+    );
+    
+    setNewComment("");
+  };
+
+  const handleSharePost = (postId: string) => {
+    setSocialPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, shares: post.shares + 1 }
+          : post
+      )
+    );
+    
+    // In a real app, this would trigger the share functionality
+    console.log('Sharing post:', postId);
+  };
+
+  const handleRefreshFeed = () => {
+    console.log('Refreshing social feed');
+    // In a real app, this would fetch new posts from the server
+  };
+
+  const handleCreatePost = () => {
+    if (!newPostText.trim()) return;
+    console.log('Creating new post:', newPostText);
+    // In a real app, this would create a new post on the server
+    setNewPostText("");
+  };
 
   // Jamendo API integration
   const [jamendoTracks, setJamendoTracks] = useState<{
@@ -127,7 +177,6 @@ export default function HomePage({
     remixable: []
   });
   const [loadingTracks, setLoadingTracks] = useState(true);
-  const [usingMockData, setUsingMockData] = useState(false);
 
   // Load Jamendo tracks on component mount
   useEffect(() => {
@@ -135,24 +184,21 @@ export default function HomePage({
       try {
         setLoadingTracks(true);
         console.log('HomePage: Loading Jamendo content...');
-        
+
         const recommendations = await getTuneTONRecommendations();
         setJamendoTracks(recommendations);
-        
-      
-        const isApiWorking = jamendoAPI.isApiAvailable();
-        setUsingMockData(!isApiWorking);
-        
+
+        // Always use real data now
         console.log('HomePage: Jamendo content loaded', {
           popular: recommendations.popular.length,
           trending: recommendations.trending.length,
           lofi: recommendations.lofi.length,
-          remixable: recommendations.remixable.length,
-          usingMockData: !isApiWorking
+          remixable: recommendations.remixable.length
         });
       } catch (error) {
         console.error('HomePage: Failed to load Jamendo content:', error);
-        setUsingMockData(true);
+        // Throw error instead of using fallback data
+        throw new Error('Failed to load real Jamendo content');
       } finally {
         setLoadingTracks(false);
       }
@@ -190,7 +236,7 @@ export default function HomePage({
       tracks: jamendoTracks.popular.slice(0, 30)
     },
     {
-      id: "ai-2", 
+      id: "ai-2",
       title: "Lo-Fi Focus",
       description: "Perfect for concentration",
       cover: imgPlaylistCover1,
@@ -250,7 +296,7 @@ export default function HomePage({
       isHot: true
     },
     {
-      id: "remix-2", 
+      id: "remix-2",
       title: "Electric Dreams (Speed+)",
       artist: "SynthMaster",
       remixer: "FastTrackPro",
@@ -287,33 +333,7 @@ export default function HomePage({
     jamendoTrack: track
   }));
 
-  // Social Feed Posts
-  const socialPosts = [
-    {
-      id: "post-1",
-      user: "MixMaster_Alex",
-      avatar: imgRemixerAvatar,
-      type: "remix",
-      content: "Just dropped a sick lo-fi version of 'Starlight Serenade'! 🎵✨",
-      track: "Starlight Serenade (Lo-Fi Mix)",
-      trackCover: imgAlbumArt,
-      likes: 247,
-      comments: 18,
-      shares: 34,
-      timestamp: "2h ago"
-    },
-    {
-      id: "post-2",
-      user: "ChillVibes_99",
-      avatar: imgRemixerAvatar1,
-      type: "achievement", 
-      content: "Reached 1000 plays on my ambient remix! Thank you all! 🙏",
-      likes: 156,
-      comments: 23,
-      shares: 12,
-      timestamp: "5h ago"
-    }
-  ];
+  // Social Feed Posts are now managed in state
 
   const handlePlayTrack = (track: string | JamendoTrack) => {
     if (onTrackSelect) {
@@ -346,14 +366,14 @@ export default function HomePage({
             onClick={onClick}
           >
             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors duration-300" />
-            
+
             {/* Animated waves background */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -top-10 -left-10 w-20 h-20 bg-white/10 rounded-full animate-bounce delay-100"></div>
               <div className="absolute -bottom-5 -right-5 w-16 h-16 bg-white/10 rounded-full animate-bounce delay-300"></div>
               <Waves className="absolute top-2 right-2 w-8 h-8 text-white/30 animate-pulse" />
             </div>
-            
+
             <div className="relative z-10 p-5 text-left">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm text-white flex items-center justify-center border border-white/30 shadow-lg group-hover:bg-white/30 transition-all duration-300">
@@ -367,7 +387,7 @@ export default function HomePage({
               <h3 className="font-bold text-lg text-white drop-shadow-lg">Discover</h3>
               <p className="text-sm text-white/90 drop-shadow-md">Trending music</p>
             </div>
-            
+
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
           </div>
         );
@@ -385,7 +405,7 @@ export default function HomePage({
                 backgroundSize: '20px 20px'
               }}></div>
             </div>
-            
+
             <div className="relative z-10 p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-14 h-14 rounded-xl bg-purple-500/20 backdrop-blur-sm text-purple-200 flex items-center justify-center border border-purple-400/40 shadow-lg group-hover:bg-purple-500/30 transition-all duration-300">
@@ -396,10 +416,10 @@ export default function HomePage({
                   <div className="w-1 h-4 bg-purple-400/60 rounded-full mt-1"></div>
                 </div>
               </div>
-              
+
               <h3 className="font-bold text-lg text-white mb-1">Library</h3>
               <p className="text-sm text-purple-200/80">Your collection</p>
-              
+
               {/* Mini collection preview */}
               <div className="flex -space-x-2 mt-3">
                 <div className="w-5 h-5 bg-purple-400 rounded border-2 border-slate-900"></div>
@@ -410,7 +430,7 @@ export default function HomePage({
                 </div>
               </div>
             </div>
-            
+
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/10 to-transparent rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
           </div>
         );
@@ -427,7 +447,7 @@ export default function HomePage({
               <div className="absolute bottom-4 right-4 w-4 h-4 border border-white/20 transform rotate-45 delay-150"></div>
               <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-white/20 transform rotate-45 -translate-x-1/2 -translate-y-1/2 animate-spin delay-300" style={{ animationDuration: '8s' }}></div>
             </div>
-            
+
             <div className="relative z-10 p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-sm text-white flex items-center justify-center border border-white/40 shadow-lg group-hover:bg-white/35 transition-all duration-300 relative">
@@ -441,17 +461,17 @@ export default function HomePage({
                   <div className="text-xs text-white/70">Shop</div>
                 </div>
               </div>
-              
+
               <h3 className="font-bold text-lg text-white mb-1">NFT Shop</h3>
               <p className="text-sm text-white/90">Audio NFTs</p>
-              
+
               {/* Price indicator */}
               <div className="flex items-center gap-1 mt-3 bg-white/20 rounded-full px-3 py-1 w-fit">
                 <TONCoin className="w-3 h-3 text-yellow-300" />
                 <span className="text-xs font-medium text-white">TON</span>
               </div>
             </div>
-            
+
             {/* Floating particles */}
             <div className="absolute top-4 right-8 w-1 h-1 bg-white/60 rounded-full animate-ping"></div>
             <div className="absolute bottom-8 left-6 w-1 h-1 bg-white/40 rounded-full animate-ping delay-700"></div>
@@ -472,7 +492,7 @@ export default function HomePage({
               <div className="absolute bottom-6 right-4 w-5 h-1 bg-white/30"></div>
               <div className="absolute bottom-6 right-6 w-1 h-3 bg-white/30"></div>
             </div>
-            
+
             {/* Animated AI brain waves */}
             <div className="absolute top-2 right-2">
               <div className="flex space-x-1">
@@ -483,7 +503,7 @@ export default function HomePage({
                 <div className="w-1 h-3 bg-white/40 animate-pulse delay-400"></div>
               </div>
             </div>
-            
+
             <div className="relative z-10 p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-14 h-14 rounded-xl bg-white/25 backdrop-blur-sm text-white flex items-center justify-center border border-white/40 shadow-lg group-hover:bg-white/35 transition-all duration-300 relative">
@@ -495,16 +515,16 @@ export default function HomePage({
                   <span className="text-xs text-white font-medium">AI</span>
                 </div>
               </div>
-              
+
               <h3 className="font-bold text-lg text-white mb-1">AI Studio</h3>
               <p className="text-sm text-white/90">Create remixes</p>
-              
+
               {/* Progress bar */}
               <div className="mt-3 bg-white/20 rounded-full h-2">
                 <div className="bg-gradient-to-r from-yellow-300 to-pink-300 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
               </div>
             </div>
-            
+
             {/* Magical sparkles */}
             <div className="absolute top-6 left-12 w-2 h-2 text-white/60">
               <Sparkles className="w-full h-full animate-ping" />
@@ -522,12 +542,13 @@ export default function HomePage({
 
   // Original Recently Played Component (from Figma import)
   const RecentlyPlayedSection = () => {
-    // Use first popular track from Jamendo or fallback
-    const recentTrack = jamendoTracks.popular[0] || {
-      name: "Starlight Serenade",
-      artist_name: "MelodyMix Artist",
-      image: imgAlbumArt
-    };
+    // Use first popular track from Jamendo or throw error if none available
+    const recentTrack = jamendoTracks.popular[0];
+
+    // If no tracks are available, we can't display this section
+    if (!recentTrack) {
+      return null;
+    }
 
     return (
       <div className="px-6 pt-2 space-y-4">
@@ -544,17 +565,17 @@ export default function HomePage({
         </div>
 
         {/* Single track card */}
-        <div 
+        <div
           className="bg-[#093067] rounded-lg w-full cursor-pointer group transition-all duration-300 hover:shadow-lg"
           onClick={() => handlePlayTrack(recentTrack as JamendoTrack)}
         >
           <div className="flex items-center px-4 py-3 gap-[15px]">
             {/* Album Art */}
-            <div 
+            <div
               className="w-12 h-12 rounded-lg bg-cover bg-center bg-[#484f58] shrink-0 group-hover:scale-105 transition-transform duration-300"
               style={{ backgroundImage: `url('${recentTrack.image || imgAlbumArt}')` }}
             />
-            
+
             {/* Track Info */}
             <div className="flex-1 min-w-0 w-[164px]">
               <div className="space-y-1">
@@ -593,24 +614,24 @@ export default function HomePage({
   const FeaturedContestBanner = () => {
     return (
       <div className="px-6">
-        <div 
+        <div
           className="relative overflow-hidden rounded-2xl cursor-pointer group transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
           onClick={() => onNavigate?.("Contests", "contest-detail")}
         >
           {/* Background Image with Overlay */}
-          <div 
+          <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url('${featuredContest.backgroundImage}')` }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 via-pink-600/80 to-orange-500/90 backdrop-blur-[1px]" />
-          
+
           {/* Animated Background Elements */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-20 -left-20 w-40 h-40 bg-white/5 rounded-full animate-pulse delay-1000"></div>
             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/5 rounded-full animate-pulse delay-500"></div>
             <div className="absolute top-8 right-12 w-6 h-6 bg-white/10 rounded-full animate-bounce delay-700"></div>
             <div className="absolute bottom-12 left-8 w-4 h-4 bg-white/10 rounded-full animate-bounce delay-300"></div>
-            
+
             {/* Floating music notes */}
             <div className="absolute top-6 left-1/3 opacity-20">
               <Music className="w-8 h-8 text-white animate-pulse" />
@@ -682,7 +703,7 @@ export default function HomePage({
                 <span>{featuredContest.completionRate}% Complete</span>
               </div>
               <div className="bg-white/20 rounded-full h-2 overflow-hidden">
-                <div 
+                <div
                   className="bg-gradient-to-r from-yellow-400 to-orange-500 h-2 rounded-full transition-all duration-1000 animate-pulse"
                   style={{ width: `${featuredContest.completionRate}%` }}
                 />
@@ -698,8 +719,8 @@ export default function HomePage({
                   </Badge>
                 ))}
               </div>
-              
-              <Button 
+
+              <Button
                 className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold hover:from-yellow-300 hover:to-orange-400 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -723,12 +744,12 @@ export default function HomePage({
     <div className="bg-background min-h-screen text-foreground">
       <div className="flex justify-center">
         <div className="w-full max-w-md bg-card rounded-2xl min-h-screen relative overflow-hidden border border-border">
-          
+
           {/* Header */}
           <div className="sticky top-0 z-50 bg-card/80 backdrop-blur-sm border-b border-border">
             <div className="flex items-center justify-between p-6 pb-4">
               <div className="flex items-center gap-3">
-                <Avatar 
+                <Avatar
                   className="w-10 h-10 border-2 border-primary/20 cursor-pointer"
                   onClick={() => onNavigate?.("Profile", "profile")}
                 >
@@ -752,9 +773,9 @@ export default function HomePage({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="w-8 h-8"
                   onClick={() => onNavigate?.("Home", "search")}
                 >
@@ -772,28 +793,28 @@ export default function HomePage({
 
           {/* Content */}
           <div className="px-6 pb-20 space-y-8 mt-6">
-            
+
             {/* Quick Access - Unique Designs */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Quick Access</h2>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <QuickAccessButton 
-                  type="discover" 
-                  onClick={() => onNavigate?.("Home", "discover")} 
+                <QuickAccessButton
+                  type="discover"
+                  onClick={() => onNavigate?.("Home", "discover")}
                 />
-                <QuickAccessButton 
-                  type="library" 
-                  onClick={() => onNavigate?.("Library", "library")} 
+                <QuickAccessButton
+                  type="library"
+                  onClick={() => onNavigate?.("Library", "library")}
                 />
-                <QuickAccessButton 
-                  type="nft" 
-                  onClick={() => onNavigate?.("NFT", "nft-marketplace")} 
+                <QuickAccessButton
+                  type="nft"
+                  onClick={() => onNavigate?.("NFT", "nft-marketplace")}
                 />
-                <QuickAccessButton 
-                  type="ai-studio" 
-                  onClick={() => onNavigate?.("Home", "ai-studio")} 
+                <QuickAccessButton
+                  type="ai-studio"
+                  onClick={() => onNavigate?.("Home", "ai-studio")}
                 />
               </div>
             </div>
@@ -807,11 +828,6 @@ export default function HomePage({
                     <Sparkles className="w-3 h-3 mr-1" />
                     AI
                   </Badge>
-                  {usingMockData && (
-                    <Badge variant="outline" className="text-xs">
-                      Demo
-                    </Badge>
-                  )}
                 </div>
               </div>
               {loadingTracks ? (
@@ -824,14 +840,14 @@ export default function HomePage({
               ) : (
                 <div className="grid grid-cols-1 gap-3">
                   {aiPlaylists.map((playlist) => (
-                    <Card 
-                      key={playlist.id} 
+                    <Card
+                      key={playlist.id}
                       className="cursor-pointer hover:bg-accent/50 transition-colors"
                       onClick={() => onNavigate?.("Home", "playlist-detail")}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                          <div 
+                          <div
                             className="w-12 h-12 rounded-lg bg-cover bg-center border border-border"
                             style={{ backgroundImage: `url('${playlist.cover}')` }}
                           />
@@ -873,8 +889,8 @@ export default function HomePage({
               </div>
               <div className="space-y-3">
                 {liveContests.map((contest) => (
-                  <Card 
-                    key={contest.id} 
+                  <Card
+                    key={contest.id}
                     className="cursor-pointer hover:bg-accent/50 transition-colors border-chart-1/20"
                     onClick={() => onNavigate?.("Contests", "contest-detail")}
                   >
@@ -919,14 +935,14 @@ export default function HomePage({
               </div>
               <div className="space-y-3">
                 {communityRemixes.map((remix) => (
-                  <Card 
-                    key={remix.id} 
+                  <Card
+                    key={remix.id}
                     className="cursor-pointer hover:bg-accent/50 transition-colors"
                     onClick={() => onNavigate?.("Home", "remix-detail")}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3">
-                        <div 
+                        <div
                           className="w-12 h-12 rounded-lg bg-cover bg-center border border-border"
                           style={{ backgroundImage: `url('${remix.cover}')` }}
                         />
@@ -945,7 +961,7 @@ export default function HomePage({
                           <Play className="w-4 h-4" />
                         </Button>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Avatar className="w-6 h-6">
@@ -962,7 +978,7 @@ export default function HomePage({
                           <span>{remix.duration}</span>
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-1 mt-2">
                         {remix.effects.map((effect, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
@@ -985,11 +1001,6 @@ export default function HomePage({
                     <TrendingUp className="w-3 h-3 mr-1" />
                     Hot
                   </Badge>
-                  {usingMockData && (
-                    <Badge variant="outline" className="text-xs">
-                      Demo
-                    </Badge>
-                  )}
                 </div>
               </div>
               {loadingTracks ? (
@@ -1002,8 +1013,8 @@ export default function HomePage({
               ) : (
                 <div className="space-y-3">
                   {trendingTracks.map((track, index) => (
-                    <Card 
-                      key={track.id} 
+                    <Card
+                      key={track.id}
                       className="cursor-pointer hover:bg-accent/50 transition-colors"
                       onClick={() => handlePlayTrack(track.jamendoTrack || track.title)}
                     >
@@ -1012,7 +1023,7 @@ export default function HomePage({
                           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-sm">
                             {track.rank}
                           </div>
-                          <div 
+                          <div
                             className="w-12 h-12 rounded-lg bg-cover bg-center border border-border"
                             style={{ backgroundImage: `url('${track.cover}')` }}
                           />
@@ -1043,9 +1054,9 @@ export default function HomePage({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Community Feed</h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-primary"
                   onClick={() => setShowCreatePost(!showCreatePost)}
                 >
@@ -1065,7 +1076,7 @@ export default function HomePage({
                           {user?.first_name?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <Textarea 
+                      <Textarea
                         placeholder="Share your latest remix or music discovery..."
                         value={newPostText}
                         onChange={(e) => setNewPostText(e.target.value)}
@@ -1115,7 +1126,7 @@ export default function HomePage({
                         <Card className="mb-3 bg-accent/30">
                           <CardContent className="p-3">
                             <div className="flex items-center gap-3">
-                              <div 
+                              <div
                                 className="w-10 h-10 rounded-lg bg-cover bg-center border border-border"
                                 style={{ backgroundImage: `url('${post.trackCover}')` }}
                               />
@@ -1133,18 +1144,24 @@ export default function HomePage({
 
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <div className="flex gap-4">
-                          <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
-                            <Heart className="w-4 h-4" />
+                          <button 
+                            className={`flex items-center gap-1 transition-colors ${post.isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+                            onClick={() => handleLikePost(post.id)}
+                          >
+                            <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
                             <span>{post.likes}</span>
                           </button>
-                          <button 
+                          <button
                             className="flex items-center gap-1 hover:text-primary transition-colors"
                             onClick={() => setActiveCommentSection(activeCommentSection === post.id ? null : post.id)}
                           >
                             <MessageCircle className="w-4 h-4" />
                             <span>{post.comments}</span>
                           </button>
-                          <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                          <button 
+                            className="flex items-center gap-1 hover:text-primary transition-colors"
+                            onClick={() => handleSharePost(post.id)}
+                          >
                             <Share2 className="w-4 h-4" />
                             <span>{post.shares}</span>
                           </button>
@@ -1162,7 +1179,7 @@ export default function HomePage({
                               <AvatarImage src={user?.photo_url} />
                               <AvatarFallback className="text-xs">{user?.first_name?.charAt(0) || 'U'}</AvatarFallback>
                             </Avatar>
-                            <Input 
+                            <Input
                               placeholder="Add a comment..."
                               value={newComment}
                               onChange={(e) => setNewComment(e.target.value)}

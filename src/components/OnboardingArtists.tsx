@@ -45,18 +45,8 @@ const OnboardingArtists: React.FC<OnboardingArtistsProps> = ({ onNext, onSkip })
         setArtists(formattedArtists);
       } catch (error) {
         console.error('Failed to fetch popular artists:', error);
-        // Fallback to static data if API fails
-        const fallbackArtists = [
-          { id: 'weeknd', name: 'The Weeknd', avatar: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400' },
-          { id: 'beyonce', name: 'Beyoncé', avatar: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400' },
-          { id: 'sza', name: 'SZA', avatar: 'https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400' },
-          { id: 'rihanna', name: 'Rihanna', avatar: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400' },
-          { id: 'frank', name: 'Frank Ocean', avatar: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400' },
-          { id: 'drake', name: 'Drake', avatar: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400' },
-          { id: 'dojacat', name: 'Doja Cat', avatar: 'https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400' },
-          { id: 'bruno', name: 'Bruno Mars', avatar: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400' },
-        ];
-        setArtists(fallbackArtists);
+        // Throw error instead of using fallback data
+        throw new Error('Failed to fetch real artists data');
       }
     };
 

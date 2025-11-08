@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { execSync } from 'child_process';
 
 async function verifyBuildScripts() {
   console.log('🔍 Verifying Build Scripts...\n');
@@ -9,10 +8,8 @@ async function verifyBuildScripts() {
     // Test 1: Check if all script files use consistent ES module syntax
     console.log('1️⃣ Checking ES Module Consistency...');
     const scriptFiles = [
-      'scripts/create-development-build.js',
-      'scripts/create-production-build.js',
       'scripts/copy-production-files.js',
-      'scripts/test-builds.js'
+      'scripts/simple-build.js'
     ];
     
     for (const file of scriptFiles) {
@@ -96,7 +93,7 @@ async function verifyBuildScripts() {
           'build:dev',
           'build:prod',
           'build:minimal',
-          'build:test'
+          'build:development'
         ];
         
         for (const script of requiredScripts) {
