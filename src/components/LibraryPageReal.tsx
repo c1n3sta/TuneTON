@@ -84,15 +84,15 @@ export default function LibraryPageReal({ onBack, onNavigate, onTrackSelect, use
       console.log('🔐 LibraryPageReal: Starting API calls...');
 
       const [playlistsData, likedTracksData, statsData] = await Promise.all([
-        tuneTONAPI.getUserPlaylists(user?.id || '').catch((err): TuneTONPlaylist[] => {
+        tuneTONAPI.getUserPlaylists().catch((err): TuneTONPlaylist[] => {
           console.error('🔐 getUserPlaylists failed:', err);
           return [];
         }),
-        tuneTONAPI.getLikedTracks(user?.id || '').catch((err): JamendoTrack[] => {
+        tuneTONAPI.getLikedTracks().catch((err): JamendoTrack[] => {
           console.error('🔐 getLikedTracks failed:', err);
           return [];
         }),
-        tuneTONAPI.getLibraryStats(user?.id || '').catch((err): LibraryStats => {
+        tuneTONAPI.getLibraryStats().catch((err): LibraryStats => {
           console.error('🔐 getLibraryStats failed:', err);
           return { playlistCount: 0, likedTracksCount: 0, totalTracks: 0 };
         })
@@ -156,7 +156,7 @@ export default function LibraryPageReal({ onBack, onNavigate, onTrackSelect, use
 
   const handleToggleTrackLike = async (track: JamendoTrack, isCurrentlyLiked: boolean) => {
     try {
-      const newLikedState = await tuneTONAPI.toggleTrackLike(track, !isCurrentlyLiked, user?.id || '');
+      const newLikedState = await tuneTONAPI.toggleTrackLike(track, !isCurrentlyLiked);
       
       if (newLikedState !== isCurrentlyLiked) {
         if (newLikedState) {
@@ -266,7 +266,7 @@ export default function LibraryPageReal({ onBack, onNavigate, onTrackSelect, use
             
             {/* Library Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="playlists" className="text-xs">
                   <Music className="w-3 h-3 mr-1" />
                   Playlists

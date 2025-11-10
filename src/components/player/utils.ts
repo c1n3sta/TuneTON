@@ -1,5 +1,6 @@
 // Utility functions for the player component
 import type { AudioTrack } from '../../types/audio';
+import type { JamendoTrack } from '../../utils/jamendo-api';
 
 // Convert Jamendo track to AudioTrack
 export function convertJamendoToTrack(
@@ -60,11 +61,11 @@ export function isValidAudioUrl(url: string): boolean {
   // For Jamendo URLs, we need to be more flexible
   // Jamendo streaming URLs often don't have file extensions
   if (url.includes('jamendo.com')) {
-    return url.startsWith('http') && url.includes('?');
+    return url.startsWith('http');
   }
   
   // For other URLs, check for common audio extensions
-  return url.startsWith('http') && (url.includes('.mp3') || url.includes('.wav') || url.includes('.ogg'));
+  return url.startsWith('http') && (url.includes('.mp3') || url.includes('.wav') || url.includes('.ogg') || url.includes('.m4a') || url.includes('.flac'));
 }
 
 // Format time in seconds to MM:SS format

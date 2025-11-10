@@ -131,7 +131,18 @@ export default function TelegramAuthProvider({ children }: TelegramAuthProviderP
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check localStorage first, then Telegram WebApp, then default to true
+    const savedTheme = localStorage.getItem('tuneton_theme');
+    if (savedTheme) {
+      return savedTheme === 'dark';
+    }
+    // Check if we're in Telegram WebApp
+    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
+      return (window as any).Telegram.WebApp.colorScheme === 'dark';
+    }
+    return true; // Default to dark mode
+  });
 
   useEffect(() => {
     const initializeTelegramWebApp = async () => {

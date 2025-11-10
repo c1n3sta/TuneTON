@@ -117,6 +117,14 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     
     const audio = audioRef.current;
     
+    // Add important attributes for better compatibility
+    audio.crossOrigin = "anonymous";
+    audio.preload = "metadata";
+    // Add mobile-specific attributes
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
+    audio.setAttribute('x5-playsinline', 'true');
+    
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
     };
@@ -140,6 +148,42 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     
     const handleError = () => {
       console.error('Audio playback error:', audio.error);
+      // More detailed error handling
+      if (audio.error) {
+        switch (audio.error.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            console.error('Media playback was aborted by the user');
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            console.error('A network error caused the media download to fail');
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            console.error('An error occurred while decoding the media');
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            console.error('The media resource is not supported');
+            break;
+          default:
+            console.error('An unknown error occurred');
+            break;
+        }
+      }
+    };
+    
+    const handleStalled = () => {
+      console.warn('Audio playback stalled');
+    };
+    
+    const handleWaiting = () => {
+      console.warn('Audio playback waiting for data');
+    };
+    
+    const handleCanPlay = () => {
+      console.log('Audio can play');
+    };
+    
+    const handleCanPlayThrough = () => {
+      console.log('Audio can play through');
     };
     
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -148,6 +192,10 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('error', handleError);
+    audio.addEventListener('stalled', handleStalled);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('canplaythrough', handleCanPlayThrough);
     
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
@@ -156,6 +204,10 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
+      audio.removeEventListener('stalled', handleStalled);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('canplaythrough', handleCanPlayThrough);
       audio.pause();
       audio.src = '';
     };
@@ -175,16 +227,33 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     const audio = audioRef.current;
     if (!audio) return;
     
+    console.log('Loading track in useAudioPlayer:', track);
+    
     // Validate audio URL before loading
-    if (track.audioUrl && !isValidAudioUrl(track.audioUrl)) {
-      console.error('Invalid audio URL provided to loadTrack:', track.audioUrl);
-      return;
+    const audioSource = track.audioUrl || (typeof track.source === 'string' ? track.source : '');
+    if (audioSource) {
+      console.log('Validating audio URL in useAudioPlayer:', audioSource);
+      const isValid = isValidAudioUrl(audioSource);
+      console.log('URL validation result in useAudioPlayer:', isValid);
+      
+      if (!isValid) {
+        console.error('Invalid audio URL provided to loadTrack:', audioSource);
+        // Don't return here, we'll still try to load it but log the issue
+      }
     }
     
     setCurrentTrack(track);
-    audio.src = typeof track.source === 'string' ? track.source : '';
+    // Ensure we're setting a string source
+    audio.src = typeof track.source === 'string' ? track.source : (track.audioUrl || '');
     setCurrentTime(0);
     setDuration(track.duration || 0);
+    
+    // Log the track being loaded
+    console.log('Loading track:', track);
+    console.log('Audio source set to:', audio.src);
+    
+    // Load the audio
+    audio.load();
   };
   
   // Toggle play/pause
@@ -192,11 +261,31 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     const audio = audioRef.current;
     if (!audio) return;
     
+    console.log('Toggle play/pause called. Current state:', isPlaying);
+    console.log('Audio element readyState:', audio.readyState);
+    console.log('Audio element networkState:', audio.networkState);
+    console.log('Audio element src:', audio.src);
+    
     if (isPlaying) {
+      console.log('Pausing audio');
       audio.pause();
     } else {
-      audio.play().catch(error => {
+      console.log('Attempting to play audio');
+      // Check if we have a valid source
+      if (!audio.src || audio.src === '') {
+        console.error('No audio source available');
+        return;
+      }
+      
+      // Add better error handling and user feedback
+      audio.play().then(() => {
+        console.log('Audio playback started successfully');
+      }).catch(error => {
         console.error('Failed to play audio:', error);
+        // Handle autoplay policy issues
+        if (error.name === 'NotAllowedError') {
+          console.error('Autoplay prevented by browser policy. User interaction required.');
+        }
       });
     }
   };

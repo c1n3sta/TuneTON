@@ -20,8 +20,8 @@ async function deploy() {
     // Get FTP credentials from environment variables
     const host = process.env.FTP_HOST || '31.31.197.37';
     const port = parseInt(process.env.FTP_PORT) || 21;
-    const user = process.env.FTP_USER || 'u3220060';
-    const pass = process.env.FTP_PASSWORD || 'WDl0ZqrhEJ6Q6t75';
+    const user = process.env.FTP_USER || 'u3220060_tuneton_qoder';
+    const pass = process.env.FTP_PASSWORD || '8XIaE5MdeOK4tJv1';
     
     console.log(`Connecting to FTP server: ${host}:${port} as ${user}`);
     
@@ -43,13 +43,45 @@ async function deploy() {
       throw new Error('dist directory not found. Please run build first.');
     }
     
+    // First, let's clear the current directory on the server
+    console.log('Cleaning up existing files on server...');
+    try {
+      const list = await client.list();
+      for (const item of list) {
+        if (item.name !== '.' && item.name !== '..') {
+          try {
+            if (item.type === 2) { // Directory
+              await client.removeDir(item.name);
+              console.log(`Removed directory: ${item.name}`);
+            } else { // File
+              await client.remove(item.name);
+              console.log(`Removed file: ${item.name}`);
+            }
+          } catch (error) {
+            console.log(`Failed to remove ${item.name}: ${error.message}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Error during cleanup:', error.message);
+    }
+    
+    // Create assets directory
+    try {
+      await client.send('MKD assets');
+      console.log('Created assets directory');
+    } catch (error) {
+      console.log('Assets directory already exists or error creating it');
+    }
+    
     // Get list of files to upload
     const filesToUpload = [];
     function getFiles(dir, baseDir = '') {
       const items = fs.readdirSync(dir);
       for (const item of items) {
         const fullPath = path.join(dir, item);
-        const relativePath = baseDir ? path.join(baseDir, item) : item;
+        // Use forward slashes for FTP paths
+        const relativePath = baseDir ? path.join(baseDir, item).replace(/\\/g, '/') : item.replace(/\\/g, '/');
         const stat = fs.statSync(fullPath);
         
         if (stat.isDirectory()) {
@@ -67,21 +99,23 @@ async function deploy() {
     
     console.log(`Found ${filesToUpload.length} files to upload`);
     
-    // Upload files
+    // Upload files with correct paths
     for (const file of filesToUpload) {
       try {
-        // Create directories on server if needed
-        const remoteDir = path.dirname(file.remote);
-        if (remoteDir !== '.') {
-          console.log(`Creating directory: ${remoteDir}`);
-          await client.ensureDir(remoteDir);
-        }
-        
         console.log(`Uploading: ${file.remote}`);
-        await client.uploadFrom(file.local, file.remote);
-        console.log(`✓ Uploaded: ${file.remote}`);
-      } catch (uploadError) {
-        console.log(`✗ Failed to upload: ${file.remote}`, uploadError.message);
+        
+        if (file.remote.startsWith('assets/')) {
+          // Upload assets files to assets directory
+          await client.uploadFrom(file.local, file.remote);
+          console.log(`✓ Uploaded to assets: ${file.remote}`);
+        } else {
+          // Upload other files to root directory
+          const filename = path.basename(file.remote);
+          await client.uploadFrom(file.local, filename);
+          console.log(`✓ Uploaded to root: ${filename}`);
+        }
+      } catch (error) {
+        console.log(`✗ Failed to upload ${file.remote}: ${error.message}`);
       }
     }
     

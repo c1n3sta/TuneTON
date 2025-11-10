@@ -29,6 +29,7 @@ import { useTelegramAuth } from "./TelegramAuthProvider";
 import { JamendoTrack } from "../utils/jamendo-api";
 import { TuneTONPlaylist, tuneTONAPI } from "../utils/tuneton-api";
 import { musicServiceManager, UniversalTrack } from "../utils/music-service-manager";
+import { AudioTrack } from "../types/audio";
 
 interface User {
   id: number;
@@ -63,7 +64,8 @@ export default function MusicApp() {
     first_name: telegramUser.first_name,
     username: telegramUser.username,
     photo_url: telegramUser.photo_url,
-    is_premium: telegramUser.is_premium
+    is_premium: telegramUser.is_premium,
+    access_token: `real_user_${telegramUser.id}_${Date.now()}`
   } : null;
 
 
@@ -200,10 +202,10 @@ export default function MusicApp() {
         // If search fails, don't set a track
       }
     } else {
-      setCurrentTrack(track);
+      setCurrentTrack(track as JamendoTrack);
     }
     // Update currentTrackName for HomePage component
-    setCurrentTrackName(typeof track === 'string' ? track : track.name);
+    setCurrentTrackName(typeof track === 'string' ? track : (track as JamendoTrack).name);
   };
 
   const handlePlayPause = () => {

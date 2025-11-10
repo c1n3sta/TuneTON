@@ -1,50 +1,76 @@
 #!/usr/bin/env node
 
-import pkg from 'basic-ftp';
+import { execSync } from 'child_process';
 import fs from 'fs';
+import path from 'path';
 
-const { Client } = pkg;
+console.log('Listing files on FTP server...');
 
-async function listFiles() {
-  const client = new Client();
-  client.ftp.verbose = true;
+try {
+  // Проверяем наличие необходимых файлов
+  const ftpCommands = path.join(process.cwd(), 'ftp-commands.txt');
   
-  try {
-    // Use the working credentials from ftp-commands.txt
-    await client.access({
-      host: '31.31.197.37',
-      port: 21,
-      user: 'u3220060_tuneton_qoder',
-      password: '8XIaE5MdeOK4tJv1',
-      secure: false
-    });
-    
-    console.log('Connected successfully!');
-    
-    // List files in the root directory
-    const list = await client.list();
-    console.log('Root directory files:');
-    for (const item of list) {
-      console.log(`${item.name} (${item.type})`);
-    }
-    
-    // Try to list files in the dist directory if it exists
-    try {
-      await client.cd('dist');
-      const distList = await client.list();
-      console.log('\nDist directory files:');
-      for (const item of distList) {
-        console.log(`${item.name} (${item.type})`);
-      }
-    } catch (error) {
-      console.log('No dist directory found');
-    }
-    
-  } catch (error) {
-    console.error('Failed to list files:', error.message);
-  } finally {
-    client.close();
+  if (!fs.existsSync(ftpCommands)) {
+    throw new Error('ftp-commands.txt not found.');
   }
+  
+  // Читаем FTP команды
+  const ftpContent = fs.readFileSync(ftpCommands, 'utf8');
+  const lines = ftpContent.split('\n').filter(line => line.trim() !== '');
+  
+  if (lines.length < 3) {
+    throw new Error('Invalid ftp-commands.txt format');
+  }
+  
+  const hostLine = lines[0].trim();
+  const userLine = lines[1].trim();
+  
+  if (!hostLine.startsWith('open ') || !userLine.startsWith('user ')) {
+    throw new Error('Invalid ftp-commands.txt format');
+  }
+  
+  const hostParts = hostLine.split(' ');
+  const userParts = userLine.split(' ');
+  
+  if (hostParts.length < 3 || userParts.length < 3) {
+    throw new Error('Invalid ftp-commands.txt format');
+  }
+  
+  const host = hostParts[1];
+  const port = hostParts[2];
+  const user = userParts[1];
+  const pass = userParts[2];
+  
+  console.log(`Connecting to FTP server: ${host}:${port} as ${user}`);
+  
+  // Создаем временный скрипт для листинга файлов
+  const listScript = path.join(process.cwd(), 'list-files.sh');
+  
+  // Создаем команды для листинга файлов
+  let curlCommands = `#!/bin/bash\n\n`;
+  curlCommands += `echo "Listing files in root directory:"\n`;
+  curlCommands += `curl -s -l ftp://${user}:${pass}@${host}/\n\n`;
+  curlCommands += `echo "Listing files in /www/ directory:"\n`;
+  curlCommands += `curl -s -l ftp://${user}:${pass}@${host}/www/\n\n`;
+  curlCommands += `echo "Listing files in /www/tuneton.space/ directory:"\n`;
+  curlCommands += `curl -s -l ftp://${user}:${pass}@${host}/www/tuneton.space/\n\n`;
+  
+  fs.writeFileSync(listScript, curlCommands);
+  
+  // Делаем скрипт исполняемым
+  execSync(`chmod +x "${listScript}"`, { stdio: 'inherit' });
+  
+  console.log('List script created. Executing...');
+  
+  // Выполняем листинг
+  execSync(`"${listScript}"`, { stdio: 'inherit' });
+  
+  // Удаляем временный скрипт
+  fs.unlinkSync(listScript);
+  
+  console.log('File listing completed.');
+  
+} catch (error) {
+  console.error('File listing failed:', error.message);
+  process.exit(1);
 }
-
-listFiles();

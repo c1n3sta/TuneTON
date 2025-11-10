@@ -41,18 +41,18 @@ async function incrementPlayback(supabase: any, trackId: string): Promise<Respon
       if (insertError) throw insertError;
     }
     
-    // Also update the track's playCount
+    // Also update the track's play_count
     const { data: trackData, error: trackError } = await supabase
       .from('tracks')
-      .select('playCount')
+      .select('play_count')
       .eq('id', trackId)
       .single();
     
     if (!trackError && trackData) {
-      const updatedPlayCount = trackData.playCount + 1;
+      const updatedPlayCount = trackData.play_count + 1;
       await supabase
         .from('tracks')
-        .update({ playCount: updatedPlayCount })
+        .update({ play_count: updatedPlayCount })
         .eq('id', trackId);
     }
     

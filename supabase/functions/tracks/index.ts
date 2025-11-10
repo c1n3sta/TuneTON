@@ -85,7 +85,7 @@ async function getTracks(supabase: any): Promise<Response> {
     // Update playCount in tracks
     const tracksWithPlayCount = tracks.map((track: any) => ({
       ...track,
-      playCount: playbacks[track.id] || 0
+      playCount: playbacks[track.id] || track.play_count || 0
     }));
     
     const responseHeaders = {

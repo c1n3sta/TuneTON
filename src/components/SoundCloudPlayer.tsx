@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import type { AudioTrack } from "../types/audio";
-import { soundcloudAPI } from "../utils/soundcloud-api";
+import { soundCloudAPI } from "../utils/soundcloud-api";
 import type { SoundCloudTrack } from "../utils/soundcloud-api";
 
 interface SoundCloudPlayerProps {
@@ -54,8 +54,8 @@ export default function SoundCloudPlayer({ track, onTrackEnd, onPlay, onPause }:
     setError(null);
     
     try {
-      // Get stream URL from SoundCloud API
-      const url = await soundcloudAPI.getStreamUrl(track.id);
+      // Get stream URL directly from track
+      const url = track.stream_url;
       setStreamUrl(url);
       
       // Convert to AudioTrack format
@@ -290,7 +290,7 @@ export default function SoundCloudPlayer({ track, onTrackEnd, onPlay, onPause }:
           <span className="px-2 py-1 bg-muted rounded-full">
             {Math.floor(track.duration / 1000 / 60)}:{String(Math.floor(track.duration / 1000) % 60).padStart(2, '0')}
           </span>
-          {track.streamable && (
+          {track.stream_url && (
             <span className="px-2 py-1 bg-green-500/20 text-green-700 dark:text-green-300 rounded-full">
               Streamable
             </span>

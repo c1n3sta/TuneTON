@@ -4,10 +4,11 @@ import BottomNavigation from "../BottomNavigation";
 import { formatTime } from "./utils";
 import type { AudioTrack } from "../../types/audio";
 import { JamendoTrack } from "../../utils/jamendo-api";
+import { UniversalTrack } from "../../utils/music-service-manager";
 
 interface QueueViewProps {
   track: AudioTrack;
-  queueTracks: JamendoTrack[];
+  queueTracks: (JamendoTrack | UniversalTrack)[];
   onClose: () => void;
   onNavigate?: (tab: string) => void;
 }
@@ -65,21 +66,21 @@ export default function QueueView({
               <h3 className="mb-4">Up Next ({queueTracks.length})</h3>
               <div className="space-y-3">
                 {queueTracks.slice(0, 10).map((queueTrack, index) => (
-                  <div key={queueTrack.id} className="bg-card rounded-xl p-3 hover:bg-accent transition-colors cursor-pointer border border-border">
+                  <div key={'id' in queueTrack ? queueTrack.id : (queueTrack as UniversalTrack).originalId} className="bg-card rounded-xl p-3 hover:bg-accent transition-colors cursor-pointer border border-border">
                     <div className="flex items-center gap-3">
                       <div className="text-muted-foreground w-6 flex items-center justify-center text-sm">
                         {index + 1}
                       </div>
                       <div 
                         className="w-12 h-12 rounded-lg bg-cover bg-center border border-border"
-                        style={{ backgroundImage: `url('${queueTrack.image || queueTrack.album_image}')` }}
+                        style={{ backgroundImage: `url('${'image' in queueTrack ? (queueTrack.image || queueTrack.album_image) : (queueTrack as UniversalTrack).coverArt}')` }}
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{queueTrack.name}</h4>
-                        <p className="text-muted-foreground text-sm truncate">{queueTrack.artist_name}</p>
+                        <h4 className="font-medium truncate">{'name' in queueTrack ? queueTrack.name : (queueTrack as UniversalTrack).title}</h4>
+                        <p className="text-muted-foreground text-sm truncate">{'artist_name' in queueTrack ? queueTrack.artist_name : (queueTrack as UniversalTrack).artist}</p>
                       </div>
                       <div className="text-muted-foreground text-sm">
-                        {formatTime(queueTrack.duration)}
+                        {formatTime('duration' in queueTrack ? queueTrack.duration : (queueTrack as UniversalTrack).duration)}
                       </div>
                       <button className="w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-primary hover:bg-accent transition-colors">
                         <MoreHorizontal className="w-4 h-4" />

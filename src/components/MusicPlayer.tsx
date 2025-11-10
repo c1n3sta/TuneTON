@@ -18,9 +18,10 @@ import {
   VolumeX,
   Zap
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
-import { getTuneTONRecommendations, JamendoTrack } from "../utils/jamendo-api";
+import type { AudioTrack } from '../types/audio';
+import { JamendoTrack } from "../utils/jamendo-api";
 import BottomNavigation from "./BottomNavigation";
 import { DEFAULT_EQ_VALUES, WAVEFORM_HEIGHTS } from "./player/constants";
 import EffectsPanel from "./player/EffectsPanel";
@@ -43,7 +44,7 @@ export default function MusicPlayer({
   onBack,
   onNavigate,
   currentTrack,
-  isPlaying: initialIsPlaying = true,
+  isPlaying: initialIsPlaying = false,
   onPlayPause
 }: MusicPlayerProps) {
   // Audio and playback state
@@ -65,9 +66,8 @@ export default function MusicPlayer({
   const [showLyrics, setShowLyrics] = useState(false);
 
   // Jamendo integration
-  const [currentJamendoTrack, setCurrentJamendoTrack] = useState<JamendoTrack | null>(null);
+  const [currentAudioTrack, setCurrentAudioTrack] = useState<AudioTrack | null>(null);
   const [queueTracks, setQueueTracks] = useState<JamendoTrack[]>([]);
-
 
   // Audio Effects States
   const [pitch, setPitch] = useState(0);
@@ -131,27 +131,66 @@ export default function MusicPlayer({
 
   // Navigation functions
   const handleNext = () => {
+    console.log('Handle next called, queueTracks:', queueTracks);
     if (queueTracks.length > 0) {
       const nextTrack = queueTracks[0];
-      setCurrentJamendoTrack(nextTrack);
+      console.log('Playing next track:', nextTrack);
+      // For now, we'll just log that we're handling next track
+      // In a full implementation, we would load the next track
       setQueueTracks(prev => prev.slice(1));
       seek(0);
 
-      if (currentJamendoTrack) {
-        setQueueTracks(prev => [...prev, currentJamendoTrack]);
+      // Convert and load the next track
+      const audioTrack = convertJamendoToTrack(nextTrack);
+      if (audioTrack && audioTrack.id !== 'unknown') {
+        setCurrentAudioTrack(audioTrack);
+        loadTrack(audioTrack);
       }
+
+      // Don't add current track back to queue to prevent duplicates
+      // This creates a continuous playback experience without repetition
+    } else {
+      console.log('No more tracks in queue');
+      setHasError(true);
+      setErrorMessage('No more tracks in queue. Add tracks to continue playback.');
     }
   };
 
   const handlePrevious = () => {
+    console.log('Handle previous called, currentTime:', currentTime, 'queueTracks:', queueTracks);
     if (currentTime > 10) {
       seek(0);
     } else if (queueTracks.length > 0) {
       const prevTrack = queueTracks[queueTracks.length - 1];
-      setCurrentJamendoTrack(prevTrack);
+      console.log('Playing previous track:', prevTrack);
+      // For now, we'll just log that we're handling previous track
+      // In a full implementation, we would load the previous track
       setQueueTracks(prev => prev.slice(0, -1));
       seek(0);
+
+      // Convert and load the previous track
+      const audioTrack = convertJamendoToTrack(prevTrack);
+      if (audioTrack && audioTrack.id !== 'unknown') {
+        setCurrentAudioTrack(audioTrack);
+        loadTrack(audioTrack);
+      }
+    } else {
+      console.log('No previous tracks available');
+      seek(0); // Just restart current track
     }
+  };
+
+  const toggleShuffle = () => {
+    const newShuffleState = !isShuffled;
+    setIsShuffled(newShuffleState);
+    console.log('Shuffle toggled:', newShuffleState);
+    // In a full implementation, we would reshuffle the queue here
+  };
+
+  const toggleRepeat = () => {
+    const newRepeatMode = (repeatMode + 1) % 3; // 0: none, 1: all, 2: one
+    setRepeatMode(newRepeatMode);
+    console.log('Repeat mode changed to:', newRepeatMode);
   };
 
   // Handle missing track data gracefully
@@ -165,20 +204,57 @@ export default function MusicPlayer({
     audiodownload: ''
   } as JamendoTrack; // Type assertion to satisfy the convertJamendoToTrack function
 
-  const track = convertJamendoToTrack(
-    currentJamendoTrack || safeTrack,
-    typeof currentTrack === 'string' ? currentTrack : 'Unknown Track',
-    0, // currentTime is managed by player, not track object
-    isLiked,
-    isDisliked
-  );
+  // Generate the track variable from currentAudioTrack or safeTrack
+  const track = currentAudioTrack ? currentAudioTrack : convertJamendoToTrack(safeTrack);
 
   // Update the player state when the track changes
   useEffect(() => {
-    if (track && track.id !== 'unknown') {
-      loadTrack(track);
+    if (currentTrack) {
+      console.log('Received new track in MusicPlayer:', currentTrack);
+      // If it's a JamendoTrack, convert it directly
+      if (typeof currentTrack === 'object' && 'id' in currentTrack && 'name' in currentTrack) {
+        const jamendoTrack = currentTrack as JamendoTrack;
+        // Convert to AudioTrack and load
+        const audioTrack = convertJamendoToTrack(jamendoTrack);
+        if (audioTrack && audioTrack.id !== 'unknown') {
+          console.log('Loading track into player:', audioTrack);
+          console.log('Track source type:', typeof audioTrack.source);
+          console.log('Track source value:', audioTrack.source);
+          setCurrentAudioTrack(audioTrack);
+          loadTrack(audioTrack);
+        } else {
+          console.log('No valid track to load');
+          setHasError(true);
+          setErrorMessage('Invalid track data received');
+        }
+      } else {
+        // Handle string track names
+        const safeTrack = {
+          id: 'unknown',
+          name: typeof currentTrack === 'string' ? currentTrack : 'Unknown Track',
+          artist_name: 'Unknown Artist',
+          duration: 0,
+          image: '',
+          audio: '',
+          audiodownload: ''
+        } as JamendoTrack;
+        const audioTrack = convertJamendoToTrack(safeTrack);
+        if (audioTrack && audioTrack.id !== 'unknown') {
+          setCurrentAudioTrack(audioTrack);
+          loadTrack(audioTrack);
+        } else {
+          setHasError(true);
+          setErrorMessage('Invalid track data received');
+        }
+      }
+    } else {
+      // No track provided, clear current track
+      console.log('No track provided, clearing current track');
+      setCurrentAudioTrack(null);
+      setHasError(true);
+      setErrorMessage('No track selected. Please select a track to play.');
     }
-  }, [track, loadTrack]);
+  }, [currentTrack, loadTrack]);
 
   // Update volume when it changes
   useEffect(() => {
@@ -191,119 +267,58 @@ export default function MusicPlayer({
   }, [tempo, setPlaybackRate]);
 
   // Handle play/pause
-  useEffect(() => {
-    if (playerIsPlaying !== isPlaying) {
-      togglePlayPause();
-    }
-  }, [playerIsPlaying, isPlaying, togglePlayPause]);
-
-  // Handle errors gracefully
-  useEffect(() => {
-    if (hasError) {
-      setErrorMessage('Unable to play audio. Please try another track.');
-      console.error('Audio playback error');
-    }
-  }, [hasError]);
-
-  // Load Jamendo tracks
-  useEffect(() => {
-    const loadJamendoTracks = async () => {
-      try {
-        setIsLoading(true);
-        console.log('🎵 MusicPlayer: Starting to load Jamendo tracks...');
-
-        // If currentTrack is already a JamendoTrack object, use it directly
-        if (currentTrack && typeof currentTrack === 'object' && 'id' in currentTrack && currentTrack.id) {
-          // Validate that it has required fields
-          const validTrack = currentTrack as JamendoTrack;
-          if (validTrack.name && validTrack.artist_name && (validTrack.audio || validTrack.audiodownload)) {
-            setCurrentJamendoTrack(validTrack);
-            console.log('🎵 Using passed JamendoTrack:', validTrack.name, 'by', validTrack.artist_name);
-          }
-
-          // Still load recommendations for queue
-          const recommendations = await getTuneTONRecommendations();
-          const allTracks = [
-            ...recommendations.popular,
-            ...recommendations.trending,
-            ...recommendations.lofi,
-            ...recommendations.remixable
-          ].filter(track => track.id !== currentTrack.id); // Exclude current track from queue
-
-          setQueueTracks(allTracks.slice(0, 5));
-
-          setIsLoading(false);
-          return;
-        }
-
-        const recommendations = await getTuneTONRecommendations();
-        console.log('🎵 Got recommendations:', recommendations);
-
-        const allTracks = [
-          ...recommendations.popular,
-          ...recommendations.trending,
-          ...recommendations.lofi,
-          ...recommendations.remixable
-        ];
-
-        console.log('🎵 Total tracks loaded:', allTracks.length);
-        setQueueTracks(allTracks.slice(1, 6));
-
-        // Find track by name if currentTrack is a string
-        const trackName = typeof currentTrack === 'string' ? currentTrack : '';
-        let trackToPlay = allTracks.find(track => track.name === trackName) || allTracks[0];
-        if (trackToPlay) {
-          setCurrentJamendoTrack(trackToPlay);
-          console.log('🎵 Selected track to play:', trackToPlay.name, 'by', trackToPlay.artist_name);
-        }
-
-
-      } catch (error) {
-        console.error('🎵 Error loading Jamendo tracks:', error);
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadJamendoTracks();
-  }, [currentTrack]);
-
-  // Check mix mode active
-  useEffect(() => {
-    const isActive = lofiIntensity > 0 || backgroundNoise !== 'none' || vinylCrackle > 0 || tapeWow > 0 || tempo !== 100 || pitch !== 0;
-    setMixModeActive(isActive);
-  }, [lofiIntensity, backgroundNoise, vinylCrackle, tapeWow, tempo, pitch]);
-
-  // Control handlers
   const togglePlay = () => {
     console.log('Toggle play called, track:', track);
+    console.log('Track audioUrl:', track?.audioUrl);
+    console.log('Track source:', track?.source);
 
-    if ((!track || !track.audioUrl || track.audioUrl === '') && !hasError) {
+    // Reset error state
+    if (hasError) {
+      setHasError(false);
+      setErrorMessage(null);
+    }
+
+    if (!track) {
       setHasError(true);
-      setErrorMessage('No audio source available');
+      setErrorMessage('No track selected. Please select a track to play.');
+      console.error('No track selected');
+      return;
+    }
+
+    // Check if we have a valid audio source
+    const audioSource = track.audioUrl || (typeof track.source === 'string' ? track.source : '');
+    console.log('Audio source to validate:', audioSource);
+    console.log('Audio source type:', typeof audioSource);
+
+    if (!audioSource || audioSource === '') {
+      setHasError(true);
+      setErrorMessage('No audio source available for this track. This track may not be playable.');
       console.error('No audio source available for track:', track);
       return;
     }
 
     // Validate audio URL before playing
-    if (track && track.audioUrl) {
-      if (!isValidAudioUrl(track.audioUrl)) {
+    if (audioSource && typeof audioSource === 'string') {
+      console.log('Validating audio URL:', audioSource);
+      const isValid = isValidAudioUrl(audioSource);
+      console.log('URL validation result:', isValid);
+
+      // Even if validation fails, we'll still try to play as Jamendo URLs might not always validate properly
+      // but are still valid streaming URLs
+      if (!isValid && !audioSource.includes('jamendo.com')) {
         setHasError(true);
-        setErrorMessage('Invalid audio URL format');
-        console.error('Invalid audio URL format:', track.audioUrl);
+        setErrorMessage(`Invalid audio URL format: "${audioSource}". This track may not be playable.`);
+        console.error('Invalid audio URL format:', audioSource);
         return;
       }
     }
 
+    // Call the hook's togglePlayPause function
+    togglePlayPause();
+
     const newPlayState = !playerIsPlaying;
     setPlayerIsPlaying(newPlayState);
     onPlayPause?.();
-
-    if (hasError) {
-      setHasError(false);
-      setErrorMessage(null);
-    }
   };
 
   const resetEqualizer = () => {
@@ -405,14 +420,6 @@ export default function MusicPlayer({
     setIsLiked(!isLiked);
   };
 
-  const toggleShuffle = () => {
-    setIsShuffled(!isShuffled);
-  };
-
-  const toggleRepeat = () => {
-    setRepeatMode((prev) => (prev + 1) % 3);
-  };
-
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const progressBar = e.currentTarget;
     const rect = progressBar.getBoundingClientRect();
@@ -425,7 +432,16 @@ export default function MusicPlayer({
   if (showQueue) {
     return (
       <QueueView
-        track={track}
+        track={track || {
+          id: 'unknown',
+          title: 'Unknown Track',
+          artist: 'Unknown Artist',
+          album: 'Unknown Album',
+          duration: 0,
+          source: '',
+          cover: '',
+          audioUrl: ''
+        }}
         queueTracks={queueTracks}
         onClose={() => setShowQueue(false)}
         onNavigate={onNavigate}
@@ -529,7 +545,7 @@ export default function MusicPlayer({
                     )}
 
                     {/* Jamendo Badge */}
-                    {currentJamendoTrack && (
+                    {currentTrack && typeof currentTrack === 'object' && 'id' in currentTrack && (
                       <div className="absolute bottom-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                         Jamendo
                       </div>
@@ -564,9 +580,9 @@ export default function MusicPlayer({
                 <h1 className="text-2xl font-medium leading-tight">{track.title}</h1>
                 <p className="text-muted-foreground">{track.artist}</p>
                 <p className="text-muted-foreground text-sm">{track.album}</p>
-                {currentJamendoTrack?.musicinfo?.tags?.genres && (
+                {currentTrack && typeof currentTrack === 'object' && 'musicinfo' in currentTrack && (currentTrack as JamendoTrack).musicinfo?.tags?.genres && (
                   <div className="flex justify-center gap-1 mt-2">
-                    {currentJamendoTrack.musicinfo.tags.genres.slice(0, 3).map((genre: string, i: number) => (
+                    {(currentTrack as JamendoTrack).musicinfo.tags.genres.slice(0, 3).map((genre: string, i: number) => (
                       <Badge key={i} variant="secondary" className="text-xs">
                         {genre}
                       </Badge>
@@ -775,62 +791,39 @@ export default function MusicPlayer({
                 </h4>
                 <div className="max-h-64 overflow-y-auto scrollbar-hide">
                   <div className="space-y-2 text-sm leading-relaxed">
-                    {/* Sample lyrics - In real implementation, these would come from lyrics API */}
-                    <div className="text-muted-foreground">
-                      <div className="mb-2 font-medium text-foreground">Verse 1:</div>
-                      <div>In the silence of the midnight hour</div>
-                      <div>When the world sleeps and dreams take power</div>
-                      <div>I find myself lost in melodies</div>
-                      <div>That dance through my memories</div>
-                    </div>
-                    <div className="text-muted-foreground">
-                      <div className="mb-2 font-medium text-foreground">Chorus:</div>
-                      <div>Starlight serenade, play for me tonight</div>
-                      <div>Guide me through the darkness with your light</div>
-                      <div>Every note's a story, every beat's a heart</div>
-                      <div>Music is the language that sets us apart</div>
-                    </div>
-                    <div className="text-muted-foreground">
-                      <div className="mb-2 font-medium text-foreground">Verse 2:</div>
-                      <div>Through the static and the noise around</div>
-                      <div>Your melody is all I've found</div>
-                      <div>A rhythm that speaks to my soul</div>
-                      <div>Making broken pieces whole</div>
-                    </div>
-                    <div className="text-muted-foreground">
-                      <div className="mb-2 font-medium text-foreground">Bridge:</div>
-                      <div>When words fail and silence calls</div>
-                      <div>Music breaks down all the walls</div>
-                      <div>Between hearts that need to feel</div>
-                      <div>Something honest, something real</div>
+                    {/* Display message that lyrics are not available from Jamendo API */}
+                    <div className="text-muted-foreground text-center py-8">
+                      <FileText className="w-8 h-8 mx-auto mb-2" />
+                      <p>Lyrics not available for this track</p>
+                      <p className="text-xs mt-2">Jamendo API does not provide lyrics data</p>
                     </div>
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border">
                   <p className="text-xs text-muted-foreground flex items-center gap-2">
                     <Music className="w-3 h-3" />
-                    Lyrics powered by TuneTON AI • Sync with track timing
+                    Lyrics availability depends on track metadata
                   </p>
                 </div>
               </div>
             )}
 
             {/* Track Info from Jamendo API */}
-            {currentJamendoTrack && !isLoading && !showLyrics && (
+            {currentTrack && typeof currentTrack === 'object' && 'id' in currentTrack && !isLoading && !showLyrics && (
               <div className="bg-secondary/50 rounded-xl p-4 border border-border">
                 <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                   <Music className="w-4 h-4" />
                   Track Information
                 </h4>
                 <div className="space-y-1 text-sm text-muted-foreground">
-                  <div><span className="font-medium">Duration:</span> {formatTime(currentJamendoTrack.duration)}</div>
-                  <div><span className="font-medium">Album:</span> {currentJamendoTrack.album_name}</div>
-                  {currentJamendoTrack.musicinfo && (
+                  <div><span className="font-medium">Duration:</span> {formatTime((currentTrack as JamendoTrack).duration)}</div>
+                  <div><span className="font-medium">Album:</span> {(currentTrack as JamendoTrack).album_name}</div>
+                  {(currentTrack as JamendoTrack).musicinfo && (
                     <>
-                      <div><span className="font-medium">Type:</span> {currentJamendoTrack.musicinfo.vocalinstrumental}</div>
-                      <div><span className="font-medium">Speed:</span> {currentJamendoTrack.musicinfo.speed}</div>
-                      {currentJamendoTrack.musicinfo.tags?.instruments && (
-                        <div><span className="font-medium">Instruments:</span> {currentJamendoTrack.musicinfo.tags.instruments.join(', ')}</div>
+                      <div><span className="font-medium">Type:</span> {(currentTrack as JamendoTrack).musicinfo.vocalinstrumental}</div>
+                      <div><span className="font-medium">Speed:</span> {(currentTrack as JamendoTrack).musicinfo.speed}</div>
+                      {(currentTrack as JamendoTrack).musicinfo.tags?.instruments && (
+                        <div><span className="font-medium">Instruments:</span> {(currentTrack as JamendoTrack).musicinfo.tags.instruments.join(', ')}</div>
                       )}
                     </>
                   )}

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS tracks (
 -- Create playbacks table
 CREATE TABLE IF NOT EXISTS playbacks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  track_id BIGINT REFERENCES tracks(id) ON DELETE CASCADE,
+  track_id UUID REFERENCES tracks(id) ON DELETE CASCADE,
   count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

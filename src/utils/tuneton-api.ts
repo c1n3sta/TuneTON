@@ -1,5 +1,9 @@
 import { JamendoTrack } from '../utils/jamendo-api';
 import { projectId, publicAnonKey } from './supabase/info';
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase client
+const supabase = createClient(`https://${projectId}.supabase.co`, publicAnonKey);
 
 interface APIResponse<T = any> {
   success: boolean;
@@ -100,92 +104,17 @@ class TuneTonAPI {
     return { success: response.success };
   }
 
-  // User authentication
-  async authenticateUser(userData: {
+  // Telegram authentication
+  async authenticateUser(telegramData: {
     telegram_id: number;
-    username: string;
-    display_name?: string;
-    avatar_url?: string;
-  }): Promise<APIResponse> {
-    return this.request('/auth/user', {
-      method: 'POST',
-      body: JSON.stringify(userData)
-    });
-  }
-
-  // Comments
-  async createComment(commentData: {
-    user_id: string;
-    entity_type: string;
-    entity_id: string;
-    content: string;
-    parent_comment_id?: string;
-  }): Promise<APIResponse> {
-    return this.request('/comments', {
-      method: 'POST',
-      body: JSON.stringify(commentData)
-    });
-  }
-
-  async getComments(entityType: string, entityId: string): Promise<APIResponse> {
-    return this.request(`/comments/${entityType}/${entityId}`);
-  }
-
-  // Social interactions
-  async toggleLike(likeData: {
-    user_id: string;
-    entity_type: string;
-    entity_id: string;
-  }): Promise<APIResponse> {
-    return this.request('/like', {
-      method: 'POST',
-      body: JSON.stringify(likeData)
-    });
-  }
-
-  async toggleTrackLike(track: JamendoTrack | string, isLiked: boolean): Promise<boolean> {
-    // This would toggle like status for a track
-    console.log('Toggling track like', track, isLiked);
-    return true;
-  }
-
-  // Subscription (follow) management
-  async followUser(targetUserId: string): Promise<APIResponse> {
-    return this.request('/subscriptions', {
-      method: 'POST',
-      body: JSON.stringify({ target_user_id: targetUserId })
-    });
-  }
-
-  async unfollowUser(targetUserId: string): Promise<APIResponse> {
-    return this.request(`/subscriptions/${targetUserId}`, {
-      method: 'DELETE'
-    });
-  }
-
-  async getSubscriptions(): Promise<APIResponse> {
-    return this.request('/subscriptions');
-  }
-
-  // Test KV store
-  async testKV(): Promise<APIResponse> {
-    return this.request('/test/kv');
-  }
-
-  // User management
-  async createUser(telegramData: {
-    telegram_id: number;
-    telegram_username?: string;
     first_name: string;
     last_name?: string;
+    telegram_username?: string;
     telegram_photo_url?: string;
-    is_premium?: boolean;
   }): Promise<APIResponse> {
-    return this.authenticateUser({
-      telegram_id: telegramData.telegram_id,
-      username: telegramData.telegram_username || telegramData.first_name,
-      display_name: telegramData.first_name + (telegramData.last_name ? ` ${telegramData.last_name}` : ''),
-      avatar_url: telegramData.telegram_photo_url
+    return this.request('/auth/telegram', {
+      method: 'POST',
+      body: JSON.stringify(telegramData)
     });
   }
 
@@ -196,27 +125,324 @@ class TuneTonAPI {
     description?: string;
     is_public?: boolean;
   }): Promise<TuneTONPlaylist | null> {
-    // This would be implemented when playlist endpoints are added to the server
-    console.log('Playlist creation not yet implemented on server', playlistData);
-    return null;
+    try {
+      const { data, error } = await supabase
+        .from('playlists')
+        .insert([
+          {
+            user_id: playlistData.user_id,
+            name: playlistData.title,
+            description: playlistData.description,
+            is_private: !playlistData.is_public,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating playlist:', error);
+        return null;
+      }
+
+      return data as TuneTONPlaylist;
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+      return null;
+    }
   }
 
   async getUserPlaylists(): Promise<TuneTONPlaylist[]> {
-    // This would fetch user playlists from the server
-    console.log('Fetching user playlists');
-    return [];
+    try {
+      const { data, error } = await supabase
+        .from('playlists')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching user playlists:', error);
+        return [];
+      }
+
+      return data as TuneTONPlaylist[];
+    } catch (error) {
+      console.error('Error fetching user playlists:', error);
+      return [];
+    }
+  }
+
+  async getPlaylist(id: string): Promise<TuneTONPlaylist | null> {
+    try {
+      const { data, error } = await supabase
+        .from('playlists')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching playlist:', error);
+        return null;
+      }
+
+      return data as TuneTONPlaylist;
+    } catch (error) {
+      console.error('Error fetching playlist:', error);
+      return null;
+    }
+  }
+
+  async getPlaylistTracks(playlistId: string): Promise<JamendoTrack[]> {
+    try {
+      // First get track IDs from playlist_tracks table
+      const { data: playlistTracks, error: tracksError } = await supabase
+        .from('playlist_tracks')
+        .select('track_id, track_data')
+        .eq('playlist_id', playlistId)
+        .order('position', { ascending: true });
+
+      if (tracksError) {
+        console.error('Error fetching playlist tracks:', tracksError);
+        return [];
+      }
+
+      // Convert stored track data to JamendoTrack format
+      const tracks: JamendoTrack[] = playlistTracks.map((pt: any) => {
+        if (pt.track_data) {
+          return pt.track_data as JamendoTrack;
+        }
+        // Return a minimal track if no data is stored
+        return {
+          id: pt.track_id,
+          name: 'Unknown Track',
+          artist_name: 'Unknown Artist',
+          duration: 0,
+          artist_id: '',
+          artist_idstr: '',
+          album_id: '',
+          album_name: '',
+          album_image: '',
+          audio: '',
+          audiodownload: '',
+          prourl: '',
+          shorturl: '',
+          shareurl: '',
+          waveform: '',
+          image: ''
+        } as JamendoTrack;
+      });
+
+      return tracks;
+    } catch (error) {
+      console.error('Error fetching playlist tracks:', error);
+      return [];
+    }
+  }
+
+  async removeTrackFromPlaylist(playlistId: string, trackId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('playlist_tracks')
+        .delete()
+        .match({ playlist_id: playlistId, track_id: trackId });
+
+      if (error) {
+        console.error('Error removing track from playlist:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error removing track from playlist:', error);
+      return false;
+    }
+  }
+
+  async addTrackToPlaylist(playlistId: string, trackData: JamendoTrack): Promise<boolean> {
+    try {
+      // First check if track already exists in playlist
+      const { data: existing, error: checkError } = await supabase
+        .from('playlist_tracks')
+        .select('id')
+        .match({ playlist_id: playlistId, track_id: trackData.id })
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows returned
+        console.error('Error checking existing track in playlist:', checkError);
+        return false;
+      }
+
+      // If track already exists, don't add it again
+      if (existing) {
+        return true;
+      }
+
+      // Get the next position for the track
+      const { data: maxPositionData, error: positionError } = await supabase
+        .from('playlist_tracks')
+        .select('position')
+        .eq('playlist_id', playlistId)
+        .order('position', { ascending: false })
+        .limit(1)
+        .single();
+
+      const nextPosition = positionError ? 0 : (maxPositionData?.position || 0) + 1;
+
+      const { error } = await supabase
+        .from('playlist_tracks')
+        .insert([
+          {
+            playlist_id: playlistId,
+            track_id: trackData.id,
+            track_data: trackData,
+            position: nextPosition,
+            added_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) {
+        console.error('Error adding track to playlist:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error adding track to playlist:', error);
+      return false;
+    }
+  }
+
+  async deletePlaylist(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('playlists')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting playlist:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting playlist:', error);
+      return false;
+    }
+  }
+
+  async toggleTrackLike(track: JamendoTrack, isLiked: boolean): Promise<boolean> {
+    try {
+      if (isLiked) {
+        // Add track to liked tracks
+        const { error } = await supabase
+          .from('liked_tracks')
+          .insert([
+            {
+              track_id: track.id,
+              track_data: track,
+              liked_at: new Date().toISOString()
+            }
+          ]);
+
+        if (error) {
+          console.error('Error adding track to liked tracks:', error);
+          return false;
+        }
+      } else {
+        // Remove track from liked tracks
+        const { error } = await supabase
+          .from('liked_tracks')
+          .delete()
+          .eq('track_id', track.id);
+
+        if (error) {
+          console.error('Error removing track from liked tracks:', error);
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error toggling track like:', error);
+      return false;
+    }
   }
 
   async getLikedTracks(): Promise<JamendoTrack[]> {
-    // This would fetch liked tracks from the server
-    console.log('Fetching liked tracks');
-    return [];
+    try {
+      const { data, error } = await supabase
+        .from('liked_tracks')
+        .select('track_data')
+        .order('liked_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching liked tracks:', error);
+        return [];
+      }
+
+      // Convert stored track data to JamendoTrack format
+      const tracks: JamendoTrack[] = data.map((lt: any) => {
+        if (lt.track_data) {
+          return lt.track_data as JamendoTrack;
+        }
+        // Return empty track if no data is stored
+        return {
+          id: '',
+          name: '',
+          artist_name: '',
+          duration: 0,
+          artist_id: '',
+          artist_idstr: '',
+          album_id: '',
+          album_name: '',
+          album_image: '',
+          audio: '',
+          audiodownload: '',
+          prourl: '',
+          shorturl: '',
+          shareurl: '',
+          waveform: '',
+          image: ''
+        } as JamendoTrack;
+      });
+
+      return tracks;
+    } catch (error) {
+      console.error('Error fetching liked tracks:', error);
+      return [];
+    }
   }
 
   async getLibraryStats(): Promise<LibraryStats> {
-    // This would fetch library statistics from the server
-    console.log('Fetching library stats');
-    return { playlistCount: 0, likedTracksCount: 0, totalTracks: 0 };
+    try {
+      // Get playlist count
+      const { count: playlistCount, error: playlistError } = await supabase
+        .from('playlists')
+        .select('*', { count: 'exact', head: true });
+
+      // Get liked tracks count
+      const { count: likedTracksCount, error: likedError } = await supabase
+        .from('liked_tracks')
+        .select('*', { count: 'exact', head: true });
+
+      if (playlistError) {
+        console.error('Error fetching playlist count:', playlistError);
+      }
+
+      if (likedError) {
+        console.error('Error fetching liked tracks count:', likedError);
+      }
+
+      return {
+        playlistCount: playlistCount || 0,
+        likedTracksCount: likedTracksCount || 0,
+        totalTracks: (playlistCount || 0) + (likedTracksCount || 0)
+      };
+    } catch (error) {
+      console.error('Error fetching library stats:', error);
+      return { playlistCount: 0, likedTracksCount: 0, totalTracks: 0 };
+    }
   }
 
   async setAccessToken(token: string, userId: string): Promise<void> {
@@ -224,46 +450,333 @@ class TuneTonAPI {
     console.log('Setting access token', token, userId);
   }
 
-  async getPlaylist(id: string): Promise<TuneTONPlaylist | null> {
-    // This would fetch a specific playlist from the server
-    console.log('Fetching playlist', id);
-    return null;
+  // Comment management
+  async addComment(entityType: string, entityId: string, content: string, parentCommentId?: string): Promise<boolean> {
+    try {
+      const commentData: any = {
+        entity_type: entityType,
+        entity_id: entityId,
+        content: content
+      };
+
+      if (parentCommentId) {
+        commentData.parent_comment_id = parentCommentId;
+      }
+
+      const { error } = await supabase
+        .from('comments')
+        .insert([commentData]);
+
+      if (error) {
+        console.error('Error adding comment:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      return false;
+    }
   }
 
-  async getPlaylistTracks(playlistId: string): Promise<JamendoTrack[]> {
-    // This would fetch tracks for a specific playlist from the server
-    console.log('Fetching playlist tracks', playlistId);
-    return [];
+  async getEntityComments(entityType: string, entityId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .select(`
+          *,
+          users:first_name, username, photo_url
+        `)
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching comments:', error);
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
   }
 
-  async removeTrackFromPlaylist(playlistId: string, trackId: string): Promise<boolean> {
-    // This would remove a track from a playlist on the server
-    console.log('Removing track from playlist', playlistId, trackId);
-    return true;
-  }
+  async deleteComment(commentId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId);
 
-  async addTrackToPlaylist(playlistId: string, trackData: any): Promise<boolean> {
-    // This would add a track to a playlist on the server
-    console.log('Adding track to playlist', playlistId, trackData);
-    return true;
-  }
+      if (error) {
+        console.error('Error deleting comment:', error);
+        return false;
+      }
 
-  async deletePlaylist(id: string): Promise<boolean> {
-    // This would delete a playlist on the server
-    console.log('Deleting playlist', id);
-    return true;
-  }
-
-  // Contest management
-  async getActiveContests(): Promise<APIResponse> {
-    // This would be implemented when contest endpoints are added to the server
-    return { success: true, data: [] };
+      return true;
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      return false;
+    }
   }
 
   // NFT management
   async getNFTMarketplace(): Promise<APIResponse> {
     // This would be implemented when NFT endpoints are added to the server
     return { success: true, data: [] };
+  }
+
+  // Playback history management
+  async addPlaybackHistory(trackData: JamendoTrack, durationPlayed: number = 0, isCompleted: boolean = false): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('playback_history')
+        .insert([
+          {
+            track_id: trackData.id,
+            track_data: trackData,
+            played_at: new Date().toISOString(),
+            duration_played: durationPlayed,
+            is_completed: isCompleted
+          }
+        ]);
+
+      if (error) {
+        console.error('Error adding playback history:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error adding playback history:', error);
+      return false;
+    }
+  }
+
+  async getRecentPlaybackHistory(limit: number = 20): Promise<JamendoTrack[]> {
+    try {
+      const { data, error } = await supabase
+        .from('playback_history')
+        .select('track_data')
+        .order('played_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching playback history:', error);
+        return [];
+      }
+
+      // Convert stored track data to JamendoTrack format
+      const tracks: JamendoTrack[] = data.map((ph: any) => {
+        if (ph.track_data) {
+          return ph.track_data as JamendoTrack;
+        }
+        // Return empty track if no data is stored
+        return {
+          id: '',
+          name: '',
+          artist_name: '',
+          duration: 0,
+          artist_id: '',
+          artist_idstr: '',
+          album_id: '',
+          album_name: '',
+          album_image: '',
+          audio: '',
+          audiodownload: '',
+          prourl: '',
+          shorturl: '',
+          shareurl: '',
+          waveform: '',
+          image: ''
+        } as JamendoTrack;
+      });
+
+      return tracks;
+    } catch (error) {
+      console.error('Error fetching playback history:', error);
+      return [];
+    }
+  }
+
+  async getLastPlayedTrack(): Promise<JamendoTrack | null> {
+    try {
+      const { data, error } = await supabase
+        .from('playback_history')
+        .select('track_data')
+        .order('played_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching last played track:', error);
+        return null;
+      }
+
+      if (data && data.track_data) {
+        return data.track_data as JamendoTrack;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error fetching last played track:', error);
+      return null;
+    }
+  }
+
+  // Social feed management
+  // User activity tracking
+  async recordUserActivity(activityType: string, targetId?: string, targetType?: string, content?: string): Promise<boolean> {
+    try {
+      if (!this.userId) {
+        console.warn('User ID not set, cannot record user activity');
+        return false;
+      }
+      
+      const { error } = await supabase
+        .from('user_activities')
+        .insert([
+          {
+            user_id: this.userId,
+            activity_type: activityType,
+            target_id: targetId,
+            target_type: targetType,
+            content: content,
+            timestamp: new Date().toISOString()
+          }
+        ]);
+      
+      if (error) {
+        console.error('Error recording user activity:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error recording user activity:', error);
+      return false;
+    }
+  }
+  
+  async getSocialFeed(userId: string, limit: number = 20): Promise<any[]> {
+    try {
+      // This would fetch a social feed of activities from followed users
+      // For now, we'll return an empty array as this would require more complex queries
+      console.log('Fetching social feed for user:', userId);
+      return [];
+    } catch (error) {
+      console.error('Error fetching social feed:', error);
+      return [];
+    }
+  }
+
+  // Subscription (follow) management
+  async followUser(targetUserId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .insert([
+          {
+            target_user_id: targetUserId,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) {
+        console.error('Error following user:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error following user:', error);
+      return false;
+    }
+  }
+
+  async unfollowUser(targetUserId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .delete()
+        .match({ target_user_id: targetUserId });
+
+      if (error) {
+        console.error('Error unfollowing user:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+      return false;
+    }
+  }
+
+  async getFollowing(userId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          target_user_id,
+          users:id,first_name,username,photo_url
+        `)
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching following:', error);
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching following:', error);
+      return [];
+    }
+  }
+
+  async getFollowers(userId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          user_id,
+          users:id,first_name,username,photo_url
+        `)
+        .eq('target_user_id', userId);
+
+      if (error) {
+        console.error('Error fetching followers:', error);
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching followers:', error);
+      return [];
+    }
+  }
+
+  async isFollowing(targetUserId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .match({ target_user_id: targetUserId })
+        .limit(1);
+
+      if (error) {
+        console.error('Error checking follow status:', error);
+        return false;
+      }
+
+      return data.length > 0;
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+      return false;
+    }
   }
 }
 

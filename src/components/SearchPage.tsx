@@ -1,40 +1,31 @@
-import { useState } from "react";
-import { 
-  Search, 
-  ArrowLeft, 
-  Filter, 
-  TrendingUp, 
-  Clock, 
-  Play, 
-  Heart, 
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  Filter,
+  Hash,
+  Headphones,
+  Heart,
   MoreHorizontal,
   Music,
-  User,
-  Hash,
-  Mic,
-  Headphones,
-  Trophy,
-  Folder,
+  Play,
+  Search,
   Star,
-  Volume2,
-  ArrowRight
+  TrendingUp,
+  User,
+  Volume2
 } from "lucide-react";
-import BottomNavigation from "./BottomNavigation";
+import { useState } from "react";
+import { jamendoAPI } from "../utils/jamendo-api";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 import { Button } from "./ui/button-component";
 import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 // Import images
-import imgTrackCover from "figma:asset/5c0570c22db9da4233071e8dc020249fbd9aeece.png";
-import imgTrackCover1 from "figma:asset/ee4dceec67617340be718a9b700bd99946447425.png";
-import imgAlbumArt from "figma:asset/b13483f5f235f1c26e9cbdbfb40edb8ca3b9c11c.png";
-import imgRemixerAvatar from "figma:asset/02641910bdc93d1d98cf6da313c9fe42f75a5679.png";
-import imgRemixerAvatar1 from "figma:asset/66f8b9f85ad861c00f8936ae6466a1d89cdac769.png";
-import imgRemixerAvatar2 from "figma:asset/942f88b3ac884230b9cb4196019616c8ea6fb6a0.png";
 
 interface SearchPageProps {
   onBack?: () => void;
@@ -45,6 +36,13 @@ interface SearchPageProps {
 export default function SearchPage({ onBack, onNavigate, onTrackSelect }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [searchResults, setSearchResults] = useState<any>({
+    tracks: [],
+    artists: [],
+    remixes: []
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const trendingSearches = [
     "Lo-Fi Hip Hop",
@@ -55,94 +53,54 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
     "Bass Boost"
   ];
 
-  const searchResults = {
-    tracks: [
-      {
-        id: "1",
-        title: "Starlight Serenade",
-        artist: "MelodyMix Artist", 
-        cover: imgAlbumArt,
-        duration: "3:23",
-        plays: "1.2M",
-        isLiked: false
-      },
-      {
-        id: "2",
-        title: "Sunset Drive",
-        artist: "Chillwave Collective",
-        cover: imgTrackCover,
-        duration: "4:12", 
-        plays: "890K",
-        isLiked: true
-      },
-      {
-        id: "3",
-        title: "City Lights",
-        artist: "Urban Beats",
-        cover: imgTrackCover1,
-        duration: "3:45",
-        plays: "654K", 
-        isLiked: false
-      }
-    ],
-    artists: [
-      {
-        id: "1",
-        name: "MelodyMix Artist",
-        avatar: imgRemixerAvatar,
-        followers: "2.1M",
-        isVerified: true,
-        topTrack: "Starlight Serenade"
-      },
-      {
-        id: "2", 
-        name: "Chillwave Collective",
-        avatar: imgRemixerAvatar1,
-        followers: "1.8M",
-        isVerified: true,
-        topTrack: "Sunset Drive"
-      },
-      {
-        id: "3",
-        name: "Urban Beats", 
-        avatar: imgRemixerAvatar2,
-        followers: "1.5M",
-        isVerified: false,
-        topTrack: "City Lights"
-      }
-    ],
-    remixes: [
-      {
-        id: "1",
-        title: "Neon Dreams (Lo-Fi Remix)",
-        originalArtist: "Synthwave Pro",
-        remixer: "LoFiMaster",
-        remixerAvatar: imgRemixerAvatar,
-        cover: imgAlbumArt,
-        likes: 2847,
-        plays: 28600,
-        effects: ["Lo-Fi", "Vinyl", "Rain"]
-      },
-      {
-        id: "2",
-        title: "Ocean Waves (Speed Mix)", 
-        originalArtist: "Nature Sounds",
-        remixer: "SpeedMaster",
-        remixerAvatar: imgRemixerAvatar1,
-        cover: imgTrackCover,
-        likes: 1892,
-        plays: 19300,
-        effects: ["Tempo +25%", "Bass Boost"]
-      }
-    ]
-  };
-
-  const handleSearch = (query: string) => {
+  const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    // In real app, this would trigger search API
+
+    if (query.trim() === '') {
+      setSearchResults({
+        tracks: [],
+        artists: [],
+        remixes: []
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Search for tracks using Jamendo API
+      const trackResults = await jamendoAPI.textSearch(query, 10);
+
+      // For now, we'll use the track results for all categories
+      // In a more advanced implementation, we would have separate searches for artists and remixes
+      setSearchResults({
+        tracks: trackResults.results.map((track: any) => ({
+          id: track.id,
+          title: track.name,
+          artist: track.artist_name,
+          cover: track.album_image || track.image,
+          duration: `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`,
+          plays: `${Math.floor(track.duration / 1000)}K`,
+          isLiked: false
+        })),
+        artists: [], // We'll populate this with unique artists from tracks
+        remixes: [] // We'll populate this with tracks that have remix-like characteristics
+      });
+    } catch (err) {
+      console.error('Search error:', err);
+      setError('Failed to search. Please try again.');
+      setSearchResults({
+        tracks: [],
+        artists: [],
+        remixes: []
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePlayTrack = (track: string) => {
+  const handlePlayTrack = (track: any) => {
     if (onTrackSelect) {
       onTrackSelect(track);
     }
@@ -155,13 +113,13 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
     <div className="bg-background min-h-screen text-foreground">
       <div className="flex justify-center">
         <div className="w-full max-w-md bg-card rounded-2xl min-h-screen relative overflow-hidden border border-border">
-          
+
           {/* Header */}
           <div className="sticky top-0 z-50 bg-card/80 backdrop-blur-sm border-b border-border">
             <div className="flex items-center gap-4 p-6 pb-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="w-10 h-10 p-0 rounded-full"
                 onClick={onBack}
               >
@@ -194,7 +152,7 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
 
           {/* Main Content */}
           <div className="px-6 pb-32">
-            
+
             {!searchQuery && (
               <>
                 {/* Trending Searches */}
@@ -203,7 +161,7 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                     <TrendingUp className="w-5 h-5 text-chart-1" />
                     <h2 className="font-medium">Trending Now</h2>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {trendingSearches.map((term, index) => (
                       <Button
@@ -231,10 +189,10 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                       Clear all
                     </Button>
                   </div>
-                  
+
                   <div className="space-y-2">
                     {["Lo-Fi Beats", "Synthwave Mix", "AI Studio"].map((term, index) => (
-                      <Card 
+                      <Card
                         key={index}
                         className="cursor-pointer hover:bg-accent transition-colors"
                         onClick={() => handleSearch(term)}
@@ -270,30 +228,34 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                         <Music className="w-4 h-4" />
                         Top Result
                       </h3>
-                      <Card 
-                        className="cursor-pointer hover:bg-accent transition-colors"
-                        onClick={() => handlePlayTrack(searchResults.tracks[0].title)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-4">
-                            <div 
-                              className="w-16 h-16 rounded-xl bg-cover bg-center border border-border"
-                              style={{ backgroundImage: `url('${searchResults.tracks[0].cover}')` }}
-                            />
-                            <div className="flex-1">
-                              <h4 className="font-medium">{searchResults.tracks[0].title}</h4>
-                              <p className="text-sm text-muted-foreground">{searchResults.tracks[0].artist}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="secondary" className="text-xs">Track</Badge>
-                                <span className="text-xs text-muted-foreground">{searchResults.tracks[0].plays} plays</span>
+                      {searchResults.tracks && searchResults.tracks.length > 0 ? (
+                        <Card
+                          className="cursor-pointer hover:bg-accent transition-colors"
+                          onClick={() => searchResults.tracks[0] && handlePlayTrack(searchResults.tracks[0])}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                              <div
+                                className="w-16 h-16 rounded-xl bg-cover bg-center border border-border"
+                                style={{ backgroundImage: `url('${searchResults.tracks[0]?.cover || ''}')` }}
+                              />
+                              <div className="flex-1">
+                                <h4 className="font-medium">{searchResults.tracks[0]?.title || 'No title'}</h4>
+                                <p className="text-sm text-muted-foreground">{searchResults.tracks[0]?.artist || 'Unknown artist'}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant="secondary" className="text-xs">Track</Badge>
+                                  <span className="text-xs text-muted-foreground">{searchResults.tracks[0]?.plays || '0'} plays</span>
+                                </div>
                               </div>
+                              <Button variant="ghost" size="sm" className="w-10 h-10 p-0">
+                                <Play className="w-5 h-5" />
+                              </Button>
                             </div>
-                            <Button variant="ghost" size="sm" className="w-10 h-10 p-0">
-                              <Play className="w-5 h-5" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No tracks found</p>
+                      )}
                     </div>
 
                     {/* Artists */}
@@ -303,8 +265,8 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                         Artists
                       </h3>
                       <div className="flex gap-4 overflow-x-auto pb-2">
-                        {searchResults.artists.slice(0, 3).map((artist) => (
-                          <Card 
+                        {searchResults.artists && searchResults.artists.length > 0 ? searchResults.artists.slice(0, 3).map((artist: any) => (
+                          <Card
                             key={artist.id}
                             className="flex-shrink-0 w-32 cursor-pointer hover:bg-accent transition-colors"
                             onClick={() => onNavigate?.("Home", "artist-page")}
@@ -318,7 +280,9 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                               <p className="text-xs text-muted-foreground">{artist.followers}</p>
                             </CardContent>
                           </Card>
-                        ))}
+                        )) : (
+                          <p className="text-muted-foreground text-sm">No artists found</p>
+                        )}
                       </div>
                     </div>
 
@@ -329,15 +293,15 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                         Tracks
                       </h3>
                       <div className="space-y-2">
-                        {searchResults.tracks.slice(1, 3).map((track) => (
-                          <Card 
+                        {searchResults.tracks && searchResults.tracks.length > 1 ? searchResults.tracks.slice(1, 3).map((track: any) => (
+                          <Card
                             key={track.id}
                             className="cursor-pointer hover:bg-accent transition-colors"
-                            onClick={() => handlePlayTrack(track.title)}
+                            onClick={() => handlePlayTrack(track)}
                           >
                             <CardContent className="p-3">
                               <div className="flex items-center gap-3">
-                                <div 
+                                <div
                                   className="w-12 h-12 rounded-lg bg-cover bg-center border border-border"
                                   style={{ backgroundImage: `url('${track.cover}')` }}
                                 />
@@ -346,10 +310,12 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                                   <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-muted-foreground">{track.duration}</span>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
+                                  <span className="text-xs text-muted-foreground">
+                                    {Math.floor(Number(track.duration || 0) / 60)}:{String(Math.floor(Number(track.duration || 0) % 60)).padStart(2, '0')}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     className={`w-6 h-6 p-0 ${track.isLiked ? 'text-destructive' : 'text-muted-foreground'}`}
                                   >
                                     <Heart className={`w-4 h-4 ${track.isLiked ? 'fill-current' : ''}`} />
@@ -361,37 +327,39 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                        )) : (
+                          <p className="text-muted-foreground text-sm">No additional tracks found</p>
+                        )}
                       </div>
                     </div>
                   </TabsContent>
 
                   <TabsContent value="tracks" className="space-y-4 mt-6">
-                    {searchResults.tracks.map((track) => (
-                      <Card 
+                    {searchResults.tracks && searchResults.tracks.length > 0 ? searchResults.tracks.map((track: any) => (
+                      <Card
                         key={track.id}
                         className="cursor-pointer hover:bg-accent transition-colors"
-                        onClick={() => handlePlayTrack(track.title)}
+                        onClick={() => handlePlayTrack(track)}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-3">
-                            <div 
+                            <div
                               className="w-14 h-14 rounded-lg bg-cover bg-center border border-border"
-                              style={{ backgroundImage: `url('${track.cover}')` }}
+                              style={{ backgroundImage: `url('${track.cover || ''}')` }}
                             />
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium truncate">{track.title}</h4>
-                              <p className="text-sm text-muted-foreground truncate">{track.artist}</p>
+                              <h4 className="font-medium truncate">{track.title || 'Untitled'}</h4>
+                              <p className="text-sm text-muted-foreground truncate">{track.artist || 'Unknown artist'}</p>
                               <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-muted-foreground">{track.plays} plays</span>
+                                <span className="text-xs text-muted-foreground">{track.plays || '0'} plays</span>
                                 <span className="text-xs text-muted-foreground">•</span>
-                                <span className="text-xs text-muted-foreground">{track.duration}</span>
+                                <span className="text-xs text-muted-foreground">{track.duration || '0:00'}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className={`w-8 h-8 p-0 ${track.isLiked ? 'text-destructive' : 'text-muted-foreground'}`}
                               >
                                 <Heart className={`w-4 h-4 ${track.isLiked ? 'fill-current' : ''}`} />
@@ -403,12 +371,14 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )) : (
+                      <p className="text-muted-foreground text-sm">No tracks found</p>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="artists" className="space-y-4 mt-6">
-                    {searchResults.artists.map((artist) => (
-                      <Card 
+                    {searchResults.artists && searchResults.artists.length > 0 ? searchResults.artists.map((artist: any) => (
+                      <Card
                         key={artist.id}
                         className="cursor-pointer hover:bg-accent transition-colors"
                         onClick={() => onNavigate?.("Home", "artist-page")}
@@ -416,20 +386,20 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                         <CardContent className="p-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="w-12 h-12">
-                              <AvatarImage src={artist.avatar} />
-                              <AvatarFallback>{artist.name.charAt(0)}</AvatarFallback>
+                              <AvatarImage src={artist.avatar || ''} />
+                              <AvatarFallback>{artist.name?.charAt(0) || 'A'}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <h4 className="font-medium truncate">{artist.name}</h4>
+                                <h4 className="font-medium truncate">{artist.name || 'Unknown Artist'}</h4>
                                 {artist.isVerified && (
                                   <Badge variant="secondary" className="h-4 px-1">
                                     ✓
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground">{artist.followers} followers</p>
-                              <p className="text-xs text-muted-foreground">Top: {artist.topTrack}</p>
+                              <p className="text-sm text-muted-foreground">{artist.followers || '0'} followers</p>
+                              <p className="text-xs text-muted-foreground">Top: {artist.topTrack || 'N/A'}</p>
                             </div>
                             <Button variant="outline" size="sm">
                               Follow
@@ -437,49 +407,55 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )) : (
+                      <p className="text-muted-foreground text-sm">No artists found</p>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="remixes" className="space-y-4 mt-6">
-                    {searchResults.remixes.map((remix) => (
-                      <Card 
+                    {searchResults.remixes && searchResults.remixes.length > 0 ? searchResults.remixes.map((remix: any) => (
+                      <Card
                         key={remix.id}
                         className="cursor-pointer hover:bg-accent transition-colors"
                         onClick={() => onNavigate?.("Home", "remix-detail")}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
-                            <div 
+                            <div
                               className="w-14 h-14 rounded-lg bg-cover bg-center border border-border"
-                              style={{ backgroundImage: `url('${remix.cover}')` }}
+                              style={{ backgroundImage: `url('${remix.cover || ''}')` }}
                             />
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm truncate">{remix.title}</h4>
+                              <h4 className="font-medium text-sm truncate">{remix.title || 'Untitled Remix'}</h4>
                               <p className="text-xs text-muted-foreground truncate mb-1">
-                                Original by {remix.originalArtist}
+                                Original by {remix.originalArtist || 'Unknown'}
                               </p>
                               <div className="flex items-center gap-2 mb-2">
                                 <Avatar className="w-4 h-4">
-                                  <AvatarImage src={remix.remixerAvatar} />
-                                  <AvatarFallback>{remix.remixer.charAt(0)}</AvatarFallback>
+                                  <AvatarImage src={remix.remixerAvatar || ''} />
+                                  <AvatarFallback>{remix.remixer?.charAt(0) || 'R'}</AvatarFallback>
                                 </Avatar>
-                                <span className="text-xs text-muted-foreground">{remix.remixer}</span>
+                                <span className="text-xs text-muted-foreground">{remix.remixer || 'Unknown remixer'}</span>
                               </div>
                               <div className="flex items-center gap-1 flex-wrap mb-2">
-                                {remix.effects.slice(0, 2).map((effect, index) => (
+                                {remix.effects && remix.effects.length > 0 ? remix.effects.slice(0, 2).map((effect: string, index: number) => (
                                   <Badge key={index} variant="outline" className="text-xs h-4">
                                     {effect}
                                   </Badge>
-                                ))}
+                                )) : (
+                                  <Badge variant="outline" className="text-xs h-4">
+                                    No effects
+                                  </Badge>
+                                )}
                               </div>
                               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Heart className="w-3 h-3" />
-                                  {remix.likes.toLocaleString()}
+                                  {(remix.likes || 0).toLocaleString()}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Play className="w-3 h-3" />
-                                  {remix.plays.toLocaleString()}
+                                  {(remix.plays || 0).toLocaleString()}
                                 </span>
                               </div>
                             </div>
@@ -489,7 +465,9 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )) : (
+                      <p className="text-muted-foreground text-sm">No remixes found</p>
+                    )}
                   </TabsContent>
                 </Tabs>
               </div>
@@ -512,7 +490,7 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-r from-[rgba(255,34,251,0.3)] to-[rgba(255,101,0,0.3)]" />
                   </div>
-                  
+
                   <div className="relative p-6 pb-8">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-2">
@@ -523,23 +501,23 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                         #1 Trending
                       </Badge>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div>
                         <h2 className="text-white text-2xl font-bold mb-1">NOVA SYNTHWAVE</h2>
                         <p className="text-white/80 text-sm">Cyberpunk Electronic • 2.8M followers</p>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 pt-2">
-                        <Button 
+                        <Button
                           className="bg-white text-[#ff22fb] hover:bg-white/90 font-medium flex items-center gap-2 shadow-lg"
                           onClick={() => onNavigate?.("Home", "artist-page")}
                         >
                           <Play className="w-4 h-4 fill-current" />
                           Play Now
                         </Button>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm flex items-center gap-2"
                           onClick={() => onNavigate?.("Home", "artist-page")}
                         >
@@ -547,7 +525,7 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                           <ArrowRight className="w-4 h-4" />
                         </Button>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 pt-3 text-xs text-white/60">
                         <div className="flex items-center gap-1">
                           <Volume2 className="w-3 h-3" />
@@ -560,7 +538,7 @@ export default function SearchPage({ onBack, onNavigate, onTrackSelect }: Search
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Animated gradient overlay */}
                   <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-[#ff22fb] via-transparent via-transparent to-[#ff6500] animate-pulse" />
                 </div>
