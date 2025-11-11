@@ -4,6 +4,7 @@ const JAMENDO_BASE_URL = 'https://api.jamendo.com/v3.0';
 
 // Supabase proxy URL for bypassing CORS restrictions
 const JAMENDO_PROXY_URL = 'https://dthrpvpuzinmevrvqlhv.supabase.co/functions/v1/jamendo-proxy';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0aHJwdnB1emlubWV2cnZxbGh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyOTU3ODUsImV4cCI6MjA3MDg3MTc4NX0.Ts_PJLD0zEHjEg3iSFJfpqpIOm1FLAhEuzKud3ZFUjg';
 
 export interface JamendoTrack {
   id: string;
@@ -65,6 +66,7 @@ export interface JamendoSearchParams {
   order?: 'popularity_total' | 'popularity_month' | 'popularity_week' | 'buzzrate' | 'downloads_week' | 'downloads_month' | 'downloads_total' | 'listens_week' | 'listens_month' | 'listens_total' | 'releasedate' | 'album_name' | 'artist_name' | 'name' | 'duration';
   tags?: string[];
   search?: string;
+  namesearch?: string;
   include?: string[];
   boost?: 'popularity_total' | 'popularity_month' | 'downloads_total' | 'listens_total';
   fuzzytags?: string;
@@ -101,6 +103,8 @@ export class JamendoAPI {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
     });
     
@@ -150,13 +154,23 @@ export class JamendoAPI {
   }
 
   // Search for artists
-  async searchArtists(params: Partial<JamendoSearchParams> = {}): Promise<{ results: JamendoArtist[] }> {
-    const defaultParams = {
+  async searchArtists(params: JamendoSearchParams = {}): Promise<{ results: JamendoArtist[] }> {
+    const defaultParams: JamendoSearchParams = {
       limit: 20,
+      include: [],
       ...params
     };
     
     return this.makeRequest<{ results: JamendoArtist[] }>('artists', defaultParams);
+  }
+
+  // Search for artists by name
+  async searchArtistsByName(query: string, limit: number = 20): Promise<{ results: JamendoArtist[] }> {
+    return this.searchArtists({
+      namesearch: query,
+      limit,
+      order: 'popularity_total'
+    });
   }
 
   // Get artist by ID
@@ -184,9 +198,10 @@ export class JamendoAPI {
   }
 
   // Search for albums
-  async searchAlbums(params: Partial<JamendoSearchParams> = {}): Promise<{ results: JamendoAlbum[] }> {
-    const defaultParams = {
+  async searchAlbums(params: JamendoSearchParams = {}): Promise<{ results: JamendoAlbum[] }> {
+    const defaultParams: JamendoSearchParams = {
       limit: 20,
+      include: [],
       ...params
     };
     

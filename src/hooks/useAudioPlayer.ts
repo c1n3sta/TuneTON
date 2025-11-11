@@ -4,6 +4,9 @@ import type { AudioTrack } from '../types/audio';
 // Add import for URL validation utility
 import { isValidAudioUrl } from '../components/player/utils';
 
+// Add import for tuneTONAPI
+import { tuneTONAPI } from '../utils/tuneton-api';
+
 interface UseAudioPlayerReturn {
   // Playback state
   isPlaying: boolean;
@@ -280,6 +283,10 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
       // Add better error handling and user feedback
       audio.play().then(() => {
         console.log('Audio playback started successfully');
+        // Record playback history when track starts playing
+        if (currentTrack) {
+          tuneTONAPI.addPlaybackHistory(currentTrack);
+        }
       }).catch(error => {
         console.error('Failed to play audio:', error);
         // Handle autoplay policy issues

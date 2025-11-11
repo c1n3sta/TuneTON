@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Test</title>
+</head>
+<body>
+    <h1>Search Test</h1>
+    <input type="text" id="searchInput" placeholder="Enter search term">
+    <button onclick="performSearch()">Search</button>
+    <div id="results"></div>
+
+    <script type="module">
+        // Simple test of the search functionality
+        async function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!searchTerm.trim()) {
+                resultsDiv.innerHTML = 'Please enter a search term';
+                return;
+            }
+            
+            resultsDiv.innerHTML = 'Searching...';
+            
+            try {
+                // Test direct Jamendo API call
+                const clientId = '8ed40859';
+                const url = `https://api.jamendo.com/v3.0/tracks?client_id=${clientId}&format=json&limit=10&search=${encodeURIComponent(searchTerm)}`;
+                
+                console.log('Making direct API call:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('API response:', data);
+                
+                if (data.results && data.results.length > 0) {
+                    resultsDiv.innerHTML = `<h2>Found ${data.results.length} tracks:</h2>`;
+                    data.results.forEach(track => {
+                        resultsDiv.innerHTML += `
+                            <div>
+                                <h3>${track.name}</h3>
+                                <p>Artist: ${track.artist_name}</p>
+                                <p>Duration: ${Math.floor(track.duration/60)}:${(track.duration%60).toString().padStart(2, '0')}</p>
+                            </div>
+                            <hr>
+                        `;
+                    });
+                } else {
+                    resultsDiv.innerHTML = 'No results found';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        // Test popular tracks on page load
+        window.onload = async function() {
+            try {
+                const clientId = '8ed40859';
+                const url = `https://api.jamendo.com/v3.0/tracks?client_id=${clientId}&format=json&limit=5&order=popularity_total`;
+                
+                console.log('Testing popular tracks:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('Popular tracks response:', data);
+            } catch (error) {
+                console.error('Popular tracks test error:', error);
+            }
+        };
+    </script>
+</body>
+</html>

@@ -22,7 +22,6 @@ import {
   Share2,
   ShoppingBag,
   Sparkles,
-  Star,
   Timer,
   Coins as TONCoin,
   TrendingUp,
@@ -35,6 +34,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getTuneTONRecommendations, JamendoTrack } from "../utils/jamendo-api";
+import { tuneTONAPI } from "../utils/tuneton-api";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button-component";
@@ -114,11 +114,15 @@ export default function HomePage({
     }
   ]);
 
+  // Add state for recently played tracks
+  const [recentlyPlayedTracks, setRecentlyPlayedTracks] = useState<JamendoTrack[]>([]);
+  const [loadingRecentlyPlayed, setLoadingRecentlyPlayed] = useState(true);
+
   // Social interaction handlers
   const handleLikePost = (postId: string) => {
-    setSocialPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
+    setSocialPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
           ? { ...post, likes: post.isLiked ? post.likes - 1 : post.likes + 1, isLiked: !post.isLiked }
           : post
       )
@@ -127,27 +131,27 @@ export default function HomePage({
 
   const handleAddComment = (postId: string, commentText: string) => {
     if (!commentText.trim()) return;
-    
-    setSocialPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
+
+    setSocialPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
           ? { ...post, comments: post.comments + 1 }
           : post
       )
     );
-    
+
     setNewComment("");
   };
 
   const handleSharePost = (postId: string) => {
-    setSocialPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
+    setSocialPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
           ? { ...post, shares: post.shares + 1 }
           : post
       )
     );
-    
+
     // In a real app, this would trigger the share functionality
     console.log('Sharing post:', postId);
   };
@@ -205,6 +209,23 @@ export default function HomePage({
     };
 
     loadJamendoContent();
+  }, []);
+
+  // Add useEffect to load recently played tracks
+  useEffect(() => {
+    const loadRecentlyPlayed = async () => {
+      setLoadingRecentlyPlayed(true);
+      try {
+        const tracks = await tuneTONAPI.getRecentPlaybackHistory(5);
+        setRecentlyPlayedTracks(tracks);
+      } catch (error) {
+        console.error('Error loading recently played tracks:', error);
+      } finally {
+        setLoadingRecentlyPlayed(false);
+      }
+    };
+
+    loadRecentlyPlayed();
   }, []);
 
   // Featured Contest Data
@@ -540,14 +561,30 @@ export default function HomePage({
     }
   };
 
-  // Original Recently Played Component (from Figma import)
+  // Modify RecentlyPlayedSection to use real data
   const RecentlyPlayedSection = () => {
-    // Use first popular track from Jamendo or throw error if none available
-    const recentTrack = jamendoTracks.popular[0];
+    // Use recentlyPlayedTracks state instead of jamendoTracks.popular[0]
+    const recentTrack = recentlyPlayedTracks[0];
 
     // If no tracks are available, we can't display this section
-    if (!recentTrack) {
-      return null;
+    if (!recentTrack || loadingRecentlyPlayed) {
+      return (
+        <div className="px-6 pt-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-lg text-foreground">Recently Played</h2>
+          </div>
+          <div className="flex items-center justify-center py-4">
+            {loadingRecentlyPlayed ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="ml-2 text-sm text-muted-foreground">Loading recently played...</span>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground">No recently played tracks</span>
+            )}
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -558,7 +595,12 @@ export default function HomePage({
             <h2 className="font-semibold text-lg text-foreground">Recently Played</h2>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="w-5 h-5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-5 h-5"
+              onClick={() => onNavigate && onNavigate("Search", "search")}
+            >
               <Search className="w-4 h-4 text-muted-foreground" />
             </Button>
           </div>
@@ -741,48 +783,53 @@ export default function HomePage({
   };
 
   return (
-    <div className="bg-background min-h-screen text-foreground">
+    <div className="min-h-screen bg-background">
+      {/* Test button for search debug */}
+      {import.meta.env.DEV && onNavigate && (
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={() => onNavigate("Search", "search-debug")}
+            className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
+          >
+            Debug Search
+          </button>
+        </div>
+      )}
+
       <div className="flex justify-center">
         <div className="w-full max-w-md bg-card rounded-2xl min-h-screen relative overflow-hidden border border-border">
-
           {/* Header */}
-          <div className="sticky top-0 z-50 bg-card/80 backdrop-blur-sm border-b border-border">
+          <div className="sticky top-0 z-40 bg-card/80 backdrop-blur-sm border-b border-border">
             <div className="flex items-center justify-between p-6 pb-4">
               <div className="flex items-center gap-3">
-                <Avatar
-                  className="w-10 h-10 border-2 border-primary/20 cursor-pointer"
-                  onClick={() => onNavigate?.("Profile", "profile")}
-                >
-                  <AvatarImage src={user?.photo_url} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.first_name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff22fb] to-[#ff4400] flex items-center justify-center">
+                  <AudioWaveform className="w-5 h-5 text-white" />
+                </div>
                 <div>
-                  <h1 className="font-semibold text-lg">{getTimeGreeting()}</h1>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground">{user?.first_name || 'User'}</p>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-chart-4 fill-current" />
-                      <span className="text-xs text-chart-4 font-medium">{userStars}</span>
-                    </div>
-                    <Badge variant="secondary" className="text-xs h-4">
-                      Lv {userLevel}
-                    </Badge>
-                  </div>
+                  <h1 className="font-bold text-lg">{getTimeGreeting()},</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {user ? user.first_name : 'Music Lover'}
+                  </p>
                 </div>
               </div>
+
               <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="w-10 h-10 p-0 relative">
+                  <Bell className="w-5 h-5" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full"></div>
+                </Button>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="w-8 h-8"
-                  onClick={() => onNavigate?.("Home", "search")}
+                  size="sm"
+                  className="w-10 h-10 p-0"
+                  onClick={() => onNavigate && onNavigate("Profile", "profile")}
                 >
-                  <Search className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8">
-                  <Bell className="w-4 h-4" />
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user?.photo_url} />
+                    <AvatarFallback className="text-xs">
+                      {user ? user.first_name.charAt(0) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
               </div>
             </div>
@@ -1144,7 +1191,7 @@ export default function HomePage({
 
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <div className="flex gap-4">
-                          <button 
+                          <button
                             className={`flex items-center gap-1 transition-colors ${post.isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
                             onClick={() => handleLikePost(post.id)}
                           >
@@ -1158,7 +1205,7 @@ export default function HomePage({
                             <MessageCircle className="w-4 h-4" />
                             <span>{post.comments}</span>
                           </button>
-                          <button 
+                          <button
                             className="flex items-center gap-1 hover:text-primary transition-colors"
                             onClick={() => handleSharePost(post.id)}
                           >

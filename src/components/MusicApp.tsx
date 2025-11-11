@@ -1,35 +1,38 @@
-import { useState, useEffect } from "react";
-import HomePage from "./HomePage";
-import BottomNavigation from "./BottomNavigation";
-import MusicPlayer from "./MusicPlayer";
-import PlaylistDetail from "./PlaylistDetail";
-import PlaylistDetailReal from "./PlaylistDetailReal";
-import ContestsPage from "./ContestsPage";
-import ContestDetail from "./ContestDetail";
-import UserProfile from "./UserProfile";
-import PublicProfile from "./PublicProfile";
-import SettingsPage from "./SettingsPage";
-import NFTMarketplace from "./NFTMarketplace";
-import NFTDetail from "./NFTDetail";
-import CreateNFT from "./CreateNFT";
-import MyNFTs from "./MyNFTs";
-import NFTAuction from "./NFTAuction";
-import RemixDetail from "./RemixDetail";
+import { useEffect, useState } from "react";
+import { JamendoTrack } from "../utils/jamendo-api";
+import { UniversalTrack } from "../utils/music-service-manager";
+import { tuneTONAPI, TuneTONPlaylist } from "../utils/tuneton-api";
 import AIStudio from "./AIStudio";
 import ArtistPage from "./ArtistPage";
-import RankingPage from "./RankingPage";
+import BottomNavigation from "./BottomNavigation";
+import ContestDetail from "./ContestDetail";
+import ContestsPage from "./ContestsPage";
+import CreateNFT from "./CreateNFT";
 import DetailRankingPage from "./DetailRankingPage";
-import OnboardingPage from "./OnboardingPage";
-import SearchPage from "./SearchPage";
 import DiscoverPage from "./DiscoverPage";
+import HomePage from "./HomePage";
 import LibraryPage from "./LibraryPage";
 import LibraryPageReal from "./LibraryPageReal";
+import MusicPlayer from "./MusicPlayer";
+import MyNFTs from "./MyNFTs";
+import NFTAuction from "./NFTAuction";
+import NFTDetail from "./NFTDetail";
+import NFTMarketplace from "./NFTMarketplace";
+import OnboardingPage from "./OnboardingPage";
+import PlaylistDetail from "./PlaylistDetail";
+import PlaylistDetailReal from "./PlaylistDetailReal";
+import PublicProfile from "./PublicProfile";
+import RankingPage from "./RankingPage";
+import RemixDetail from "./RemixDetail";
+import SearchDebugPage from "./SearchDebugPage";
+import SearchPage from "./SearchPage";
+import SearchTestPage from "./SearchTestPage";
+import SettingsPage from "./SettingsPage";
 import { SwipeNavigationProvider } from "./SwipeNavigationProvider";
 import { useTelegramAuth } from "./TelegramAuthProvider";
-import { JamendoTrack } from "../utils/jamendo-api";
-import { TuneTONPlaylist, tuneTONAPI } from "../utils/tuneton-api";
-import { musicServiceManager, UniversalTrack } from "../utils/music-service-manager";
-import { AudioTrack } from "../types/audio";
+import TestSearch from "./TestSearch";
+import TestSearchComponent from "./TestSearchComponent";
+import UserProfile from "./UserProfile";
 
 interface User {
   id: number;
@@ -54,10 +57,10 @@ export default function MusicApp() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [navigationData, setNavigationData] = useState<NavigationData>({});
-  
+
   // Use Telegram auth context
   const { user: telegramUser, isAuthenticated, isDarkMode } = useTelegramAuth();
-  
+
   // Convert Telegram user to app user format
   const user: User | null = telegramUser ? {
     id: telegramUser.id,
@@ -76,7 +79,7 @@ export default function MusicApp() {
       // For now, we'll use a placeholder that indicates this is a real user
       const accessToken = `real_user_${telegramUser.id}_${Date.now()}`;
       tuneTONAPI.setAccessToken(accessToken, telegramUser.id.toString());
-      
+
       const hasCompletedOnboarding = localStorage.getItem('tunton_onboarding_completed');
       if (!hasCompletedOnboarding) {
         setShowOnboarding(true);
@@ -105,12 +108,12 @@ export default function MusicApp() {
   const handleNavigation = (tab: string, page?: string, data?: NavigationData) => {
     console.log('Navigation called:', tab, page, data);
     setActiveTab(tab);
-    
+
     // Store navigation data for pages that need it
     if (data) {
       setNavigationData(data);
     }
-    
+
     if (page) {
       setCurrentPage(page);
     } else {
@@ -118,7 +121,7 @@ export default function MusicApp() {
       const tabPageMap: { [key: string]: string } = {
         "Home": "home",
         "Library": "library-real",
-        "Player": "player", 
+        "Player": "player",
         "Contests": "contests",
         "Profile": "profile",
         "Search": "search",
@@ -133,7 +136,7 @@ export default function MusicApp() {
     // Handle UniversalTrack
     if (typeof track !== 'string' && 'source' in track && (track as UniversalTrack).source) {
       const universalTrack = track as UniversalTrack;
-      
+
       // Only handle Jamendo tracks now (SoundCloud support removed)
       if (universalTrack.source === 'jamendo') {
         // For Jamendo tracks, convert to JamendoTrack format
@@ -155,12 +158,12 @@ export default function MusicApp() {
           waveform: '',
           image: universalTrack.coverArt || ''
         };
-        
+
         setCurrentTrack(jamendoTrack);
         setCurrentTrackName(universalTrack.title);
         return;
       }
-      
+
       // Handle unknown source by creating a placeholder track
       const placeholderTrack: JamendoTrack = {
         id: 'unknown',
@@ -180,12 +183,12 @@ export default function MusicApp() {
         waveform: '',
         image: ''
       };
-      
+
       setCurrentTrack(placeholderTrack);
       setCurrentTrackName('Track Unavailable');
       return;
     }
-    
+
     // Handle string track name (legacy)
     if (typeof track === 'string') {
       // Search for the actual track
@@ -214,8 +217,8 @@ export default function MusicApp() {
 
   // Pages that should not show bottom navigation
   const pagesWithoutBottomNav = [
-    "player", "onboarding", "settings", "nft-detail", 
-    "create-nft", "my-nfts", "nft-auction", "remix-detail", 
+    "player", "onboarding", "settings", "nft-detail",
+    "create-nft", "my-nfts", "nft-auction", "remix-detail",
     "ai-studio", "artist-page", "contest-detail",
     "playlist-detail", "playlist-detail-real", "public-profile", "rankings",
     "ranking-detail", "search"
@@ -226,7 +229,7 @@ export default function MusicApp() {
   // Show onboarding if user hasn't completed it
   if (showOnboarding) {
     return (
-      <OnboardingPage 
+      <OnboardingPage
         onComplete={handleOnboardingComplete}
         onTelegramConnect={handleTelegramConnect}
       />
@@ -239,18 +242,30 @@ export default function MusicApp() {
       <div className="min-h-screen bg-background">
         {/* Test button - only shown in development */}
         {import.meta.env.DEV && (
-          <div className="fixed top-4 right-4 z-50">
-            <button 
+          <div className="fixed top-4 right-4 z-50 flex gap-2">
+            <button
               onClick={() => handleNavigation("Test", "jamendo-test")}
               className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
             >
               Test Jamendo
             </button>
+            <button
+              onClick={() => handleNavigation("Test", "test-search")}
+              className="px-3 py-1 bg-green-500 text-white rounded text-sm"
+            >
+              Test Search
+            </button>
+            <button
+              onClick={() => handleNavigation("Test", "search-test")}
+              className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
+            >
+              Search Test Page
+            </button>
           </div>
         )}
         {/* Main Content */}
         {currentPage === "home" && (
-          <HomePage 
+          <HomePage
             onNavigate={handleNavigation}
             onTrackSelect={handleTrackChange}
             currentTrack={currentTrackName}
@@ -258,17 +273,33 @@ export default function MusicApp() {
             user={user}
           />
         )}
-        
+
         {currentPage === "search" && (
-          <SearchPage 
+          <SearchPage
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onTrackSelect={handleTrackChange}
           />
         )}
 
+        {currentPage === "search-debug" && (
+          <SearchDebugPage />
+        )}
+
+        {currentPage === "test-search" && (
+          <TestSearch />
+        )}
+
+        {currentPage === "test-search-component" && (
+          <TestSearchComponent />
+        )}
+
+        {currentPage === "search-test" && (
+          <SearchTestPage />
+        )}
+
         {currentPage === "player" && (
-          <MusicPlayer 
+          <MusicPlayer
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             currentTrack={currentTrack}
@@ -278,7 +309,7 @@ export default function MusicApp() {
         )}
 
         {currentPage === "discover" && (
-          <DiscoverPage 
+          <DiscoverPage
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onTrackSelect={handleTrackChange}
@@ -286,7 +317,7 @@ export default function MusicApp() {
         )}
 
         {currentPage === "library" && (
-          <LibraryPage 
+          <LibraryPage
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onTrackSelect={handleTrackChange}
@@ -295,7 +326,7 @@ export default function MusicApp() {
         )}
 
         {currentPage === "library-real" && (
-          <LibraryPageReal 
+          <LibraryPageReal
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onTrackSelect={handleTrackChange}
@@ -304,22 +335,22 @@ export default function MusicApp() {
         )}
 
         {currentPage === "profile" && (
-          <UserProfile 
+          <UserProfile
             onNavigate={handleNavigation}
             user={user}
           />
         )}
 
         {currentPage === "contests" && (
-          <ContestsPage 
+          <ContestsPage
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
           />
         )}
-        
+
         {/* Detail Pages */}
         {currentPage === "playlist-detail" && (
-          <PlaylistDetail 
+          <PlaylistDetail
             onBack={() => handleNavigation("Library", "library")}
             onNavigate={handleNavigation}
             onPlayTrack={handleTrackChange}
@@ -327,7 +358,7 @@ export default function MusicApp() {
         )}
 
         {currentPage === "playlist-detail-real" && (
-          <PlaylistDetailReal 
+          <PlaylistDetailReal
             onBack={() => handleNavigation("Library", "library-real")}
             onPlayTrack={handleTrackChange}
             onNavigate={handleNavigation}
@@ -336,32 +367,32 @@ export default function MusicApp() {
             user={user}
           />
         )}
-        
+
         {currentPage === "contest-detail" && (
-          <ContestDetail 
+          <ContestDetail
             onBack={() => handleNavigation("Contests", "contests")}
             onNavigate={handleNavigation}
           />
         )}
-        
+
         {currentPage === "public-profile" && (
-          <PublicProfile 
+          <PublicProfile
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
           />
         )}
-        
+
         {currentPage === "settings" && (
-          <SettingsPage 
+          <SettingsPage
             onBack={() => handleNavigation("Profile", "profile")}
             onNavigate={handleNavigation}
             user={user}
           />
         )}
-        
+
         {/* NFT Pages */}
         {currentPage === "nft-marketplace" && (
-          <NFTMarketplace 
+          <NFTMarketplace
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onOpenCreateNFT={() => handleNavigation("Home", "create-nft")}
@@ -370,9 +401,9 @@ export default function MusicApp() {
             onOpenNFTDetail={(nftId) => handleNavigation("Home", "nft-detail")}
           />
         )}
-        
+
         {currentPage === "nft-detail" && (
-          <NFTDetail 
+          <NFTDetail
             nft={{
               id: "nft-detail-1",
               title: "Epic Remix Collection",
@@ -405,9 +436,9 @@ export default function MusicApp() {
             }}
           />
         )}
-        
+
         {currentPage === "create-nft" && (
-          <CreateNFT 
+          <CreateNFT
             onBack={() => handleNavigation("Home", "nft-marketplace")}
             onCreateNFT={(nftData) => {
               console.log('Creating NFT:', nftData);
@@ -415,9 +446,9 @@ export default function MusicApp() {
             }}
           />
         )}
-        
+
         {currentPage === "my-nfts" && (
-          <MyNFTs 
+          <MyNFTs
             onBack={() => handleNavigation("Home", "nft-marketplace")}
             onCreateNFT={() => handleNavigation("Home", "create-nft")}
             onViewNFT={(nftId) => handleNavigation("Home", "nft-detail")}
@@ -434,7 +465,7 @@ export default function MusicApp() {
                   likes: 89
                 },
                 {
-                  id: "owned-2", 
+                  id: "owned-2",
                   title: "Synthwave Pack",
                   image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400",
                   price: 400,
@@ -450,7 +481,7 @@ export default function MusicApp() {
                   title: "My First Remix",
                   image: "https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400",
                   price: 150,
-                  category: "Music", 
+                  category: "Music",
                   status: "sold" as const,
                   views: 2340,
                   likes: 312,
@@ -471,9 +502,9 @@ export default function MusicApp() {
             }}
           />
         )}
-        
+
         {currentPage === "nft-auction" && (
-          <NFTAuction 
+          <NFTAuction
             onBack={() => handleNavigation("Home", "nft-marketplace")}
             activeAuctions={[
               {
@@ -489,7 +520,7 @@ export default function MusicApp() {
                 artist: "DJ ElectroBeats"
               },
               {
-                id: "auction-2", 
+                id: "auction-2",
                 title: "Limited Edition Stems",
                 image: "https://images.unsplash.com/photo-1574914629385-46448b767aec?w=400",
                 currentBid: 750,
@@ -514,7 +545,7 @@ export default function MusicApp() {
               {
                 auctionId: "auction-4",
                 title: "AI-Generated Melody Pack",
-                image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400", 
+                image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400",
                 bidAmount: 180,
                 bidTime: new Date(Date.now() - 30 * 60 * 60 * 1000),
                 status: "winning" as const,
@@ -530,41 +561,41 @@ export default function MusicApp() {
             }}
           />
         )}
-        
+
         {/* Content Detail Pages */}
         {currentPage === "remix-detail" && (
-          <RemixDetail 
+          <RemixDetail
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onOpenAIStudio={() => handleNavigation("AI Studio", "ai-studio")}
             remixId="remix-1"
           />
         )}
-        
+
         {currentPage === "ai-studio" && (
-          <AIStudio 
+          <AIStudio
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onOpenCreateNFT={() => handleNavigation("NFT", "create-nft")}
           />
         )}
-        
+
         {currentPage === "artist-page" && (
-          <ArtistPage 
+          <ArtistPage
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
           />
         )}
-        
+
         {currentPage === "rankings" && (
-          <RankingPage 
+          <RankingPage
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
           />
         )}
-        
+
         {currentPage === "ranking-detail" && (
-          <DetailRankingPage 
+          <DetailRankingPage
             onBack={() => handleNavigation("Home", "rankings")}
             onNavigate={handleNavigation}
           />
@@ -574,9 +605,9 @@ export default function MusicApp() {
 
         {/* Bottom Navigation - Only show on main pages */}
         {shouldShowBottomNav && (
-          <BottomNavigation 
-            activeTab={activeTab} 
-            onNavigate={handleNavigation} 
+          <BottomNavigation
+            activeTab={activeTab}
+            onNavigate={handleNavigation}
           />
         )}
       </div>

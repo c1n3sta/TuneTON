@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .search-container { margin-bottom: 20px; }
+        input { padding: 10px; width: 300px; font-size: 16px; }
+        button { padding: 10px 20px; font-size: 16px; margin-left: 10px; }
+        .results { margin-top: 20px; }
+        .track { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .track-title { font-weight: bold; }
+        .track-artist { color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Search Test</h1>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Enter search term">
+        <button onclick="performSearch()">Search</button>
+    </div>
+    <div id="results" class="results"></div>
+
+    <script>
+        const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0aHJwdnB1emlubWV2cnZxbGh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyOTU3ODUsImV4cCI6MjA3MDg3MTc4NX0.Ts_PJLD0zEHjEg3iSFJfpqpIOm1FLAhEuzKud3ZFUjg';
+        
+        async function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!searchTerm.trim()) {
+                resultsDiv.innerHTML = 'Please enter a search term';
+                return;
+            }
+            
+            resultsDiv.innerHTML = 'Searching...';
+            
+            try {
+                // Test the proxy function directly
+                const params = {
+                    search: searchTerm,
+                    limit: 10,
+                    include: ['musicinfo']
+                };
+                
+                const url = `https://dthrpvpuzinmevrvqlhv.supabase.co/functions/v1/jamendo-proxy?endpoint=tracks&params=${encodeURIComponent(JSON.stringify(params))}`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': API_KEY,
+                        'Authorization': `Bearer ${API_KEY}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    let html = `<h2>Found ${data.results.length} tracks:</h2>`;
+                    data.results.slice(0, 5).forEach(track => {
+                        const duration = `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`;
+                        html += `
+                            <div class="track">
+                                <div class="track-title">${track.name}</div>
+                                <div class="track-artist">${track.artist_name}</div>
+                                <div>Duration: ${duration}</div>
+                                <div>ID: ${track.id}</div>
+                            </div>
+                        `;
+                    });
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = 'No results found';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        // Test popular tracks on page load
+        window.onload = async function() {
+            try {
+                document.getElementById('results').innerHTML = 'Testing API connectivity...';
+                
+                const params = {
+                    limit: 5,
+                    order: 'popularity_total',
+                    include: ['musicinfo']
+                };
+                
+                const url = `https://dthrpvpuzinmevrvqlhv.supabase.co/functions/v1/jamendo-proxy?endpoint=tracks&params=${encodeURIComponent(JSON.stringify(params))}`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': API_KEY,
+                        'Authorization': `Bearer ${API_KEY}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    let html = `<h2>Popular tracks (API test):</h2>`;
+                    data.results.slice(0, 3).forEach(track => {
+                        const duration = `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`;
+                        html += `
+                            <div class="track">
+                                <div class="track-title">${track.name}</div>
+                                <div class="track-artist">${track.artist_name}</div>
+                                <div>Duration: ${duration}</div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('results').innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Popular tracks test error:', error);
+                document.getElementById('results').innerHTML = `API Test Error: ${error.message}`;
+            }
+        };
+    </script>
+</body>
+</html>

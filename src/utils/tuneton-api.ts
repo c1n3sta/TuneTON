@@ -1,6 +1,6 @@
+import { createClient } from '@supabase/supabase-js';
 import { JamendoTrack } from '../utils/jamendo-api';
 import { projectId, publicAnonKey } from './supabase/info';
-import { createClient } from '@supabase/supabase-js';
 
 // Create Supabase client
 const supabase = createClient(`https://${projectId}.supabase.co`, publicAnonKey);
@@ -116,6 +116,14 @@ class TuneTonAPI {
       method: 'POST',
       body: JSON.stringify(telegramData)
     });
+  }
+
+  // Add method to get current Telegram user ID
+  getUserId(): number | null {
+    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user) {
+      return (window as any).Telegram.WebApp.initDataUnsafe.user.id;
+    }
+    return null;
   }
 
   // Playlist management
@@ -531,11 +539,18 @@ class TuneTonAPI {
   // Playback history management
   async addPlaybackHistory(trackData: JamendoTrack, durationPlayed: number = 0, isCompleted: boolean = false): Promise<boolean> {
     try {
+      const userId = this.getUserId();
+      if (!userId) {
+        console.warn('User ID not available, cannot record playback history');
+        return false;
+      }
+      
       const { error } = await supabase
         .from('playback_history')
         .insert([
           {
-            track_id: trackData.id,
+            user_id: userId,
+            track_id: trackData.id.toString(),
             track_data: trackData,
             played_at: new Date().toISOString(),
             duration_played: durationPlayed,
@@ -557,9 +572,16 @@ class TuneTonAPI {
 
   async getRecentPlaybackHistory(limit: number = 20): Promise<JamendoTrack[]> {
     try {
+      const userId = this.getUserId();
+      if (!userId) {
+        console.warn('User ID not available, cannot fetch playback history');
+        return [];
+      }
+      
       const { data, error } = await supabase
         .from('playback_history')
         .select('track_data')
+        .eq('user_id', userId)
         .order('played_at', { ascending: false })
         .limit(limit);
 
@@ -603,9 +625,16 @@ class TuneTonAPI {
 
   async getLastPlayedTrack(): Promise<JamendoTrack | null> {
     try {
+      const userId = this.getUserId();
+      if (!userId) {
+        console.warn('User ID not available, cannot fetch last played track');
+        return null;
+      }
+      
       const { data, error } = await supabase
         .from('playback_history')
         .select('track_data')
+        .eq('user_id', userId)
         .order('played_at', { ascending: false })
         .limit(1)
         .single();
@@ -630,8 +659,9 @@ class TuneTonAPI {
   // User activity tracking
   async recordUserActivity(activityType: string, targetId?: string, targetType?: string, content?: string): Promise<boolean> {
     try {
-      if (!this.userId) {
-        console.warn('User ID not set, cannot record user activity');
+      const userId = this.getUserId();
+      if (!userId) {
+        console.warn('User ID not available, cannot record user activity');
         return false;
       }
       
@@ -639,7 +669,7 @@ class TuneTonAPI {
         .from('user_activities')
         .insert([
           {
-            user_id: this.userId,
+            user_id: userId,
             activity_type: activityType,
             target_id: targetId,
             target_type: targetType,
@@ -783,3 +813,4 @@ class TuneTonAPI {
 // Export singleton instance
 export const tuneTONAPI = new TuneTonAPI();
 export { TuneTonAPI as TuneTONAPI };
+
