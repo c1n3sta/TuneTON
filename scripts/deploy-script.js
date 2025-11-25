@@ -12,9 +12,59 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.production') });
 
 console.log('Starting deployment process with main FTP user using basic-ftp...');
 
-async function deploy() {
+// Function to create a new FTP client with proper settings
+function createClient() {
   const client = new Client();
   client.ftp.verbose = true; // Log FTP commands and responses
+  return client;
+}
+
+// Function to upload a single file with retry logic
+async function uploadFileWithRetry(client, localPath, remotePath, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Uploading: ${remotePath} (Attempt ${attempt}/${maxRetries})`);
+      await client.uploadFrom(localPath, remotePath);
+      console.log(`✓ Uploaded successfully: ${remotePath}`);
+      return true;
+    } catch (error) {
+      console.log(`✗ Failed to upload ${remotePath} (Attempt ${attempt}/${maxRetries}): ${error.message}`);
+      if (attempt < maxRetries) {
+        console.log(`Waiting 2 seconds before retry...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  }
+  return false;
+}
+
+// Function to establish connection with proper error handling
+async function connectWithRetry(client, config, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Connecting to FTP server (Attempt ${attempt}/${maxRetries}): ${config.host}:${config.port} as ${config.user}`);
+      await client.access({
+        host: config.host,
+        port: config.port,
+        user: config.user,
+        password: config.password,
+        secure: false
+      });
+      console.log('Connected successfully!');
+      return true;
+    } catch (error) {
+      console.log(`Connection attempt ${attempt} failed: ${error.message}`);
+      if (attempt < maxRetries) {
+        console.log(`Waiting 5 seconds before retry...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+  return false;
+}
+
+async function deploy() {
+  let client = createClient();
   
   try {
     // Get FTP credentials from environment variables
@@ -23,18 +73,12 @@ async function deploy() {
     const user = process.env.FTP_USER || 'u3220060_tuneton_qoder';
     const pass = process.env.FTP_PASSWORD || '8XIaE5MdeOK4tJv1';
     
-    console.log(`Connecting to FTP server: ${host}:${port} as ${user}`);
+    const ftpConfig = { host, port, user, password: pass };
     
-    // Connect to FTP server
-    await client.access({
-      host,
-      port,
-      user,
-      password: pass,
-      secure: false
-    });
-    
-    console.log('Connected successfully!');
+    // Connect to FTP server with retry logic
+    if (!await connectWithRetry(client, ftpConfig)) {
+      throw new Error('Failed to establish FTP connection after multiple attempts');
+    }
     
     // Check for required files
     const distDir = path.join(process.cwd(), 'dist');
@@ -99,34 +143,57 @@ async function deploy() {
     
     console.log(`Found ${filesToUpload.length} files to upload`);
     
-    // Upload files with correct paths
+    // Upload files with correct paths and retry logic
+    let successCount = 0;
+    let failureCount = 0;
+    
     for (const file of filesToUpload) {
       try {
-        console.log(`Uploading: ${file.remote}`);
+        // Reconnect if client is closed
+        if (!client.ftp.connected) {
+          console.log('Reconnecting to FTP server...');
+          client = createClient();
+          if (!await connectWithRetry(client, ftpConfig)) {
+            throw new Error('Failed to reestablish FTP connection');
+          }
+        }
         
+        let uploadSuccess = false;
         if (file.remote.startsWith('assets/')) {
           // Upload assets files to assets directory
-          await client.uploadFrom(file.local, file.remote);
-          console.log(`✓ Uploaded to assets: ${file.remote}`);
+          uploadSuccess = await uploadFileWithRetry(client, file.local, file.remote);
         } else {
           // Upload other files to root directory
           const filename = path.basename(file.remote);
-          await client.uploadFrom(file.local, filename);
-          console.log(`✓ Uploaded to root: ${filename}`);
+          uploadSuccess = await uploadFileWithRetry(client, file.local, filename);
+        }
+        
+        if (uploadSuccess) {
+          successCount++;
+        } else {
+          failureCount++;
         }
       } catch (error) {
         console.log(`✗ Failed to upload ${file.remote}: ${error.message}`);
+        failureCount++;
       }
     }
     
-    console.log('Upload completed successfully!');
-    console.log('The new build has been uploaded to the production server using main FTP user.');
+    console.log(`Upload completed! Success: ${successCount}, Failures: ${failureCount}`);
+    
+    if (failureCount === 0) {
+      console.log('The new build has been uploaded to the production server using main FTP user.');
+    } else {
+      console.log(`⚠️  Upload completed with ${failureCount} failures. Please check the logs above.`);
+    }
     
   } catch (error) {
     console.error('Deployment failed:', error.message);
     process.exit(1);
   } finally {
-    client.close();
+    if (client && client.ftp.connected) {
+      client.close();
+    }
   }
 }
 
