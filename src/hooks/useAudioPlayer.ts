@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AudioTrack } from '../types/audio';
 
 // Add import for URL validation utility
 import { isValidAudioUrl } from '../components/player/utils';
 
 // Add import for tuneTONAPI
-import { tuneTONAPI } from '../utils/tuneton-api';
+
+// Add import for AudioEngineWrapper
+import { AudioEngineWrapper } from '../core/audio/AudioEngineWrapper';
 
 interface UseAudioPlayerReturn {
   // Playback state
@@ -42,8 +44,8 @@ interface UseAudioPlayerReturn {
   lowPassResonance: number;
   
   // Core functions
-  loadTrack: (track: AudioTrack) => void;
-  togglePlayPause: () => void;
+  loadTrack: (track: AudioTrack) => Promise<void>;
+  togglePlayPause: () => Promise<void>;
   seek: (time: number) => void;
   setVolume: (volume: number) => void;
   toggleMute: () => void;
@@ -75,8 +77,11 @@ interface UseAudioPlayerReturn {
 }
 
 export const useAudioPlayer = (): UseAudioPlayerReturn => {
-  // Audio element ref
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Audio engine wrapper
+  const [audioEngine] = useState(() => new AudioEngineWrapper());
+  
+  // Track user interaction state
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -114,130 +119,41 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
   // Current track
   const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null);
   
-  // Initialize audio element
+  // Detect user interaction to enable audio context activation
   useEffect(() => {
-    audioRef.current = new Audio();
-    
-    const audio = audioRef.current;
-    
-    // Add important attributes for better compatibility
-    audio.crossOrigin = "anonymous";
-    audio.preload = "metadata";
-    // Add mobile-specific attributes
-    audio.setAttribute('playsinline', 'true');
-    audio.setAttribute('webkit-playsinline', 'true');
-    audio.setAttribute('x5-playsinline', 'true');
-    
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+    const handleUserInteraction = () => {
+      setHasUserInteracted(true);
+      // Notify the audio engine wrapper that user interaction has occurred
+      audioEngine.setUserInteracted();
+      // Remove event listeners after first interaction to avoid memory leaks
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
     };
     
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
+    // Add event listeners for different types of user interactions
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('touchstart', handleUserInteraction);
+    window.addEventListener('keydown', handleUserInteraction);
     
-    const handlePlay = () => {
-      setIsPlaying(true);
-    };
-    
-    const handlePause = () => {
-      setIsPlaying(false);
-    };
-    
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-    
-    const handleError = () => {
-      console.error('Audio playback error:', audio.error);
-      // More detailed error handling
-      if (audio.error) {
-        switch (audio.error.code) {
-          case MediaError.MEDIA_ERR_ABORTED:
-            console.error('Media playback was aborted by the user');
-            break;
-          case MediaError.MEDIA_ERR_NETWORK:
-            console.error('A network error caused the media download to fail');
-            break;
-          case MediaError.MEDIA_ERR_DECODE:
-            console.error('An error occurred while decoding the media');
-            break;
-          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-            console.error('The media resource is not supported');
-            break;
-          default:
-            console.error('An unknown error occurred');
-            break;
-        }
-      }
-    };
-    
-    const handleStalled = () => {
-      console.warn('Audio playback stalled');
-    };
-    
-    const handleWaiting = () => {
-      console.warn('Audio playback waiting for data');
-    };
-    
-    const handleCanPlay = () => {
-      console.log('Audio can play');
-    };
-    
-    const handleCanPlayThrough = () => {
-      console.log('Audio can play through');
-    };
-    
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-    audio.addEventListener('stalled', handleStalled);
-    audio.addEventListener('waiting', handleWaiting);
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('canplaythrough', handleCanPlayThrough);
-    
+    // Cleanup function to remove event listeners
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audio.removeEventListener('stalled', handleStalled);
-      audio.removeEventListener('waiting', handleWaiting);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('canplaythrough', handleCanPlayThrough);
-      audio.pause();
-      audio.src = '';
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
     };
-  }, []);
-  
-  // Update audio element properties when state changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    
-    audio.volume = isMuted ? 0 : volume;
-    audio.playbackRate = playbackRate;
-  }, [volume, isMuted, playbackRate]);
+  }, [audioEngine]);
   
   // Load track function
-  const loadTrack = (track: AudioTrack) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    
-    console.log('Loading track in useAudioPlayer:', track);
+  const loadTrack = async (track: AudioTrack) => {
+    console.log('Loading track through AudioEngineWrapper:', track);
     
     // Validate audio URL before loading
     const audioSource = track.audioUrl || (typeof track.source === 'string' ? track.source : '');
     if (audioSource) {
-      console.log('Validating audio URL in useAudioPlayer:', audioSource);
+      console.log('Validating audio URL:', audioSource);
       const isValid = isValidAudioUrl(audioSource);
-      console.log('URL validation result in useAudioPlayer:', isValid);
+      console.log('URL validation result:', isValid);
       
       if (!isValid) {
         console.error('Invalid audio URL provided to loadTrack:', audioSource);
@@ -246,149 +162,128 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     }
     
     setCurrentTrack(track);
-    // Ensure we're setting a string source
-    audio.src = typeof track.source === 'string' ? track.source : (track.audioUrl || '');
-    setCurrentTime(0);
     setDuration(track.duration || 0);
+    setCurrentTime(0);
     
-    // Log the track being loaded
-    console.log('Loading track:', track);
-    console.log('Audio source set to:', audio.src);
-    
-    // Load the audio
-    audio.load();
+    // Delegate to AudioEngine
+    try {
+      await audioEngine.loadTrack(track);
+      console.log('Track loaded successfully through AudioEngine');
+    } catch (error) {
+      console.error('Failed to load track through AudioEngine:', error);
+      throw new Error(`Failed to load track: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
   
   // Toggle play/pause
-  const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  const togglePlayPause = async () => {
+    console.log('Toggle play/pause called through AudioEngineWrapper. Current state:', isPlaying);
     
-    console.log('Toggle play/pause called. Current state:', isPlaying);
-    console.log('Audio element readyState:', audio.readyState);
-    console.log('Audio element networkState:', audio.networkState);
-    console.log('Audio element src:', audio.src);
-    
-    if (isPlaying) {
-      console.log('Pausing audio');
-      audio.pause();
-    } else {
-      console.log('Attempting to play audio');
-      // Check if we have a valid source
-      if (!audio.src || audio.src === '') {
-        console.error('No audio source available');
-        return;
-      }
-      
-      // Add better error handling and user feedback
-      audio.play().then(() => {
-        console.log('Audio playback started successfully');
+    try {
+      if (isPlaying) {
+        console.log('Pausing audio through AudioEngine');
+        audioEngine.pause();
+        setIsPlaying(false);
+      } else {
+        console.log('Attempting to play audio through AudioEngine');
+        
+        // Check if we have a track loaded
+        if (!currentTrack) {
+          console.error('No track loaded');
+          throw new Error('No track loaded. Please select a track to play.');
+        }
+        
+        await audioEngine.play();
+        console.log('Audio playback started successfully through AudioEngine');
+        setIsPlaying(true);
+        
         // Record playback history when track starts playing
         if (currentTrack) {
-          tuneTONAPI.addPlaybackHistory(currentTrack);
+          // Note: tuneTONAPI.addPlaybackHistory may need to be adapted for AudioTrack
+          // tuneTONAPI.addPlaybackHistory(currentTrack);
         }
-      }).catch(error => {
-        console.error('Failed to play audio:', error);
-        // Handle autoplay policy issues
-        if (error.name === 'NotAllowedError') {
-          console.error('Autoplay prevented by browser policy. User interaction required.');
-        }
-      });
+      }
+    } catch (error) {
+      console.error('Failed to toggle play/pause through AudioEngine:', error);
+      // Handle autoplay policy issues
+      if ((error as Error).name === 'NotAllowedError') {
+        console.error('Autoplay prevented by browser policy. User interaction required.');
+        throw new Error('Playback blocked by browser. Please click the play button to start playback.');
+      }
+      throw error;
     }
   };
   
   // Seek to specific time
   const seek = (time: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    
-    audio.currentTime = time;
+    console.log('Seeking to time through AudioEngine:', time);
+    audioEngine.seek(time);
     setCurrentTime(time);
   };
   
   // Set volume
   const setVolume = (newVolume: number) => {
+    console.log('Setting volume through AudioEngine:', newVolume);
     setVolumeState(newVolume);
-    if (isMuted) {
+    if (isMuted && newVolume > 0) {
       setIsMuted(false);
     }
+    audioEngine.setVolume(isMuted ? 0 : newVolume);
   };
   
   // Toggle mute
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    console.log('Toggling mute through AudioEngine. Current mute state:', isMuted);
+    const newMuteState = !isMuted;
+    setIsMuted(newMuteState);
+    audioEngine.setVolume(newMuteState ? 0 : volume);
   };
   
   // Set playback rate
   const setPlaybackRate = (rate: number) => {
+    console.log('Setting playback rate through AudioEngine:', rate);
     setPlaybackRateState(rate);
+    audioEngine.setPlaybackRate(rate);
   };
   
   // Set tempo
   const setTempo = (newTempo: number) => {
     setTempoState(newTempo);
-    // In a real implementation, this would affect the audio processing
+    audioEngine.setTempo(newTempo);
   };
   
   // Set pitch semitones
   const setPitchSemitones = (semitones: number) => {
     setPitchSemitonesState(semitones);
-    // In a real implementation, this would affect the audio processing
+    audioEngine.setPitchSemitones(semitones);
   };
   
   // Effect bypass controls
   const setEffectBypass = (effectId: string, bypass: boolean) => {
-    switch (effectId) {
-      case 'eq':
-        setEqBypass(bypass);
-        break;
-      case 'reverb':
-        setReverbBypass(bypass);
-        break;
-      case 'tempoPitch':
-        // Handle tempo/pitch bypass
-        break;
-      case 'lofi':
-        // Handle lofi bypass
-        break;
-      case 'lowPass':
-        // Handle low-pass bypass
-        break;
-    }
+    console.log('Setting effect bypass through AudioEngine:', effectId, bypass);
+    audioEngine.setEffectBypassById(effectId, bypass);
   };
   
   // Effect mix controls
   const setEffectMix = (effectId: string, mix: number) => {
-    switch (effectId) {
-      case 'eq':
-        setEqMix(mix);
-        break;
-      case 'reverb':
-        setReverbMix(mix);
-        break;
-      case 'tempoPitch':
-        // Handle tempo/pitch mix
-        break;
-      case 'lofi':
-        // Handle lofi mix
-        break;
-      case 'lowPass':
-        // Handle low-pass mix
-        break;
-    }
+    console.log('Setting effect mix through AudioEngine:', effectId, mix);
+    audioEngine.setEffectMixById(effectId, mix);
   };
   
   // Lo-fi handlers
   const handleLofiToneChange = (value: number) => {
     setLofiTone(value);
+    audioEngine.setLofiTone(value);
   };
   
   const handleLofiNoiseChange = (value: number) => {
     setLofiNoise(value);
+    audioEngine.setLofiNoiseLevel(value);
   };
   
   const handleLofiWowChange = (value: number) => {
     setLofiWow(value);
+    audioEngine.setLofiWowFlutter(value, 0.5);
   };
   
   // EQ handlers
@@ -396,50 +291,59 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     const newEqBands = [...eqBands];
     newEqBands[bandIndex] = value;
     setEqBands(newEqBands);
+    audioEngine.setEQBand(bandIndex, value);
   };
   
   const handleEQMixChange = (value: number) => {
     setEqMix(value);
+    audioEngine.setEQMix(value);
   };
   
   const handleEQBypassChange = (bypass: boolean) => {
     setEqBypass(bypass);
+    audioEngine.setEQBypass(bypass);
   };
   
   // Reverb handlers
   const handleReverbMixChange = (value: number) => {
     setReverbMix(value);
+    audioEngine.setReverbMix(value);
   };
   
   const handleReverbPreDelayChange = (value: number) => {
     setReverbPreDelay(value);
+    audioEngine.setReverbPreDelay(value);
   };
   
   const handleReverbDampingChange = (value: number) => {
     setReverbDamping(value);
+    audioEngine.setReverbDamping(value);
   };
   
   const handleReverbPresetChange = (preset: 'small' | 'medium' | 'large') => {
     setReverbPreset(preset);
+    audioEngine.setReverbPreset(preset);
   };
   
   const handleReverbBypassChange = (bypass: boolean) => {
     setReverbBypass(bypass);
+    audioEngine.setReverbBypass(bypass);
   };
   
   // Low-pass handlers
   const handleLowPassToneChange = (value: number) => {
     setLowPassTone(value);
+    audioEngine.setLowPassTone(value);
   };
   
   const handleLowPassResonanceChange = (value: number) => {
     setLowPassResonance(value);
+    audioEngine.setLowPassResonance(value);
   };
   
   // Get analyser for visualization
   const getAnalyser = (): AnalyserNode | null => {
-    // In a real implementation, this would return an actual analyser node
-    return null;
+    return audioEngine.getAnalyser();
   };
   
   return {

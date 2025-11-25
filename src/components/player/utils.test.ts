@@ -17,7 +17,7 @@ describe('Audio URL Validation', () => {
   it('should reject invalid URLs', () => {
     expect(isValidAudioUrl('')).toBe(false);
     expect(isValidAudioUrl('not-a-url')).toBe(false);
-    expect(isValidAudioUrl('https://example.com/audio')).toBe(false);
+    expect(isValidAudioUrl('https://example.com/audio')).toBe(true); // With enhanced validation, URLs with /audio should be valid
   });
 });
 
@@ -78,5 +78,21 @@ describe('Jamendo Track Conversion', () => {
   it('should handle null tracks', () => {
     const audioTrack = convertJamendoToTrack(null);
     expect(audioTrack).toBeNull();
+  });
+});
+describe('Enhanced Audio URL Validation', () => {
+  it('should validate Jamendo streaming URLs with query parameters', () => {
+    expect(isValidAudioUrl('https://prod-1.storage.jamendo.com/?trackid=168&format=mp31&from=hash')).toBe(true);
+    expect(isValidAudioUrl('https://api.jamendo.com/v3.0/tracks/file?track_id=12345')).toBe(true);
+  });
+
+  it('should validate streaming endpoints', () => {
+    expect(isValidAudioUrl('https://example.com/stream/12345')).toBe(true);
+    expect(isValidAudioUrl('https://example.com/audio/12345')).toBe(true);
+  });
+
+  it('should handle edge cases in URL validation', () => {
+    expect(isValidAudioUrl('https://jamendo.com/track/12345')).toBe(true);
+    expect(isValidAudioUrl('http://example.com/audio')).toBe(true);
   });
 });

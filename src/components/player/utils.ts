@@ -4,53 +4,100 @@ import type { JamendoTrack } from '../../utils/jamendo-api';
 
 // Convert Jamendo track to AudioTrack
 export function convertJamendoToTrack(
-  track: JamendoTrack | null, 
-  fallbackName: string = 'Unknown Track',
-  currentTime: number = 0,
-  isLiked: boolean = false,
-  isDisliked: boolean = false
+  track: JamendoTrack | null
 ): AudioTrack | null {
   if (!track) return null;
   
-  // Handle missing data gracefully
-  const trackName = track.name || fallbackName;
-  const artistName = track.artist_name || 'Unknown Artist';
-  const duration = track.duration || 0;
-  const coverArt = track.image || track.album_image || '';
-  // Prioritize audio over audiodownload for streaming URLs and validate
-  const audioUrl = validateAndSelectAudioUrl(track.audio, track.audiodownload);
+  console.log('Converting Jamendo track:', track);
   
-  return {
-    id: track.id || 'unknown',
-    title: trackName,
-    artist: artistName,
-    duration,
+  // Validate required fields
+  if (!track.id || !track.name) {
+    console.error('Invalid Jamendo track: missing required fields (id or name)', track);
+    return null;
+  }
+  
+  // Validate that we have at least one audio URL
+  if (!track.audio && !track.audiodownload) {
+    console.error('Invalid Jamendo track: no audio URLs available', track);
+    return null;
+  }
+  
+  // Try multiple sources for cover art
+  const coverArt = track.image || track.album_image || '';
+  
+  // Prioritize audiodownload over audio for better reliability
+  const audioUrl = track.audiodownload || track.audio;
+  
+  // Add a fallback URL for Jamendo tracks
+  let fallbackUrl = '';
+  if (track.audio && track.audiodownload) {
+    // If we have both, use the one not selected as primary as fallback
+    fallbackUrl = audioUrl === track.audio ? track.audiodownload : track.audio;
+  }
+  
+  console.log('Selected audio URL:', audioUrl);
+  console.log('Track audio property:', track.audio);
+  console.log('Track audiodownload property:', track.audiodownload);
+  console.log('Fallback URL:', fallbackUrl);
+  
+  const result: AudioTrack = {
+    id: track.id.toString(),
+    title: track.name,
+    artist: track.artist_name || '',
+    duration: track.duration || 0,
     source: audioUrl,
     coverArt,
     audioUrl,
-    album: track.album_name || 'Unknown Album',
+    album: track.album_name || '',
     cover: coverArt
-    // Note: currentTime is not part of AudioTrack interface, it's managed by the player
   };
+  
+  // Add fallback URL if available
+  if (fallbackUrl) {
+    (result as any).fallbackUrl = fallbackUrl;
+  }
+  
+  console.log('Converted track result:', result);
+  
+  return result;
 }
 
 // Validate and select the best audio URL
 function validateAndSelectAudioUrl(audio?: string, audiodownload?: string): string {
+  console.log('Validating audio URLs:', { audio, audiodownload });
+  
   // Prefer audio URL (streaming) over audiodownload (direct download)
   const primaryUrl = audio || audiodownload || '';
   const fallbackUrl = audiodownload || audio || '';
   
+  console.log('Primary URL:', primaryUrl);
+  console.log('Fallback URL:', fallbackUrl);
+  
   // Validate primary URL first
   if (primaryUrl && isValidAudioUrl(primaryUrl)) {
+    console.log('Primary URL is valid');
     return primaryUrl;
   }
   
   // Try fallback URL
   if (fallbackUrl && isValidAudioUrl(fallbackUrl)) {
+    console.log('Fallback URL is valid');
+    return fallbackUrl;
+  }
+  
+  // For Jamendo URLs, even if they don't validate perfectly, they might still work
+  if (primaryUrl && primaryUrl.includes('jamendo.com')) {
+    console.log('Using primary Jamendo URL despite validation');
+    return primaryUrl;
+  }
+  
+  if (fallbackUrl && fallbackUrl.includes('jamendo.com')) {
+    console.log('Using fallback Jamendo URL despite validation');
     return fallbackUrl;
   }
   
   // Return whatever we have if no valid URL found (may be empty)
+  console.log('No valid URL found, returning primary URL');
   return primaryUrl;
 }
 
@@ -58,14 +105,28 @@ function validateAndSelectAudioUrl(audio?: string, audiodownload?: string): stri
 export function isValidAudioUrl(url: string): boolean {
   if (!url) return false;
   
-  // For Jamendo URLs, we need to be more flexible
-  // Jamendo streaming URLs often don't have file extensions
+  // For Jamendo URLs, be more permissive since they might not always match the exact pattern
+  // but are still valid streaming URLs
   if (url.includes('jamendo.com')) {
-    return url.startsWith('http');
+    // Just check that it's a valid HTTP/HTTPS URL
+    const isValidHttp = url.startsWith('http://') || url.startsWith('https://');
+    console.log('Validating Jamendo URL:', url, 'isValidHttp:', isValidHttp);
+    return isValidHttp;
   }
   
-  // For other URLs, check for common audio extensions
-  return url.startsWith('http') && (url.includes('.mp3') || url.includes('.wav') || url.includes('.ogg') || url.includes('.m4a') || url.includes('.flac'));
+  // For other URLs, check for common audio extensions or streaming endpoints
+  return (url.startsWith('http://') || url.startsWith('https://')) && (
+    url.includes('.mp3') || 
+    url.includes('.wav') || 
+    url.includes('.ogg') || 
+    url.includes('.m4a') || 
+    url.includes('.flac') ||
+    url.includes('/stream') ||
+    url.includes('/audio') ||
+    // Also allow URLs that look like API endpoints for streaming
+    url.includes('api') ||
+    url.includes('stream')
+  );
 }
 
 // Format time in seconds to MM:SS format

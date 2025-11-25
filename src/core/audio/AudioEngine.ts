@@ -97,25 +97,42 @@ export class WebAudioEngine implements AudioEngine {
   private async getAudioContext(): Promise<AudioContext> {
     if (!this.audioContext) {
       try {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
-          latencyHint: 'interactive'
+        // For Telegram Web Apps, we need to handle autoplay policy differently
+        const AudioContextConstructor = window.AudioContext || (window as any).webkitAudioContext;
+        this.audioContext = new AudioContextConstructor({
+          latencyHint: 'interactive',
+          sampleRate: 44100 // Standard sample rate for better compatibility
         } as any);
         
         // Initialize all audio nodes
         await this.initializeAudioNodes();
       } catch (error) {
         console.error('Failed to create AudioContext:', error);
-        throw new Error('Failed to initialize audio system');
+        throw new Error('Failed to initialize audio system. This may be due to browser restrictions or missing audio capabilities.');
       }
     }
     
     // Resume context if suspended (needed for autoplay policy)
     if (this.audioContext.state === 'suspended') {
+      console.log('Audio context is suspended, attempting to resume...');
       try {
+        // For Telegram Web Apps, we need to ensure proper user interaction handling
         await this.audioContext.resume();
+        console.log('Audio context resumed successfully');
       } catch (error) {
         console.error('Failed to resume AudioContext:', error);
-        // Continue anyway as some operations might still work
+        // Provide more specific error messages based on the error type
+        if (error instanceof DOMException) {
+          switch (error.name) {
+            case 'NotAllowedError':
+              throw new Error('Audio playback blocked by browser autoplay policy. Please interact with the page (click, tap, or press a key) and then click the play button again to start playback.');
+            case 'AbortError':
+              throw new Error('Audio activation was interrupted. Please interact with the page and click the play button again to retry.');
+            default:
+              throw new Error(`Failed to activate audio system: ${error.message || 'Unknown error'}. Please interact with the page and click the play button again.`);
+          }
+        }
+        throw new Error('Failed to activate audio system. Please interact with the page (click, tap, or press a key) and then click the play button again.');
       }
     }
     
@@ -360,7 +377,7 @@ export class WebAudioEngine implements AudioEngine {
 
     // Create 7 EQ bands with frequencies: 60, 170, 310, 600, 1000, 3000, 6000 Hz
     const eqFrequencies = [60, 170, 310, 600, 1000, 3000, 6000];
-    const eqQValues = [1.0, 1.1, 1.2, 1.3, 1.4, 1.3, 1.2]; // Q values around 1.0-1.4
+    const eqQValues = [1.0, 1.1, 1.2, 1.3, 1.4, 1.3, 1.2];
 
     for (let i = 0; i < 7; i++) {
       const band = this.audioContext.createBiquadFilter();
@@ -452,21 +469,108 @@ export class WebAudioEngine implements AudioEngine {
           try { this.mediaSourceNode.disconnect(); } catch {}
           this.mediaSourceNode = null;
         }
+        
+        // Create media element with proper attributes for Telegram Web Apps
         const media = new Audio();
         media.crossOrigin = 'anonymous';
-        media.src = track.source;
+        media.src = track.source as string;
         media.preload = 'auto';
+        
+        // Add mobile-specific attributes for better compatibility
+        media.setAttribute('playsinline', 'true');
+        media.setAttribute('webkit-playsinline', 'true');
+        media.setAttribute('x5-playsinline', 'true');
+        
+        // Add additional attributes for Telegram Web Apps
+        media.setAttribute('muted', 'false');
+        media.setAttribute('autoplay', 'false');
+        
         this.mediaElement = media;
 
+        // Add comprehensive error handling for media loading
         await new Promise<void>((resolve, reject) => {
-          const onLoaded = () => { cleanup(); resolve(); };
-          const onError = () => { cleanup(); reject(new Error('Failed to load media')); };
+          const onLoaded = () => { 
+            cleanup(); 
+            console.log('Media loaded successfully');
+            resolve(); 
+          };
+          
+          const onError = (e: ErrorEvent) => { 
+            cleanup(); 
+            console.error('Failed to load media:', e);
+            // Check if this is a CORS error
+            if (e.message && e.message.includes('CORS')) {
+              reject(new Error(`CORS error loading audio. The server hosting the audio file doesn't allow requests from this domain.`));
+            } else {
+              // Try to get more specific error information from the media element
+              let errorMsg = 'Unknown error';
+              if (this.mediaElement) {
+                switch (this.mediaElement.error?.code) {
+                  case MediaError.MEDIA_ERR_ABORTED:
+                    errorMsg = 'Media loading was aborted. The track URL may have expired or be invalid.';
+                    break;
+                  case MediaError.MEDIA_ERR_NETWORK:
+                    errorMsg = 'Network error occurred while loading audio. The track URL may have expired or be inaccessible.';
+                    break;
+                  case MediaError.MEDIA_ERR_DECODE:
+                    errorMsg = 'Audio decoding error. The track format may not be supported.';
+                    break;
+                  case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    errorMsg = 'Audio source not supported. The track URL format may be invalid.';
+                    break;
+                  default:
+                    errorMsg = e.message || 'Unknown error';
+                }
+              }
+              reject(new Error(`Failed to load media: ${errorMsg}. The track URL may have expired or be inaccessible.`)); 
+            }
+          };
+          
+          const onStalled = () => {
+            console.warn('Media loading stalled');
+          };
+          
+          const onAbort = () => {
+            console.warn('Media loading aborted');
+          };
+          
           const cleanup = () => {
             media.removeEventListener('loadedmetadata', onLoaded);
             media.removeEventListener('error', onError);
+            media.removeEventListener('stalled', onStalled);
+            media.removeEventListener('abort', onAbort);
           };
+          
           media.addEventListener('loadedmetadata', onLoaded);
           media.addEventListener('error', onError);
+          media.addEventListener('stalled', onStalled);
+            media.addEventListener('abort', onAbort);
+          
+          // Add timeout to prevent hanging
+          setTimeout(() => {
+            if (media.readyState < 1) {
+              cleanup();
+              // Check if there's a more specific error
+              let timeoutError = 'Timeout while loading media. This may be due to network issues, server problems, or an expired track URL.';
+              if (this.mediaElement?.error) {
+                switch (this.mediaElement.error.code) {
+                  case MediaError.MEDIA_ERR_ABORTED:
+                    timeoutError = 'Media loading was aborted. The track URL may have expired or be invalid.';
+                    break;
+                  case MediaError.MEDIA_ERR_NETWORK:
+                    timeoutError = 'Network error occurred while loading audio. The track URL may have expired or be inaccessible.';
+                    break;
+                  case MediaError.MEDIA_ERR_DECODE:
+                    timeoutError = 'Audio decoding error. The track format may not be supported.';
+                    break;
+                  case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    timeoutError = 'Audio source not supported. The track URL format may be invalid.';
+                    break;
+                }
+              }
+              reject(new Error(timeoutError));
+            }
+          }, 15000); // 15 second timeout
         });
 
         // Preserve pitch on tempo changes if supported
@@ -491,7 +595,7 @@ export class WebAudioEngine implements AudioEngine {
       if (track.source instanceof ArrayBuffer) {
         arrayBuffer = track.source;
       } else {
-        throw new Error('Invalid track source');
+        throw new Error('Invalid track source: Expected string URL or ArrayBuffer');
       }
       try {
         if (this.audioContext) {
@@ -499,11 +603,23 @@ export class WebAudioEngine implements AudioEngine {
         }
       } catch (error) {
         this.audioBuffer = null;
-        throw error;
+        throw new Error(`Failed to decode audio data: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       this.pauseTime = 0;
     } catch (error) {
       console.error('Error in loadTrack:', error);
+      // If this is a Jamendo track with a fallback URL, try the fallback
+      if (error instanceof Error && error.message.includes('Failed to load media') && (track as any).fallbackUrl) {
+        console.log('Trying fallback URL:', (track as any).fallbackUrl);
+        const fallbackTrack = {
+          ...track,
+          source: (track as any).fallbackUrl,
+          audioUrl: (track as any).fallbackUrl
+        };
+        // Remove the fallbackUrl to prevent infinite recursion
+        delete (fallbackTrack as any).fallbackUrl;
+        return await this.loadTrack(fallbackTrack);
+      }
       throw error;
     }
   }
@@ -514,25 +630,108 @@ export class WebAudioEngine implements AudioEngine {
       const audioContext = await this.getAudioContext();
       
       if (this.mediaElement) {
-        // Gentle fade-in
-        const now = audioContext.currentTime;
-        const gainParam = this.masterGain?.gain;
-        if (gainParam) {
-          gainParam.cancelScheduledValues(now);
-          const targetVol = this.volume;
-          const startValue = Math.max(0, Math.min(1, gainParam.value));
-          gainParam.setValueAtTime(startValue, now);
-          gainParam.linearRampToValueAtTime(targetVol, now + 0.01);
-        }
-
-        await this.mediaElement.play();
-        this.isPlayingFlag = true;
+        // Ensure audio context is properly resumed before playing
         if (audioContext.state === 'suspended') {
-          await audioContext.resume();
+          console.log('Audio context is suspended, attempting to resume...');
+          try {
+            await audioContext.resume();
+            console.log('Audio context resumed successfully');
+          } catch (resumeError) {
+            console.error('Failed to resume audio context:', resumeError);
+            // Provide more specific error messages based on the error type
+            if (resumeError instanceof DOMException) {
+              switch (resumeError.name) {
+                case 'NotAllowedError':
+                  throw new Error('Audio playback blocked by browser autoplay policy. Please click the play button again to start playback.');
+                case 'AbortError':
+                  throw new Error('Audio activation was interrupted. Please click the play button again to retry.');
+                default:
+                  throw new Error(`Failed to activate audio system: ${resumeError.message || 'Unknown error'}. This may be due to browser restrictions. Please click the play button again.`);
+              }
+            }
+            throw new Error('Failed to activate audio system. This may be due to browser restrictions. Please click the play button again.');
+          }
         }
-        return;
+        
+        // For Telegram Web Apps, we need to ensure the media element is properly configured
+        if (this.mediaElement.paused) {
+          // Reset media element state
+          this.mediaElement.load();
+          
+          // Gentle fade-in
+          const now = audioContext.currentTime;
+          const gainParam = this.masterGain?.gain;
+          if (gainParam) {
+            gainParam.cancelScheduledValues(now);
+            const targetVol = this.volume;
+            const startValue = Math.max(0, Math.min(1, gainParam.value));
+            gainParam.setValueAtTime(startValue, now);
+            gainParam.linearRampToValueAtTime(targetVol, now + 0.01);
+          }
+
+          // Add error handling for play
+          try {
+            console.log('Attempting to play media element...');
+            console.log('Media element state:', {
+              src: this.mediaElement.src,
+              readyState: this.mediaElement.readyState,
+              networkState: this.mediaElement.networkState,
+              error: this.mediaElement.error
+            });
+            
+            await this.mediaElement.play();
+            this.isPlayingFlag = true;
+            console.log('Media element playing successfully');
+            return;
+          } catch (error) {
+            console.error('Error playing media:', error);
+            console.error('Media element error details:', {
+              src: this.mediaElement.src,
+              readyState: this.mediaElement.readyState,
+              networkState: this.mediaElement.networkState,
+              error: this.mediaElement.error
+            });
+            
+            // Provide more detailed error messages based on the error type
+            if (error instanceof DOMException) {
+              switch (error.name) {
+                case 'NotAllowedError':
+                  throw new Error('Audio playback blocked by browser autoplay policy. Click the play button again to start playback.');
+                case 'AbortError':
+                  throw new Error('Audio playback was interrupted. This may be due to browser autoplay restrictions or network issues. Click the play button again to retry.');
+                case 'NotSupportedError':
+                  throw new Error('Audio format not supported by this browser. Try a different track.');
+                default:
+                  throw new Error(`Audio playback failed: ${error.message || 'Unknown error'}. Click the play button again to retry.`);
+              }
+            }
+            // Check if this is a MediaError from the media element
+            else if (this.mediaElement?.error) {
+              switch (this.mediaElement.error.code) {
+                case MediaError.MEDIA_ERR_ABORTED:
+                  throw new Error('Media playback was aborted. The track URL may have expired or be invalid.');
+                case MediaError.MEDIA_ERR_NETWORK:
+                  throw new Error('Network error occurred while playing audio. The track URL may have expired or be inaccessible.');
+                case MediaError.MEDIA_ERR_DECODE:
+                  throw new Error('Audio decoding error. The track format may not be supported.');
+                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                  throw new Error('Audio source not supported. The track URL format may be invalid.');
+                default:
+                  throw new Error(`Audio playback failed: ${error instanceof Error ? error.message : 'Unknown error'}. The track URL may have expired or be inaccessible.`);
+              }
+            }
+            throw new Error(`Failed to play audio: ${error instanceof Error ? error.message : 'Playback failed'}. Click the play button again to retry.`);
+          }
+        } else {
+          // Media is already playing
+          this.isPlayingFlag = true;
+          return;
+        }
       }
-      if (!this.audioBuffer) return;
+      
+      if (!this.audioBuffer) {
+        throw new Error('No audio data loaded. Please select a different track or check your network connection.');
+      }
       
       if (this.isPlayingFlag) {
         this.pause();
@@ -697,123 +896,90 @@ export class WebAudioEngine implements AudioEngine {
   }
 
   setVolume(volume: number): void {
-    this.volume = Math.max(0, Math.min(1, volume));
-    if (this.audioContext && this.masterGain) {
-      this.masterGain.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
+    this.volume = volume;
+    if (this.masterGain) {
+      const gainParam = this.masterGain.gain;
+      const now = this.audioContext?.currentTime || 0;
+      gainParam.cancelScheduledValues(now);
+      gainParam.setValueAtTime(volume, now);
     }
   }
 
   setPlaybackRate(rate: number): void {
-    this.playbackRate = Math.max(0.5, Math.min(2, rate));
+    this.playbackRate = rate;
     if (this.mediaElement) {
-      // Treat as separate from decoupled tempo/pitch controls; prefer decoupled path
-      this.mediaElement.playbackRate = this.playbackRate;
-      return;
+      this.mediaElement.playbackRate = rate;
     }
     if (this.audioBufferSource) {
-      this.audioBufferSource.playbackRate.value = this.playbackRate * this.pitchRatio;
+      this.audioBufferSource.playbackRate.value = rate * this.pitchRatio;
     }
   }
 
   setPitch(pitch: number): void {
-    this.pitchRatio = Math.max(0.5, Math.min(2, pitch));
-    if (this.mediaElement) {
-      // No-op on media element path; pitch handled by Tone.PitchShift
-      return;
-    }
-    // Update playback rate to include pitch adjustment
-    if (this.audioBufferSource) {
-      this.audioBufferSource.playbackRate.value = this.playbackRate * this.pitchRatio;
-    }
-    // TODO: Implement pitch shifting
+    // Legacy method, now handled by setPitchSemitones
+    this.setPitchSemitones(pitch);
   }
 
-  setTempo(e: number): void {
-    const clamped = Math.max(0.5, Math.min(1.5, e));
+  setTempo(tempo: number): void {
+    // For buffer playback, tempo affects playback rate
+    this.setPlaybackRate(tempo);
+  }
+
+  setPitchSemitones(semitones: number): void {
+    this.pitchRatio = Math.pow(2, semitones / 12);
     if (this.mediaElement) {
+      // For media element, we need to preserve pitch when changing rate
       try {
         (this.mediaElement as any).preservesPitch = true;
         (this.mediaElement as any).mozPreservesPitch = true;
         (this.mediaElement as any).webkitPreservesPitch = true;
       } catch {}
-      this.mediaElement.playbackRate = Math.max(0.25, Math.min(4, clamped));
-      return;
+      this.mediaElement.playbackRate = this.playbackRate * this.pitchRatio;
     }
-    this.setPlaybackRate(clamped);
-  }
-
-  setPitchSemitones(semitones: number): void {
-    const clamped = Math.max(-12, Math.min(12, semitones));
-    const ratio = Math.pow(2, clamped / 12);
-    // Use Tone.PitchShift in wet path for independent pitch
-    if (this.workletPitchNode) {
-      // Temporarily disable experimental worklet until tuned
-      // Fall through to Tone shifter
+    if (this.audioBufferSource) {
+      this.audioBufferSource.playbackRate.value = this.playbackRate * this.pitchRatio;
     }
-    if (this.tonePitchShift) {
-      try {
-        if ('pitch' in this.tonePitchShift) {
-          (this.tonePitchShift as any).pitch = clamped; // semitones
-          // Adjust quality parameters for stability when shifting further
-          if ('windowSize' in this.tonePitchShift) {
-            (this.tonePitchShift as any).windowSize = Math.max(0.1, Math.min(0.24, 0.12 + Math.abs(clamped) * 0.006));
-          }
-          if ('delayTime' in this.tonePitchShift) {
-            (this.tonePitchShift as any).delayTime = 0.035;
-          }
-          if (this.pitchPostLPF) {
-            this.pitchPostLPF.frequency.value = Math.max(6000, 18000 - Math.abs(clamped) * 700);
-          }
-          if (this.pitchPostLPF2) {
-            this.pitchPostLPF2.frequency.value = Math.max(9000, 19500 - Math.abs(clamped) * 500);
-          }
-          // Removed highshelf; LPF stages only for minimal coloring
-        } else if ('pitch' in (this.tonePitchShift as any).parameters || (this.tonePitchShift as any).set) {
-          // Handle alternate API shapes
-          (this.tonePitchShift as any).set?.({ pitch: clamped });
-        }
-        this.pitchRatio = ratio;
-        return;
-      } catch {}
-    }
-    this.setPitch(ratio);
   }
 
   setEQ(band: 'low' | 'mid' | 'high', value: number): void {
-    this.eqSettings[band] = value;
-    const now = this.audioContext?.currentTime || 0;
-    
     switch (band) {
       case 'low':
-        this.eqNodes.low.gain.setValueAtTime(value, now);
+        this.eqSettings.low = value;
+        if (this.eqNodes.low) {
+          this.eqNodes.low.gain.setValueAtTime(value, this.audioContext?.currentTime || 0);
+        }
         break;
       case 'mid':
-        this.eqNodes.mid.gain.setValueAtTime(value, now);
+        this.eqSettings.mid = value;
+        if (this.eqNodes.mid) {
+          this.eqNodes.mid.gain.setValueAtTime(value, this.audioContext?.currentTime || 0);
+        }
         break;
       case 'high':
-        this.eqNodes.high.gain.setValueAtTime(value, now);
+        this.eqSettings.high = value;
+        if (this.eqNodes.high) {
+          this.eqNodes.high.gain.setValueAtTime(value, this.audioContext?.currentTime || 0);
+        }
         break;
     }
   }
 
   applyEffect(effect: AudioEffect): void {
-    // TODO: Implement effect application
-    console.log('Applying effect:', effect);
+    // Placeholder for effect application
+    console.warn('applyEffect not fully implemented');
   }
 
   removeEffect(effectId: string): void {
-    // TODO: Implement effect removal
-    console.log('Removing effect:', effectId);
+    // Placeholder for effect removal
+    console.warn('removeEffect not fully implemented');
   }
 
   getCurrentTime(): number {
     if (this.mediaElement) {
-      return this.mediaElement.currentTime || 0;
+      return this.mediaElement.currentTime;
     }
-    if (!this.audioBuffer) return 0;
-    
-    if (this.isPlayingFlag && this.audioBufferSource && this.audioContext) {
-      return this.audioContext.currentTime - this.startTime;
+    if (this.audioBufferSource && this.audioContext) {
+      return (this.audioContext.currentTime - this.startTime) * this.playbackRate * this.pitchRatio + this.pauseTime;
     }
     return this.pauseTime;
   }
@@ -822,201 +988,166 @@ export class WebAudioEngine implements AudioEngine {
     if (this.mediaElement) {
       return this.mediaElement.duration || 0;
     }
-    return this.audioBuffer?.duration || 0;
+    if (this.audioBuffer) {
+      return this.audioBuffer.duration;
+    }
+    return 0;
   }
 
-  getAnalyser(): AnalyserNode {
+  getAnalyser(): AnalyserNode | null {
     return this.analyser;
   }
 
-  // --- Lo-fi controls ---
   setLofiTone(cutoffHz: number): void {
-    if (!this.audioContext) return;
-    
-    this.lofiLPF.frequency.setValueAtTime(Math.max(200, Math.min(20000, cutoffHz)), this.audioContext.currentTime);
+    if (this.lofiLPF) {
+      this.lofiLPF.frequency.setValueAtTime(cutoffHz, this.audioContext?.currentTime || 0);
+    }
   }
 
   setLofiNoiseLevel(level01: number): void {
-    if (!this.audioContext) return;
-    
-    const level = Math.max(0, Math.min(1, level01));
-    this.lofiNoiseGain.gain.setValueAtTime(level * 0.02, this.audioContext.currentTime);
-    if (level > 0 && !this.lofiNoiseSource) {
-      // Create looping noise buffer
-      const duration = 2.0;
-      const length = Math.floor(this.audioContext.sampleRate * duration);
-      const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < length; i++) {
-        data[i] = (Math.random() * 2 - 1) * 0.5; // white-ish noise
-      }
-      this.lofiNoiseSource = this.audioContext.createBufferSource();
-      this.lofiNoiseSource.buffer = buffer;
-      this.lofiNoiseSource.loop = true;
-      this.lofiNoiseSource.connect(this.lofiNoiseGain);
-      try { this.lofiNoiseSource.start(); } catch {}
-    }
-    if (level === 0 && this.lofiNoiseSource) {
-      try { this.lofiNoiseSource.stop(); } catch {}
-      try { this.lofiNoiseSource.disconnect(); } catch {}
-      this.lofiNoiseSource = null;
+    if (this.lofiNoiseGain) {
+      this.lofiNoiseGain.gain.setValueAtTime(level01, this.audioContext?.currentTime || 0);
     }
   }
 
   setLofiWowFlutter(depthMs: number, rateHz: number): void {
-    if (!this.audioContext) return;
-    
-    const depthHz = Math.max(0, depthMs) / 1000;
-    this.lofiWowDepth.gain.setValueAtTime(depthHz * 50, this.audioContext.currentTime);
-    this.lofiWowLFO.frequency.setValueAtTime(Math.max(0.05, Math.min(5, rateHz)), this.audioContext.currentTime);
+    if (this.lofiWowLFO && this.lofiWowDepth) {
+      this.lofiWowLFO.frequency.setValueAtTime(rateHz, this.audioContext?.currentTime || 0);
+      this.lofiWowDepth.gain.setValueAtTime(depthMs, this.audioContext?.currentTime || 0);
+    }
   }
 
-  setLofiCrackle(_amountPerSec: number): void {
-    // Placeholder: could schedule impulses into a convolver or gain pops
-    // For now, no-op to avoid artifacts
+  setLofiCrackle(amountPerSec: number): void {
+    // Placeholder for crackle effect
+    console.warn('setLofiCrackle not implemented');
   }
 
-  // 7-band EQ controls
   setEQBand(band: number, gainDb: number): void {
-    if (!this.audioContext) return;
-    
-    if (band >= 0 && band < 7 && this.eqBands[band]) {
-      const clamped = Math.max(-12, Math.min(12, gainDb));
-      this.eqBands[band].gain.setValueAtTime(clamped, this.audioContext.currentTime);
+    if (this.eqBands[band]) {
+      this.eqBands[band]!.gain.setValueAtTime(gainDb, this.audioContext?.currentTime || 0);
     }
   }
 
   setEQMix(mix: number): void {
-    if (!this.audioContext) return;
-    
-    const clamped = Math.max(0, Math.min(1, mix));
-    this.eqWet.gain.setValueAtTime(clamped, this.audioContext.currentTime);
-    this.eqDry.gain.setValueAtTime(1 - clamped, this.audioContext.currentTime);
+    if (this.eqMix) {
+      this.eqMix.gain.setValueAtTime(mix, this.audioContext?.currentTime || 0);
+    }
   }
 
   setEQBypass(bypass: boolean): void {
-    this.setEffectBypass('eq', bypass);
+    if (this.eqBypass) {
+      this.eqBypass.gain.setValueAtTime(bypass ? 0 : 1, this.audioContext?.currentTime || 0);
+    }
   }
 
-  // Reverb controls
   setReverbMix(mix: number): void {
-    if (!this.audioContext) return;
-    
-    const clamped = Math.max(0, Math.min(1, mix));
-    this.reverbWet.gain.setValueAtTime(clamped, this.audioContext.currentTime);
-    this.reverbDry.gain.setValueAtTime(1 - clamped, this.audioContext.currentTime);
+    if (this.reverbMix) {
+      this.reverbMix.gain.setValueAtTime(mix, this.audioContext?.currentTime || 0);
+    }
   }
 
   setReverbPreDelay(delayMs: number): void {
-    if (!this.audioContext) return;
-    
-    const clamped = Math.max(0, Math.min(100, delayMs)) / 1000; // Convert to seconds
-    this.reverbPreDelay.delayTime.setValueAtTime(clamped, this.audioContext.currentTime);
+    if (this.reverbPreDelay) {
+      this.reverbPreDelay.delayTime.setValueAtTime(delayMs / 1000, this.audioContext?.currentTime || 0);
+    }
   }
 
   setReverbDamping(cutoffHz: number): void {
-    if (!this.audioContext) return;
-    
-    const clamped = Math.max(100, Math.min(20000, cutoffHz));
-    this.reverbDamping.frequency.setValueAtTime(clamped, this.audioContext.currentTime);
+    if (this.reverbDamping) {
+      this.reverbDamping.frequency.setValueAtTime(cutoffHz, this.audioContext?.currentTime || 0);
+    }
   }
 
   setReverbPreset(preset: 'small' | 'medium' | 'large'): void {
-    (this as any).reverbPreset = preset;
-    this.loadReverbImpulse(preset);
+    // Placeholder for preset loading
+    console.warn('setReverbPreset not fully implemented');
   }
 
   setReverbBypass(bypass: boolean): void {
-    this.setEffectBypass('reverb', bypass);
+    if (this.reverbBypass) {
+      this.reverbBypass.gain.setValueAtTime(bypass ? 0 : 1, this.audioContext?.currentTime || 0);
+    }
   }
 
-  private loadReverbImpulse(preset: 'small' | 'medium' | 'large'): void {
-    // Generate simple impulse responses for different room sizes
-    const sampleRate = this.audioContext.sampleRate;
-    let length: number;
-    let decay: number;
-    
-    switch (preset) {
-      case 'small':
-        length = Math.floor(sampleRate * 0.5); // 0.5s
-        decay = 0.3;
-        break;
-      case 'medium':
-        length = Math.floor(sampleRate * 1.0); // 1.0s
-        decay = 0.5;
-        break;
-      case 'large':
-        length = Math.floor(sampleRate * 2.0); // 2.0s
-        decay = 0.7;
-        break;
-    }
-
-    const impulseBuffer = this.audioContext.createBuffer(2, length, sampleRate);
-    
-    for (let channel = 0; channel < 2; channel++) {
-      const channelData = impulseBuffer.getChannelData(channel);
-      
-      // Create a simple exponential decay impulse response
-      for (let i = 0; i < length; i++) {
-        const t = i / sampleRate;
-        const decayFactor = Math.exp(-t / decay);
-        const noise = (Math.random() * 2 - 1) * 0.5;
-        channelData[i] = noise * decayFactor;
-      }
-    }
-
-    // Create and connect convolver
-    if (this.reverbConvolver) {
-      this.reverbConvolver.disconnect();
-    }
-    this.reverbConvolver = this.audioContext.createConvolver();
-    this.reverbConvolver.buffer = impulseBuffer;
-    this.reverbConvolver.normalize = true;
-
-    // Wire: preDelay → convolver → damping → reverbWet
-    this.reverbPreDelay.disconnect();
-    this.reverbPreDelay.connect(this.reverbConvolver);
-    this.reverbConvolver.connect(this.reverbDamping);
-    this.reverbDamping.connect(this.reverbWet);
-  }
-
-  // Low-pass tone controls
   setLowPassTone(cutoffHz: number): void {
-    if (!this.audioContext) return;
-    
-    const clamped = Math.max(20, Math.min(20000, cutoffHz));
-    this.lowPassTone.frequency.setValueAtTime(clamped, this.audioContext.currentTime);
+    if (this.lowPassTone) {
+      this.lowPassTone.frequency.setValueAtTime(cutoffHz, this.audioContext?.currentTime || 0);
+    }
   }
 
   setLowPassResonance(resonance: number): void {
-    if (!this.audioContext) return;
-    
-    const clamped = Math.max(0.1, Math.min(10, resonance));
-    this.lowPassTone.Q.setValueAtTime(clamped, this.audioContext.currentTime);
+    if (this.lowPassTone) {
+      this.lowPassTone.Q.setValueAtTime(resonance, this.audioContext?.currentTime || 0);
+    }
   }
 
   setEffectBypass(id: EffectModuleId, bypass: boolean): void {
-    this.effectBypass[id] = !!bypass;
-    this.applyBypass(id, this.effectBypass[id]);
+    this.effectBypass[id] = bypass;
+    this.applyBypass(id, bypass);
   }
 
   setEffectMix(id: EffectModuleId, mix: number): void {
-    this.effectMix[id] = Math.max(0, Math.min(1, mix));
-    this.applyMix(id, this.effectMix[id]);
+    this.effectMix[id] = mix;
+    this.applyMix(id, mix);
+  }
+
+  loadReverbImpulse(preset: 'small' | 'medium' | 'large'): void {
+    // Placeholder for loading reverb impulse responses
+    console.warn('loadReverbImpulse not implemented');
   }
 
   destroy(): void {
     this.stop();
-    this.audioBuffer = null;
-    // this.currentTrack = null;
-    if (this.mediaSourceNode) {
-      try { this.mediaSourceNode.disconnect(); } catch {}
-      this.mediaSourceNode = null;
+    if (this.audioContext) {
+      this.audioContext.close();
     }
-    if (this.mediaElement) {
-      try { this.mediaElement.src = ''; this.mediaElement.load(); } catch {}
-      this.mediaElement = null;
+  }
+
+  // NEW: Helper method to refresh Jamendo track URLs
+  private async refreshJamendoTrack(track: AudioTrack): Promise<AudioTrack | null> {
+    try {
+      // Import the Jamendo API utilities
+      const { jamendoAPI } = await import('../../utils/jamendo-api');
+      
+      // Get the track ID from the track object
+      const trackId = track.id;
+      if (!trackId) {
+        console.error('Cannot refresh Jamendo track: missing track ID');
+        return null;
+      }
+      
+      console.log('Refreshing Jamendo track with ID:', trackId);
+      
+      // Fetch fresh track data from Jamendo API
+      const response = await jamendoAPI.searchTracks({ 
+        limit: 1, 
+        include: ['musicinfo'],
+        // Search by track ID
+        search: `id:${trackId}`
+      });
+      
+      if (response.results && response.results.length > 0) {
+        const freshTrackData = response.results[0];
+        console.log('Fresh track data received:', freshTrackData);
+        
+        // Convert to AudioTrack format
+        const { convertJamendoToTrack } = await import('../../components/player/utils');
+        const freshAudioTrack = convertJamendoToTrack(freshTrackData);
+        
+        if (freshAudioTrack) {
+          console.log('Successfully converted fresh track data to AudioTrack');
+          return freshAudioTrack;
+        } else {
+          console.error('Failed to convert fresh Jamendo track data');
+          return null;
+        }
+      } else {
+        console.error('No track found when refreshing Jamendo track');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error refreshing Jamendo track:', error);
+      return null;
     }
-    // TODO: Clean up all audio nodes
   }
 }
