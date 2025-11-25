@@ -22,27 +22,37 @@
     "noEmit": true,
     "allowArbitraryExtensions": true,
     /* Paths & Imports */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/styles/*": ["./src/styles/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/assets/*": ["./src/assets/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
+      ],
+      "@/styles/*": [
+        "./src/styles/*"
+      ],
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/assets/*": [
+        "./src/assets/*"
+      ]
     },
-
     /* Type Checking - RELAXED FOR BUILD COMPLETION */
     "strict": true,
-    "noUnusedLocals": false,     /* Allow unused locals to avoid 44 errors */
+    "noUnusedLocals": false, /* Allow unused locals to avoid 44 errors */
     "noUnusedParameters": false, /* Allow unused parameters to avoid 2 errors */
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "strictNullChecks": false,   /* Allow null checks to avoid 7 errors */
+    "strictNullChecks": false, /* Allow null checks to avoid 7 errors */
     "noImplicitAny": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
-    "strictPropertyInitialization": false,  /* Must be false when strictNullChecks is false */
+    "strictPropertyInitialization": false, /* Must be false when strictNullChecks is false */
     "noImplicitThis": true,
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true,
@@ -50,7 +60,6 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "verbatimModuleSyntax": false,
-
     /* Emit */
     "declaration": true,
     "declarationMap": true,
@@ -59,7 +68,6 @@
     "importHelpers": true,
     "incremental": true,
     "composite": true,
-
     /* Interop Constraints */
     "allowUmdGlobalAccess": true,
     "preserveSymlinks": true
@@ -88,6 +96,8 @@
     }
   },
   "references": [
-    { "path": "./tsconfig.node.json" }
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

@@ -1,20 +1,19 @@
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
-import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 
 // Custom plugin to handle Figma asset imports
 const figmaAssetPlugin = () => {
   return {
     name: 'figma-asset-resolver',
-    resolveId(source) {
+    resolveId(source: string) {
       if (source.startsWith('figma:asset/')) {
         // Return a virtual module ID
         return '\0' + source;
       }
       return null;
     },
-    load(id) {
+    load(id: string) {
       if (id.startsWith('\0figma:asset/')) {
         // Return a simple placeholder image data URL
         // This is a 1x1 transparent PNG
@@ -31,21 +30,7 @@ const figmaAssetPlugin = () => {
 export default defineConfig({
   plugins: [
     figmaAssetPlugin(),
-    react(),
-    ViteImageOptimizer({
-      png: {
-        quality: 80,
-      },
-      jpeg: {
-        quality: 80,
-      },
-      webp: {
-        quality: 80,
-      },
-      avif: {
-        quality: 50,
-      },
-    })
+    react()
   ],
   resolve: {
     alias: {
@@ -62,8 +47,8 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    minify: 'esbuild',
-    sourcemap: process.env.NODE_ENV === 'development' ? 'inline' : false,
+    minify: false, // Disable minification to speed up build and avoid hanging
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: undefined,
