@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play } from 'lucide-react';
-import type { Playlist } from '../HomeScreen';
+// Import Playlist interface from home types
+import type { Playlist } from '../../types/home';
 
 interface FeaturedPlaylistsProps {
   playlists: Playlist[];

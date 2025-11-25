@@ -129,6 +129,31 @@ export default function MusicPlayer({
     getAnalyser
   } = useAudioPlayer();
 
+  // Sync the playerIsPlaying state with the hook's isPlaying state
+  useEffect(() => {
+    setPlayerIsPlaying(isPlaying);
+  }, [isPlaying]);
+
+  // Sync the playerCurrentTime state with the hook's currentTime state
+  useEffect(() => {
+    setPlayerCurrentTime(currentTime);
+  }, [currentTime]);
+
+  // Sync the playerDuration state with the hook's duration state
+  useEffect(() => {
+    setPlayerDuration(duration);
+  }, [duration]);
+
+  // Sync the playerVolumeState state with the hook's volume state
+  useEffect(() => {
+    setPlayerVolume(Math.round(playerVolume * 100));
+  }, [playerVolume]);
+
+  // Sync the playerIsMuted state with the hook's isMuted state
+  useEffect(() => {
+    setPlayerIsMuted(isMuted);
+  }, [isMuted]);
+
   // Navigation functions
   const handleNext = () => {
     console.log('Handle next called, queueTracks:', queueTracks);
@@ -211,9 +236,13 @@ export default function MusicPlayer({
   useEffect(() => {
     if (currentTrack) {
       console.log('Received new track in MusicPlayer:', currentTrack);
+      console.log('Track type:', typeof currentTrack);
+      console.log('Track keys:', Object.keys(currentTrack));
+
       // If it's a JamendoTrack, convert it directly
       if (typeof currentTrack === 'object' && 'id' in currentTrack && 'name' in currentTrack) {
         const jamendoTrack = currentTrack as JamendoTrack;
+        console.log('Processing JamendoTrack:', jamendoTrack);
         // Convert to AudioTrack and load
         const audioTrack = convertJamendoToTrack(jamendoTrack);
         if (audioTrack && audioTrack.id !== 'unknown') {
@@ -229,6 +258,7 @@ export default function MusicPlayer({
         }
       } else {
         // Handle string track names
+        console.log('Processing string track name:', currentTrack);
         const safeTrack = {
           id: 'unknown',
           name: typeof currentTrack === 'string' ? currentTrack : 'Unknown Track',
@@ -267,7 +297,7 @@ export default function MusicPlayer({
   }, [tempo, setPlaybackRate]);
 
   // Handle play/pause
-  const togglePlay = () => {
+  const togglePlay = async () => {
     console.log('Toggle play called, track:', track);
     console.log('Track audioUrl:', track?.audioUrl);
     console.log('Track source:', track?.source);
@@ -311,14 +341,52 @@ export default function MusicPlayer({
         console.error('Invalid audio URL format:', audioSource);
         return;
       }
+
+      // Additional check for Jamendo URLs
+      if (audioSource.includes('jamendo.com') && !audioSource.startsWith('http')) {
+        setHasError(true);
+        setErrorMessage(`Invalid Jamendo URL: "${audioSource}". The URL must start with http or https.`);
+        console.error('Invalid Jamendo URL format:', audioSource);
+        return;
+      }
     }
 
-    // Call the hook's togglePlayPause function
-    togglePlayPause();
+    // Call the hook's togglePlayPause function and handle errors
+    try {
+      await togglePlayPause();
+      const newPlayState = !playerIsPlaying;
+      setPlayerIsPlaying(newPlayState);
+      onPlayPause?.();
+    } catch (error) {
+      console.error('Error during playback:', error);
 
-    const newPlayState = !playerIsPlaying;
-    setPlayerIsPlaying(newPlayState);
-    onPlayPause?.();
+      // Provide more specific error messages based on the error type
+      let userMessage = 'An unknown error occurred during playback.';
+
+      if (error instanceof Error) {
+        userMessage = error.message;
+
+        // Check for specific error patterns and provide more helpful messages
+        if (error.message.includes('autoplay')) {
+          userMessage = 'Browser autoplay policy is blocking audio. Click the play button again to start playback.';
+        } else if (error.message.includes('interrupted') || error.message.includes('Abort')) {
+          userMessage = 'Audio playback was interrupted. Click the play button again to retry.';
+        } else if (error.message.includes('format not supported')) {
+          userMessage = 'This audio format is not supported. Try selecting a different track.';
+        } else if (error.message.includes('network')) {
+          userMessage = 'Network error occurred while trying to play audio. Check your connection and try again.';
+        } else if (error.message.includes('activate')) {
+          userMessage = 'Failed to activate audio system. This may be due to browser restrictions. Please interact with the page (click, tap, or press a key) and then click the play button again.';
+        } else if (error.message.includes('engine error')) {
+          userMessage = 'Audio engine error. Please interact with the page and try clicking the play button again. If the problem persists, try refreshing the page.';
+        } else if (error.message.includes('user interaction')) {
+          userMessage = 'Audio playback requires user interaction. Please click or tap anywhere on the page, then click the play button again to start playback.';
+        }
+      }
+
+      setHasError(true);
+      setErrorMessage(userMessage);
+    }
   };
 
   const resetEqualizer = () => {
@@ -451,9 +519,6 @@ export default function MusicPlayer({
 
   return (
     <div className="bg-background min-h-screen text-foreground">
-      {/* Hidden Audio Element - Always present to avoid browser autoplay policy issues */}
-      {/* The audio element is now handled internally by the useAudioPlayer hook */}
-
       <div className="flex justify-center">
         <div className="w-full max-w-md bg-card rounded-2xl min-h-screen relative overflow-hidden border border-border">
           {/* Header */}
@@ -475,6 +540,9 @@ export default function MusicPlayer({
               <List className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Hidden Audio Element - Always present to avoid browser autoplay policy issues */}
+          {/* The audio element is now handled internally by the useAudioPlayer hook */}
 
           <div className="px-6 pb-32 space-y-6">
             {/* Loading State */}

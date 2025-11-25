@@ -2,8 +2,8 @@ import React from 'react';
 import { Clock, Award, Users } from 'lucide-react';
 import './ActiveContests.css';
 
-// Import Contest interface from HomeScreen as type-only import
-import type { Contest } from '../HomeScreen';
+// Import Contest interface from home types
+import type { Contest } from '../../types/home';
 
 interface ActiveContestsProps {
   contests: Contest[];

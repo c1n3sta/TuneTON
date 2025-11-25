@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { JamendoTrack } from "../utils/jamendo-api";
+import { jamendoAPI, JamendoTrack } from "../utils/jamendo-api";
 import { UniversalTrack } from "../utils/music-service-manager";
 import { tuneTONAPI, TuneTONPlaylist } from "../utils/tuneton-api";
 import AIStudio from "./AIStudio";
@@ -29,8 +29,6 @@ import SearchTestPage from "./SearchTestPage";
 import SettingsPage from "./SettingsPage";
 import { SwipeNavigationProvider } from "./SwipeNavigationProvider";
 import { useTelegramAuth } from "./TelegramAuthProvider";
-import TestSearch from "./TestSearch";
-import TestSearchComponent from "./TestSearchComponent";
 import UserProfile from "./UserProfile";
 
 interface User {
@@ -192,7 +190,6 @@ export default function MusicApp() {
     if (typeof track === 'string') {
       // Search for the actual track
       try {
-        const { jamendoAPI } = await import("../utils/jamendo-api");
         const searchResults = await jamendoAPI.searchTracks({ search: track, limit: 1 });
         if (searchResults.results.length > 0) {
           setCurrentTrack(searchResults.results[0]);
@@ -239,29 +236,6 @@ export default function MusicApp() {
   return (
     <SwipeNavigationProvider>
       <div className="min-h-screen bg-background">
-        {/* Test button - only shown in development */}
-        {import.meta.env.DEV && (
-          <div className="fixed top-4 right-4 z-50 flex gap-2">
-            <button
-              onClick={() => handleNavigation("Test", "jamendo-test")}
-              className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
-            >
-              Test Jamendo
-            </button>
-            <button
-              onClick={() => handleNavigation("Test", "test-search")}
-              className="px-3 py-1 bg-green-500 text-white rounded text-sm"
-            >
-              Test Search
-            </button>
-            <button
-              onClick={() => handleNavigation("Test", "search-test")}
-              className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
-            >
-              Search Test Page
-            </button>
-          </div>
-        )}
         {/* Main Content */}
         {currentPage === "home" && (
           <HomePage
@@ -285,17 +259,17 @@ export default function MusicApp() {
           <SearchDebugPage />
         )}
 
-        {currentPage === "test-search" && (
-          <TestSearch />
-        )}
 
-        {currentPage === "test-search-component" && (
-          <TestSearchComponent />
-        )}
+
+        {/* {currentPage === "test-audio-playback" && (
+          <TestAudioPlayback />
+        )} */}
 
         {currentPage === "search-test" && (
           <SearchTestPage />
         )}
+
+
 
         {currentPage === "player" && (
           <MusicPlayer
@@ -341,7 +315,7 @@ export default function MusicApp() {
         {/* Detail Pages */}
         {currentPage === "playlist-detail" && (
           <PlaylistDetail
-            onBack={() => handleNavigation("Library", "library")}
+            onBack={() => handleNavigation("Library", "library-real")}
             onNavigate={handleNavigation}
             onPlayTrack={handleTrackChange}
           />

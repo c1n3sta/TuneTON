@@ -1,0 +1,537 @@
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Play, Pause, Volume2, VolumeX, SkipBack, SkipForward } from "lucide-react";
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
+import { Button } from "./ui/button-component";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Slider } from "./ui/slider";
+
+interface AudioTestComponentProps {
+  onBack: () => void;
+}
+
+const AudioTestComponent: React.FC<AudioTestComponentProps> = ({ onBack }) => {
+  const [trackLoaded, setTrackLoaded] = useState(false);
+  const [showAdvancedControls, setShowAdvancedControls] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const {
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    isMuted,
+    playbackRate,
+    tempo,
+    pitchSemitones,
+    eqBands,
+    eqMix,
+    eqBypass,
+    reverbMix,
+    reverbPreDelay,
+    reverbDamping,
+    reverbPreset,
+    reverbBypass,
+    lofiTone,
+    lofiNoise,
+    lofiWow,
+    lowPassTone,
+    lowPassResonance,
+    loadTrack,
+    togglePlayPause,
+    seek,
+    setVolume,
+    toggleMute,
+    setPlaybackRate,
+    setTempo,
+    setPitchSemitones,
+    setEffectBypass,
+    setEffectMix,
+    handleEQBandChange,
+    handleEQMixChange,
+    handleEQBypassChange,
+    handleReverbMixChange,
+    handleReverbPreDelayChange,
+    handleReverbDampingChange,
+    handleReverbPresetChange,
+    handleReverbBypassChange,
+    handleLofiToneChange,
+    handleLofiNoiseChange,
+    handleLofiWowChange,
+    handleLowPassToneChange,
+    handleLowPassResonanceChange,
+    getAnalyser
+  } = useAudioPlayer();
+
+  // Test track data - using a real audio file that should work
+  const testTrack = {
+    id: 'test-track-1',
+    title: 'SoundHelix Test Song',
+    artist: 'SoundHelix',
+    duration: 180, // 3 minutes
+    source: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    coverArt: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400'
+  };
+
+  const handleLoadTrack = async () => {
+    console.log('Loading test track:', testTrack);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await loadTrack(testTrack);
+      console.log('Track loaded successfully');
+      setTrackLoaded(true);
+    } catch (err) {
+      console.error('Failed to load track:', err);
+      setError(`Failed to load track: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePlayPause = async () => {
+    console.log('Play/Pause button clicked. Current state:', { isPlaying, trackLoaded });
+    
+    if (!trackLoaded) {
+      setError('Please load a track first');
+      return;
+    }
+    
+    try {
+      await togglePlayPause();
+      console.log('Play/Pause toggled successfully');
+    } catch (err) {
+      console.error('Failed to toggle play/pause:', err);
+      setError(`Failed to toggle play/pause: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  // Format time in seconds to MM:SS format
+  const formatTime = (seconds: number): string => {
+    if (isNaN(seconds) || seconds < 0) return '0:00';
+    
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  // Log state changes for debugging
+  useEffect(() => {
+    console.log('Audio state updated:', { isPlaying, currentTime, duration, volume, isMuted });
+  }, [isPlaying, currentTime, duration, volume, isMuted]);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <div className="flex items-center gap-4 p-4 border-b border-border">
+        <Button variant="ghost" size="icon" onClick={onBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-xl font-semibold">Audio Test</h1>
+      </div>
+
+      <div className="flex-1 p-4 space-y-6 overflow-y-auto">
+        {/* Error Message */}
+        {error && (
+          <Card className="border-red-500 bg-red-50 dark:bg-red-900/20">
+            <CardContent className="p-4">
+              <p className="text-red-700 dark:text-red-300 font-medium">Error: {error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Track Loading */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Test Track</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <img 
+                  src={testTrack.coverArt} 
+                  alt="Test Track Cover" 
+                  className="w-16 h-16 rounded-md object-cover"
+                />
+                <div>
+                  <h3 className="font-medium">{testTrack.title}</h3>
+                  <p className="text-sm text-muted-foreground">{testTrack.artist}</p>
+                  <p className="text-xs text-muted-foreground">Duration: {formatTime(testTrack.duration)}</p>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={handleLoadTrack}
+                className="w-full"
+                disabled={loading || trackLoaded}
+              >
+                {loading ? 'Loading...' : trackLoaded ? 'Track Loaded' : 'Load Test Track'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Playback Controls */}
+        {trackLoaded && (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Playback Controls</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Progress Bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>{formatTime(currentTime)}</span>
+                      <span>{formatTime(duration)}</span>
+                    </div>
+                    <Slider
+                      value={[currentTime]}
+                      max={duration || 100}
+                      step={1}
+                      onValueChange={(value) => seek(value[0])}
+                    />
+                  </div>
+
+                  {/* Main Controls */}
+                  <div className="flex items-center justify-center gap-4">
+                    <Button variant="ghost" size="icon">
+                      <SkipBack className="h-6 w-6" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      className="h-12 w-12 rounded-full"
+                      onClick={handlePlayPause}
+                      disabled={loading}
+                    >
+                      {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <SkipForward className="h-6 w-6" />
+                    </Button>
+                  </div>
+
+                  {/* Volume Controls */}
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={toggleMute}>
+                      {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    </Button>
+                    <Slider
+                      value={[volume]}
+                      max={1}
+                      step={0.01}
+                      onValueChange={(value) => setVolume(value[0])}
+                      className="flex-1"
+                    />
+                    <span className="text-sm w-10">{Math.round(volume * 100)}%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Speed Controls */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Speed & Pitch</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Playback Rate</span>
+                    <span>{playbackRate.toFixed(2)}x</span>
+                  </div>
+                  <Slider
+                    value={[playbackRate]}
+                    min={0.5}
+                    max={2}
+                    step={0.1}
+                    onValueChange={(value) => setPlaybackRate(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>0.5x</span>
+                    <span>1.0x</span>
+                    <span>2.0x</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Tempo</span>
+                    <span>{tempo.toFixed(2)}x</span>
+                  </div>
+                  <Slider
+                    value={[tempo]}
+                    min={0.5}
+                    max={2}
+                    step={0.1}
+                    onValueChange={(value) => setTempo(value[0])}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Pitch</span>
+                    <span>{pitchSemitones} semitones</span>
+                  </div>
+                  <Slider
+                    value={[pitchSemitones + 12]}
+                    min={0}
+                    max={24}
+                    step={1}
+                    onValueChange={(value) => setPitchSemitones(value[0] - 12)}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>-12</span>
+                    <span>0</span>
+                    <span>+12</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Advanced Controls Toggle */}
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setShowAdvancedControls(!showAdvancedControls)}
+            >
+              {showAdvancedControls ? 'Hide Advanced Controls' : 'Show Advanced Controls'}
+            </Button>
+
+            {/* Advanced Controls */}
+            {showAdvancedControls && (
+              <>
+                {/* EQ Controls */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      <span>Equalizer</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEQBypassChange(!eqBypass)}
+                      >
+                        {eqBypass ? 'Bypassed' : 'Enabled'}
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>EQ Mix</span>
+                        <span>{Math.round(eqMix * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[eqMix]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleEQMixChange(value[0])}
+                      />
+                    </div>
+
+                    {/* 7-band EQ */}
+                    {eqBands.map((gain, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Band {index + 1}</span>
+                          <span>{gain > 0 ? '+' : ''}{gain}dB</span>
+                        </div>
+                        <Slider
+                          value={[gain + 12]}
+                          min={0}
+                          max={24}
+                          step={1}
+                          onValueChange={(value) => handleEQBandChange(index, value[0] - 12)}
+                        />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Reverb Controls */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      <span>Reverb</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleReverbBypassChange(!reverbBypass)}
+                      >
+                        {reverbBypass ? 'Bypassed' : 'Enabled'}
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Reverb Mix</span>
+                        <span>{Math.round(reverbMix * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[reverbMix]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleReverbMixChange(value[0])}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Pre-delay</span>
+                        <span>{reverbPreDelay}ms</span>
+                      </div>
+                      <Slider
+                        value={[reverbPreDelay]}
+                        max={500}
+                        step={1}
+                        onValueChange={(value) => handleReverbPreDelayChange(value[0])}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Damping</span>
+                        <span>{Math.round(reverbDamping * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[reverbDamping]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleReverbDampingChange(value[0])}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Preset</span>
+                        <span>{reverbPreset}</span>
+                      </div>
+                      <Slider
+                        value={[reverbPreset]}
+                        max={4}
+                        step={1}
+                        onValueChange={(value) => handleReverbPresetChange(value[0])}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>Small</span>
+                        <span>Medium</span>
+                        <span>Large</span>
+                        <span>Hall</span>
+                        <span>Plate</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Lofi Controls */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      <span>Lofi</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setEffectBypass('lofi', !lofiTone.bypass)}
+                      >
+                        {lofiTone.bypass ? 'Bypassed' : 'Enabled'}
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Tone</span>
+                        <span>{Math.round(lofiTone.value * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[lofiTone.value]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleLofiToneChange(value[0])}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Noise</span>
+                        <span>{Math.round(lofiNoise.value * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[lofiNoise.value]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleLofiNoiseChange(value[0])}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Wow</span>
+                        <span>{Math.round(lofiWow.value * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[lofiWow.value]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleLofiWowChange(value[0])}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Low Pass Filter Controls */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      <span>Low Pass Filter</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setEffectBypass('lowPass', !lowPassTone.bypass)}
+                      >
+                        {lowPassTone.bypass ? 'Bypassed' : 'Enabled'}
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Tone</span>
+                        <span>{Math.round(lowPassTone.value * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[lowPassTone.value]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleLowPassToneChange(value[0])}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Resonance</span>
+                        <span>{Math.round(lowPassResonance.value * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[lowPassResonance.value]}
+                        max={1}
+                        step={0.01}
+                        onValueChange={(value) => handleLowPassResonanceChange(value[0])}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AudioTestComponent;

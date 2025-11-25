@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Audio Test</h1>
+    <button id="playButton">Play Audio</button>
+    <audio id="audioPlayer" preload="metadata"></audio>
+    
+    <script>
+        const audio = document.getElementById('audioPlayer');
+        const playButton = document.getElementById('playButton');
+        
+        // Test with a known working audio URL
+        audio.src = 'https://prod-1.storage.jamendo.com/?trackid=168&format=mp31&from=T5nwq2YjU883g38McVKHAw%3D%3D%7Cn3tFy3hULjwlI9FC%2Fza2uw%3D%3D';
+        
+        // Add mobile-specific attributes
+        audio.setAttribute('playsinline', 'true');
+        audio.setAttribute('webkit-playsinline', 'true');
+        audio.setAttribute('x5-playsinline', 'true');
+        
+        audio.addEventListener('canplay', () => {
+            console.log('Audio can play');
+        });
+        
+        audio.addEventListener('play', () => {
+            console.log('Audio play event fired');
+        });
+        
+        audio.addEventListener('error', (e) => {
+            console.error('Audio playback error:', e);
+        });
+        
+        playButton.addEventListener('click', () => {
+            audio.play().catch(error => {
+                console.error('Failed to play audio:', error);
+            });
+        });
+    </script>
+</body>
+</html>

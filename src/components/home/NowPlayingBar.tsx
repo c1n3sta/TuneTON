@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play, Pause, SkipBack, SkipForward, Heart, Share2, MoreHorizontal } from 'lucide-react';
-import type { Track } from '../HomeScreen';
+// Import Track interface from home types
+import type { Track } from '../../types/home';
 import './NowPlayingBar.css';
 
 interface NowPlayingBarProps {

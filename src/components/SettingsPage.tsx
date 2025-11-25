@@ -1,9 +1,9 @@
+import { ArrowLeft, Bell, Info, Music, Palette, Shield, User } from "lucide-react";
 import { useState } from "react";
-import { ArrowLeft, User, Bell, Shield, Palette, Info, Database, CheckCircle, AlertCircle } from "lucide-react";
+import AudioTestComponent from "./AudioTestComponent";
 import { Button } from "./ui/button-component";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Switch } from "./ui/switch";
-import { tuneTONAPI } from "../utils/tuneton-api";
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -15,29 +15,7 @@ export default function SettingsPage({ onBack, onNavigate, user }: SettingsPageP
   const [notifications, setNotifications] = useState(true);
   const [autoPlay, setAutoPlay] = useState(true);
   const [highQuality, setHighQuality] = useState(false);
-  const [isFixingRLS, setIsFixingRLS] = useState(false);
-  const [rlsStatus, setRlsStatus] = useState<'idle' | 'success' | 'error'>('idle');
-
-  const handleFixRLS = async () => {
-    setIsFixingRLS(true);
-    setRlsStatus('idle');
-    
-    try {
-      const result = await tuneTONAPI.fixRLS();
-      console.log('RLS Fix Result:', result);
-      
-      if ('success' in result && result.success) {
-        setRlsStatus('success');
-      } else {
-        setRlsStatus('error');
-      }
-    } catch (error) {
-      console.error('RLS Fix Error:', error);
-      setRlsStatus('error');
-    } finally {
-      setIsFixingRLS(false);
-    }
-  };
+  const [showAudioTest, setShowAudioTest] = useState(false);
 
   const settingsOptions = [
     {
@@ -61,6 +39,12 @@ export default function SettingsPage({ onBack, onNavigate, user }: SettingsPageP
       icon: Palette,
       title: "Appearance",
       description: "Customize the app's look and feel"
+    },
+    {
+      icon: Music,
+      title: "Audio Test",
+      description: "Test audio playback and effects",
+      action: () => setShowAudioTest(true)
     }
   ];
 
@@ -77,6 +61,13 @@ export default function SettingsPage({ onBack, onNavigate, user }: SettingsPageP
     }
   ];
 
+  // If audio test is requested, show the audio test component instead
+  if (showAudioTest) {
+    return (
+      <AudioTestComponent onBack={() => setShowAudioTest(false)} />
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
@@ -87,6 +78,7 @@ export default function SettingsPage({ onBack, onNavigate, user }: SettingsPageP
         <h1 className="text-xl font-semibold">Settings</h1>
       </div>
 
+      <div className="flex-1 p-4 space-y-6">
         {/* General Settings */}
         <Card>
           <CardHeader>
@@ -137,7 +129,6 @@ export default function SettingsPage({ onBack, onNavigate, user }: SettingsPageP
             ))}
           </CardContent>
         </Card>
-
 
         {/* About */}
         <Card>

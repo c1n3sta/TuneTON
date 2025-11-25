@@ -595,14 +595,6 @@ export default function HomePage({
             <h2 className="font-semibold text-lg text-foreground">Recently Played</h2>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-5 h-5"
-              onClick={() => onNavigate && onNavigate("Search", "search")}
-            >
-              <Search className="w-4 h-4 text-muted-foreground" />
-            </Button>
           </div>
         </div>
 
@@ -814,6 +806,14 @@ export default function HomePage({
               </div>
 
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-10 h-10 p-0"
+                  onClick={() => onNavigate && onNavigate("Search", "search")}
+                >
+                  <Search className="w-5 h-5" />
+                </Button>
                 <Button variant="ghost" size="sm" className="w-10 h-10 p-0 relative">
                   <Bell className="w-5 h-5" />
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full"></div>
@@ -853,7 +853,7 @@ export default function HomePage({
                 />
                 <QuickAccessButton
                   type="library"
-                  onClick={() => onNavigate?.("Library", "library")}
+                  onClick={() => onNavigate?.("Library", "library-real")}
                 />
                 <QuickAccessButton
                   type="nft"

@@ -126,6 +126,77 @@ class TuneTonAPI {
     return null;
   }
 
+  // Add method to get current user UUID
+  async getCurrentUserId(): Promise<string | null> {
+    try {
+      // First try to get the Telegram user ID
+      const telegramUserId = this.getUserId();
+      if (!telegramUserId) {
+        console.warn('Telegram user ID not available');
+        return null;
+      }
+
+      // Look up the user UUID from the users table
+      const { data, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', telegramUserId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user UUID:', error);
+        return null;
+      }
+
+      return data?.id || null;
+    } catch (error) {
+      console.error('Error getting current user ID:', error);
+      return null;
+    }
+  }
+
+  // Add method to map internal user UUID to Telegram user ID
+  async getTelegramUserId(internalUserId: string): Promise<number | null> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('telegram_id')
+        .eq('id', internalUserId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching Telegram user ID:', error);
+        return null;
+      }
+
+      return data?.telegram_id || null;
+    } catch (error) {
+      console.error('Error getting Telegram user ID:', error);
+      return null;
+    }
+  }
+
+  // Add method to map Telegram user ID to internal user UUID
+  async getInternalUserId(telegramUserId: number): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', telegramUserId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching internal user ID:', error);
+        return null;
+      }
+
+      return data?.id || null;
+    } catch (error) {
+      console.error('Error getting internal user ID:', error);
+      return null;
+    }
+  }
+
   // Playlist management
   async createPlaylist(playlistData: {
     user_id: string;
@@ -539,9 +610,10 @@ class TuneTonAPI {
   // Playback history management
   async addPlaybackHistory(trackData: JamendoTrack, durationPlayed: number = 0, isCompleted: boolean = false): Promise<boolean> {
     try {
-      const userId = this.getUserId();
-      if (!userId) {
-        console.warn('User ID not available, cannot record playback history');
+      // Get the Telegram user ID first
+      const telegramUserId = this.getUserId();
+      if (!telegramUserId) {
+        console.warn('Telegram user ID not available, cannot record playback history');
         return false;
       }
       
@@ -549,7 +621,7 @@ class TuneTonAPI {
         .from('playback_history')
         .insert([
           {
-            user_id: userId,
+            user_id: telegramUserId, // Use Telegram ID for foreign key reference (BIGINT)
             track_id: trackData.id.toString(),
             track_data: trackData,
             played_at: new Date().toISOString(),
