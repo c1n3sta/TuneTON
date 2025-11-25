@@ -11,7 +11,6 @@ import CreateNFT from "./CreateNFT";
 import DetailRankingPage from "./DetailRankingPage";
 import DiscoverPage from "./DiscoverPage";
 import HomePage from "./HomePage";
-import LibraryPage from "./LibraryPage";
 import LibraryPageReal from "./LibraryPageReal";
 import MusicPlayer from "./MusicPlayer";
 import MyNFTs from "./MyNFTs";
@@ -313,15 +312,6 @@ export default function MusicApp() {
             onBack={() => handleNavigation("Home")}
             onNavigate={handleNavigation}
             onTrackSelect={handleTrackChange}
-          />
-        )}
-
-        {currentPage === "library" && (
-          <LibraryPage
-            onBack={() => handleNavigation("Home")}
-            onNavigate={handleNavigation}
-            onTrackSelect={handleTrackChange}
-            user={user}
           />
         )}
 

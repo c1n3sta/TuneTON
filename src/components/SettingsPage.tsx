@@ -87,59 +87,6 @@ export default function SettingsPage({ onBack, onNavigate, user }: SettingsPageP
         <h1 className="text-xl font-semibold">Settings</h1>
       </div>
 
-      <div className="flex-1 p-4 space-y-6">
-        {/* Database Security Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Database Security
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Fix Row Level Security (RLS) policies for database security compliance.
-              </p>
-              <Button 
-                onClick={handleFixRLS} 
-                disabled={isFixingRLS}
-                className="w-full"
-                variant={rlsStatus === 'success' ? 'default' : 'outline'}
-              >
-                {isFixingRLS ? (
-                  "Fixing RLS Policies..."
-                ) : rlsStatus === 'success' ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    RLS Policies Fixed
-                  </>
-                ) : rlsStatus === 'error' ? (
-                  <>
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    Fix RLS Policies (Retry)
-                  </>
-                ) : (
-                  <>
-                    <Database className="h-4 w-4 mr-2" />
-                    Fix RLS Policies
-                  </>
-                )}
-              </Button>
-              {rlsStatus === 'success' && (
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  ✓ All 29 RLS security policies have been successfully applied
-                </p>
-              )}
-              {rlsStatus === 'error' && (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  ✗ Error fixing RLS policies. Check console for details.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* General Settings */}
         <Card>
           <CardHeader>

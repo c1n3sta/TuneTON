@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "tone": "^15.1.22"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3"
-  }
-}

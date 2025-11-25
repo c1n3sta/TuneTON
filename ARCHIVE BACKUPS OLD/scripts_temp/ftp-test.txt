@@ -1,5 +1,0 @@
-open 31.31.197.37
-user u3220060_tuneton_qoder 8XIaE5MdeOK4tJv1
-binary
-ls
-quit

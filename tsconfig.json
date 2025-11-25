@@ -2,7 +2,11 @@
   "compilerOptions": {
     /* Base Options */
     "target": "ES2022",
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
     "module": "ESNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",
@@ -10,7 +14,6 @@
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-
     /* Bundler & Module Resolution */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -18,7 +21,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "allowArbitraryExtensions": true,
-
     /* Paths & Imports */
     "baseUrl": ".",
     "paths": {
