@@ -50,10 +50,15 @@ export function validateAndSelectAudioUrl(audio?: string, audiodownload?: string
   const proxify = (url: string) => {
     if (!url) return url;
     // If already proxied, return as is
-    if (url.includes('/functions/v1/audio-proxy?url=')) return url;
+    if (url.includes('/audio-proxy?url=')) return url;
+    
     const encoded = encodeURIComponent(url);
-    const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-    return `${base}/functions/v1/audio-proxy?url=${encoded}`;
+    
+    // Use VITE_API_URL which is defined in .env.production as .../functions/v1
+    // Fallback to the known URL if env var is missing (though it should be there)
+    const baseUrl = import.meta.env.VITE_API_URL || 'https://dthrpvpuzinmevrvqlhv.supabase.co/functions/v1';
+    
+    return `${baseUrl}/audio-proxy?url=${encoded}`;
   };
 
   // Validate primary URL first
