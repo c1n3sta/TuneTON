@@ -39,7 +39,11 @@
     "postinstall": "npm run build",
     "pre-commit": "lint-staged",
     "prettier": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
-    "migrate:data": "node scripts/migrate-data-to-db.js"
+    "migrate:data": "node scripts/migrate-data-to-db.js",
+    "server:start": "cd server && npm start",
+    "server:dev": "cd server && npm run dev",
+    "deploy:backend": "node scripts/deploy-backend.js",
+    "test:backend": "node scripts/test-backend.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.2",
