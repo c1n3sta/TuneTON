@@ -1,0 +1,14 @@
+version: '3.7'
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: always
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./uptime-kuma-data:/app/data
+    environment:
+      - UPTIME_KUMA_PORT=3001
+      - UPTIME_KUMA_HOST=0.0.0.0
