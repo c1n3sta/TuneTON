@@ -1,5 +1,5 @@
 // Authentication hook for self-hosted backend
-import { useState, useEffect, createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import apiClient from '../utils/apiClient';
 
 // Create context
