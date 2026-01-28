@@ -1,0 +1,24 @@
+{
+  "name": "tuneton-security-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for securing TuneTON backend deployment",
+  "main": "secure-backend-deployment.js",
+  "type": "module",
+  "scripts": {
+    "reorganize": "node reorganize-backend-security.js",
+    "deploy-secure": "node secure-backend-deployment.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tuneton",
+    "security",
+    "backend",
+    "deployment"
+  ],
+  "author": "TuneTON Security Team",
+  "license": "MIT",
+  "dependencies": {
+    "basic-ftp": "^5.0.5",
+    "dotenv": "^16.6.1"
+  }
+}
