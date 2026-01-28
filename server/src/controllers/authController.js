@@ -1,6 +1,6 @@
 // Authentication controller
 import User from '../models/User.js';
-import { verifyTelegramData, parseInitData } from '../utils/telegramAuth.js';
+import { parseInitData, verifyTelegramData } from '../utils/telegramAuth.js';
 
 /**
  * Handle Telegram WebApp authentication

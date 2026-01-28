@@ -2,9 +2,9 @@
 
 // Script to deploy the self-hosted backend
 import { Client } from 'basic-ftp';
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '.env.production') });
@@ -35,6 +35,25 @@ async function uploadFileWithRetry(client, localPath, remotePath, maxRetries = 3
     }
   }
   return false;
+}
+
+// Function to create directory recursively
+async function createDirectoryRecursive(client, dirPath) {
+  // Remove leading slash if present and split path
+  const cleanPath = dirPath.replace(/^\//, '');
+  const dirs = cleanPath.split('/').filter(dir => dir !== '');
+  
+  let currentPath = '';
+  for (const dir of dirs) {
+    currentPath = currentPath ? currentPath + '/' + dir : dir;
+    try {
+      await client.send('MKD ' + currentPath);
+      console.log(`Created directory: ${currentPath}`);
+    } catch (error) {
+      // Directory might already exist, which is fine
+      console.log(`Directory ${currentPath} already exists or error creating it`);
+    }
+  }
 }
 
 // Function to establish connection with proper error handling
@@ -99,7 +118,7 @@ async function deploy() {
     
     // Get list of files to upload
     const filesToUpload = [];
-    function getFiles(dir, baseDir = '') {
+    async function getFiles(dir, baseDir = '') {
       const items = fs.readdirSync(dir);
       for (const item of items) {
         // Skip node_modules and other unnecessary directories
@@ -113,7 +132,15 @@ async function deploy() {
         const stat = fs.statSync(fullPath);
         
         if (stat.isDirectory()) {
-          getFiles(fullPath, relativePath);
+          // Create directory on server
+          const remoteDirPath = relativePath;
+          try {
+            await createDirectoryRecursive(client, remoteDirPath);
+          } catch (error) {
+            console.log(`Error creating directory ${remoteDirPath}: ${error.message}`);
+          }
+          
+          await getFiles(fullPath, relativePath);
         } else {
           filesToUpload.push({
             local: fullPath,
@@ -123,7 +150,7 @@ async function deploy() {
       }
     }
     
-    getFiles(serverDir);
+    await getFiles(serverDir);
     
     console.log(`Found ${filesToUpload.length} files to upload`);
     
@@ -142,6 +169,16 @@ async function deploy() {
           }
           // Change to backend directory again
           await client.cd('backend');
+        }
+        
+        // Create directory structure if needed
+        const dirPath = path.dirname(file.remote);
+        if (dirPath && dirPath !== '.') {
+          try {
+            await createDirectoryRecursive(client, dirPath);
+          } catch (error) {
+            console.log(`Error creating directory ${dirPath}: ${error.message}`);
+          }
         }
         
         const uploadSuccess = await uploadFileWithRetry(client, file.local, file.remote);

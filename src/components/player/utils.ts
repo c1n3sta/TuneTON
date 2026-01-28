@@ -18,7 +18,6 @@ export function convertJamendoToTrack(
 
   // Select the best audio URL (proxied through audio-proxy)
   const audioUrl = validateAndSelectAudioUrl(track.audio, track.audiodownload);
-  const fallbackUrl = track.audiodownload || track.audio || '';
 
   const result: AudioTrack = {
     id: track.id,
@@ -28,7 +27,6 @@ export function convertJamendoToTrack(
     duration: track.duration,
     coverArt: track.image,
     source: audioUrl,
-    fallbackUrl: fallbackUrl !== audioUrl ? fallbackUrl : undefined,
   };
 
   console.log('Converted track result:', result);

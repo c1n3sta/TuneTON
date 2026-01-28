@@ -1,6 +1,6 @@
 // Track controller
-import Track from '../models/Track.js';
 import Playback from '../models/Playback.js';
+import Track from '../models/Track.js';
 
 /**
  * Get all tracks

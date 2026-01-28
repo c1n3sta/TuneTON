@@ -1,7 +1,7 @@
 // Audio player hook with playback tracking for self-hosted backend
 import { useEffect, useState } from 'react';
-import { useAudioPlayer } from './useAudioPlayer';
 import apiClient from '../utils/apiClient';
+import { useAudioPlayer } from './useAudioPlayer';
 
 export const useAudioPlayerWithTracking = () => {
   // Use the existing audio player hook

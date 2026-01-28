@@ -2,8 +2,8 @@
 
 // Script to migrate data from Supabase to self-hosted PostgreSQL
 import { createClient } from '@supabase/supabase-js';
-import pg from 'pg';
 import dotenv from 'dotenv';
+import pg from 'pg';
 
 // Load environment variables
 dotenv.config();

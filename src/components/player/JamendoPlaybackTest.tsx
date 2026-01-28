@@ -27,30 +27,36 @@ const JamendoPlaybackTest: React.FC = () => {
     duration: 270,
     artist_id: '441585',
     artist_name: 'The.madpix.project',
+    artist_idstr: 'The.madpix.project',
     album_name: 'Wish You Were Here',
     album_id: '145774',
+    album_image: 'https://usercontent.jamendo.com?type=album&id=145774&width=300&trackid=1214935',
     audio: 'https://prod-1.storage.jamendo.com/?trackid=1214935&format=mp31&from=NZdL4%2BluU9c2cxgsCQ4iUQ%3D%3D%7CD0LmyHszHdv90eFD%2BWHoWQ%3D%3D',
     audiodownload: 'https://prod-1.storage.jamendo.com/download/track/1214935/mp32/',
-    image: 'https://usercontent.jamendo.com?type=album&id=145774&width=300&trackid=1214935'
+    image: 'https://usercontent.jamendo.com?type=album&id=145774&width=300&trackid=1214935',
+    prourl: '',
+    shorturl: '',
+    shareurl: '',
+    waveform: ''
   };
 
   const handleLoadAndPlay = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Convert Jamendo track to AudioTrack format
       const audioTrack = convertJamendoToTrack(mockJamendoTrack);
-      
+
       if (!audioTrack) {
         throw new Error('Failed to convert Jamendo track to AudioTrack');
       }
-      
+
       console.log('Loading track:', audioTrack);
-      
+
       // Load the track
       await loadTrack(audioTrack);
-      
+
       // Start playing
       await togglePlayPause();
     } catch (err) {
@@ -68,7 +74,7 @@ const JamendoPlaybackTest: React.FC = () => {
   return (
     <div className="p-6 bg-gray-800 text-white rounded-lg max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-4 text-center">Jamendo Playback Test</h2>
-      
+
       <div className="mb-4">
         <h3 className="text-lg font-semibold mb-2">Test Track: Wish You Were Here</h3>
         <p className="text-sm text-gray-300">Artist: The.madpix.project</p>
