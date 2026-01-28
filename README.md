@@ -1,6 +1,6 @@
 # TuneTON - Music Streaming Platform
 
-TuneTON is a music streaming platform built as a Telegram Web App with real-time audio editing capabilities, blockchain integration, and gamification features.
+TuneTON is a music streaming platform built as a Telegram Web App with real-time audio editing capabilities, blockchain integration and gamification features.
 
 ## Migration from Supabase to Self-Hosted Backend
 
@@ -132,6 +132,108 @@ If issues arise during migration:
 1. Revert frontend to use Supabase
 2. Restore database from backup
 3. Document issues and fix before retrying migration
+
+## Monitoring Suite
+
+A comprehensive monitoring suite has been implemented to ensure the health and performance of the TuneTON application in production.
+
+### Components
+
+1. **PM2 Process Monitoring** - For Node.js process management and monitoring
+2. **Uptime-Kuma** - For service uptime monitoring
+3. **Prometheus + Grafana** - For metrics collection and visualization
+4. **ELK Stack** - For log aggregation and analysis
+5. **All-in-One Dashboard** - Unified view of all monitoring components
+
+### Setup
+
+To deploy the monitoring suite:
+
+1. Deploy monitoring files to your server:
+   ```bash
+   npm run deploy:monitoring
+   ```
+
+2. SSH into your server and run the setup scripts:
+   ```bash
+   cd monitoring
+   chmod +x setup-all.sh
+   ./setup-all.sh
+   ```
+
+3. Configure each monitoring tool according to the documentation in `monitoring/USAGE.md`
+
+### Access Points
+
+After deployment, the monitoring tools are accessible at:
+- **All-in-One Dashboard**: http://your-server:8080
+- **PM2 Dashboard**: http://your-server:9615
+- **Uptime-Kuma**: http://your-server:3002
+- **Grafana**: http://your-server:3003
+- **Kibana**: http://your-server:5601
+- **Prometheus**: http://your-server:9090
+
+See `monitoring/README.md` for detailed documentation.
+
+## Setting up SSH Access and Running Monitoring (ISP Manager)
+
+If you're using ISP Manager to host your TuneTON application, you'll need to set up SSH access to run the monitoring setup scripts.
+
+### Automated SSH Setup
+
+This project now includes automated SSH setup tools:
+
+1. **Test SSH Connection**:
+   ```bash
+   npm run test:ssh
+   ```
+
+2. **Setup Monitoring via SSH**:
+   ```bash
+   npm run setup:monitoring
+   ```
+
+These scripts use the SSH credentials stored in your `.env.production` file.
+
+### 1. Setting up SSH Access through ISP Manager
+
+Follow the detailed guide in `documentation/ISP_MANAGER_SSH_SETUP.md` which explains:
+- How to configure SSH keys or password authentication in ISP Manager
+- How to connect to your server via SSH
+- How to run the monitoring setup scripts
+
+### 2. Alternative Web-Based Setup
+
+If SSH access is limited, you can use the web-based setup script:
+1. Upload `scripts/web-based-setup.php` to your server
+2. Access it through your web browser
+3. The script will automatically set up all monitoring components
+4. **Important**: Delete the script after setup for security reasons
+
+### 3. Complete SSH Access Guide
+
+If you're having trouble finding SSH settings in ISP Manager, refer to the comprehensive guide in `documentation/SSH_ACCESS_COMPLETE_GUIDE.md` which covers:
+- Detailed steps for configuring SSH access through ISP Manager
+- Alternative methods if SSH isn't available
+- Troubleshooting common connection issues
+- Security best practices
+
+### 4. Diagnostic Scripts
+
+Several diagnostic scripts are available to help you understand your current connection:
+- `scripts/connection-diagnostic.sh` - Provides detailed information about your connection
+- `scripts/setup-ssh-access.sh` - Helps diagnose SSH configuration
+- `scripts/complete-server-setup.sh` - Sets up the entire TuneTON application
+
+### 5. Post-Setup Configuration
+
+After running the setup:
+1. Access each monitoring tool through its respective URL
+2. Configure alerts and notifications as needed
+3. Set up custom dashboards for your specific metrics
+4. Review security settings and update default passwords
+
+See `documentation/ISP_MANAGER_SSH_SETUP.md` and `documentation/SSH_ACCESS_COMPLETE_GUIDE.md` for complete instructions.
 
 ## Contributing
 
